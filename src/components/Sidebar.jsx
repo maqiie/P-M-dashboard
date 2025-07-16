@@ -25,7 +25,11 @@ import {
   DollarSign,
   User,
   LogOut,
-  AlertTriangle
+  AlertTriangle,
+  CheckSquare,
+  List,
+  Timer,
+  Flag
 } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
@@ -62,7 +66,10 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
           upcoming_events: 3,
           active_tenders: 2,
           pending_notifications: 5,
-          total_team_members: 24
+          total_team_members: 24,
+          active_tasks: 12,
+          overdue_tasks: 3,
+          tasks_due_today: 5
         });
       } else {
         throw new Error('Invalid user data received');
@@ -107,13 +114,18 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
     }
   };
 
-  // Determine active item based on current route - UPDATED FOR /user/ PREFIX
+  // Determine active item based on current route - UPDATED FOR TASKS
   const getActiveItem = (pathname) => {
     if (pathname === '/user/dashboard' || pathname === '/user' || pathname === '/dashboard') return 'dashboard';
     if (pathname === '/user/projects') return 'projects';
     if (pathname === '/user/projects/active') return 'active-projects';
     if (pathname === '/user/projects/completed') return 'completed-projects';
     if (pathname === '/user/projects/templates') return 'project-templates';
+    if (pathname === '/user/tasks' || pathname === '/user/tasks/') return 'tasks';
+    if (pathname === '/user/tasks/active') return 'active-tasks';
+    if (pathname === '/user/tasks/completed') return 'completed-tasks';
+    if (pathname === '/user/tasks/overdue') return 'overdue-tasks';
+    if (pathname === '/user/tasks/my-tasks') return 'my-tasks';
     if (pathname === '/user/calendar') return 'calendar';
     if (pathname === '/user/team' || pathname === '/user/team/overview') return 'team-overview';
     if (pathname === '/user/team/performance') return 'team-performance';
@@ -134,7 +146,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
 
   const activeItem = getActiveItem(location.pathname);
 
-  // Auto-expand parent menus based on current route - UPDATED FOR /user/ PREFIX
+  // Auto-expand parent menus based on current route - UPDATED FOR TASKS
   useEffect(() => {
     const pathname = location.pathname;
     const newExpanded = [...expandedItems];
@@ -142,6 +154,11 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
     if (pathname.startsWith('/user/projects/')) {
       if (!newExpanded.includes('projects')) {
         newExpanded.push('projects');
+      }
+    }
+    if (pathname.startsWith('/user/tasks/')) {
+      if (!newExpanded.includes('tasks')) {
+        newExpanded.push('tasks');
       }
     }
     if (pathname.startsWith('/user/team/')) {
@@ -181,7 +198,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       .toUpperCase();
   };
 
-  // UPDATED MENU ITEMS WITH /user/ PREFIX
+  // UPDATED MENU ITEMS WITH TASKS
   const menuItems = [
     {
       id: 'dashboard',
@@ -201,6 +218,43 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
         { id: 'active-projects', title: 'Active Projects', icon: Target, href: '/user/projects/active' },
         { id: 'completed-projects', title: 'Completed', icon: CheckCircle, href: '/user/projects/completed' },
         { id: 'project-templates', title: 'Templates', icon: FileText, href: '/user/projects/templates' }
+      ]
+    },
+    {
+      id: 'tasks',
+      title: 'Tasks',
+      icon: CheckSquare,
+      href: '/user/tasks',
+      badge: projectStats.active_tasks ? String(projectStats.active_tasks) : null,
+      hasSubmenu: true,
+      submenu: [
+        { 
+          id: 'active-tasks', 
+          title: 'Active Tasks', 
+          icon: List, 
+          href: '/user/tasks/active',
+          badge: projectStats.active_tasks ? String(projectStats.active_tasks) : null
+        },
+        { 
+          id: 'my-tasks', 
+          title: 'My Tasks', 
+          icon: User, 
+          href: '/user/tasks/my-tasks' 
+        },
+        { 
+          id: 'overdue-tasks', 
+          title: 'Overdue', 
+          icon: AlertTriangle, 
+          href: '/user/tasks/overdue',
+          badge: projectStats.overdue_tasks ? String(projectStats.overdue_tasks) : null,
+          badgeColor: 'red'
+        },
+        { 
+          id: 'completed-tasks', 
+          title: 'Completed', 
+          icon: CheckCircle, 
+          href: '/user/tasks/completed' 
+        }
       ]
     },
     {
@@ -235,12 +289,12 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
         { id: 'tender-history', title: 'History', icon: BarChart3, href: '/user/tenders/history' }
       ]
     },
-    {
-      id: 'locations',
-      title: 'Locations',
-      icon: MapPin,
-      href: '/user/locations'
-    },
+    // {
+    //   id: 'locations',
+    //   title: 'Locations',
+    //   icon: MapPin,
+    //   href: '/user/locations'
+    // },
     {
       id: 'reports',
       title: 'Reports',
@@ -294,6 +348,14 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       }
     };
 
+    // Determine badge color
+    const getBadgeColor = () => {
+      if (item.badgeColor === 'red') {
+        return isActive ? 'bg-white/20 text-white' : 'bg-red-100 text-red-600';
+      }
+      return isActive ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600';
+    };
+
     return (
       <div className={`${isSubmenu ? 'ml-3 lg:ml-4' : ''} ${!parentExpanded && isSubmenu ? 'hidden' : ''}`}>
         <button
@@ -324,10 +386,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
               {item.badge && (
                 <span className={`
                   px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold rounded-full
-                  ${isActive 
-                    ? 'bg-white/20 text-white' 
-                    : 'bg-blue-100 text-blue-600'
-                  }
+                  ${getBadgeColor()}
                 `}>
                   {item.badge}
                 </span>
@@ -344,7 +403,6 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
             </div>
           )}
         </button>
-
         {/* Submenu */}
         {item.hasSubmenu && !isCollapsed && isExpanded && (
           <div className="mt-1 lg:mt-2 space-y-1">
@@ -362,9 +420,9 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
     );
   };
 
-  // UPDATED NEW PROJECT HANDLER
-  const handleNewProject = () => {
-    navigate('/user/projects');
+  // UPDATED NEW TASK HANDLER
+  const handleNewTask = () => {
+    navigate('/user/tasks');
   };
 
   // Show loading state while fetching user data
@@ -448,9 +506,19 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
         {/* Quick Actions */}
         {!isCollapsed && (
           <div className="p-3 lg:p-4 border-b border-gray-100/80">
+            {/* Primary Action - New Task */}
             <button 
-              onClick={handleNewProject}
+              onClick={handleNewTask}
               className="w-full flex items-center justify-center px-3 py-2.5 lg:px-4 lg:py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg lg:rounded-xl hover:shadow-lg active:scale-95 transition-all duration-200 font-medium text-sm lg:text-base touch-manipulation"
+            >
+              <CheckSquare className="h-4 w-4 mr-2" />
+              New Task
+            </button>
+
+            {/* Secondary Action - New Project */}
+            <button 
+              onClick={() => navigate('/user/projects')}
+              className="w-full mt-2 flex items-center justify-center px-3 py-2 lg:px-4 lg:py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg lg:rounded-xl hover:bg-gray-50 hover:shadow-sm active:scale-95 transition-all duration-200 font-medium text-sm touch-manipulation"
             >
               <Plus className="h-4 w-4 mr-2" />
               New Project
@@ -469,6 +537,28 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
                   }
                 }}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Task Summary (when not collapsed) */}
+        {!isCollapsed && projectStats.active_tasks && (
+          <div className="px-3 lg:px-4 pb-3 lg:pb-4">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Today's Tasks</span>
+                <Timer className="h-4 w-4 text-blue-600" />
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="text-center">
+                  <div className="font-bold text-blue-600">{projectStats.tasks_due_today || 5}</div>
+                  <div className="text-gray-600">Due Today</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-bold text-red-600">{projectStats.overdue_tasks || 3}</div>
+                  <div className="text-gray-600">Overdue</div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -519,7 +609,6 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
                   {user.role || 'Project Manager'}
                 </p>
               </div>
-
               {/* Logout button */}
               <button 
                 onClick={(e) => {

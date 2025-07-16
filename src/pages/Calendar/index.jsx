@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// import Sidebar from '../../components/Sidebar';
-import { dashboardAPI } from '../../services/api';
+import { calendarAPI } from '../../services/api'; // Adjust path as needed
 import { 
   Calendar,
   ChevronLeft,
@@ -16,19 +15,28 @@ import {
   Edit,
   Trash2,
   MoreHorizontal,
-  Building2
+  Building2,
+  Target,
+  FileText,
+  Loader,
+  Search,
+  Grid3x3,
+  List,
+  Zap,
+  TrendingUp
 } from 'lucide-react';
 
 const CalendarPage = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-  const [viewMode, setViewMode] = useState('month'); // 'month', 'week', 'day'
+  const [viewMode, setViewMode] = useState('month');
   const [eventFilter, setEventFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeMenuItem, setActiveMenuItem] = useState('calendar');
-  // const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     loadEvents();
@@ -37,112 +45,21 @@ const CalendarPage = () => {
   const loadEvents = async () => {
     try {
       setLoading(true);
-      const data = await dashboardAPI.getEvents();
+      setError(null);
+      
+      // Get events for the current month
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      
+      const data = await calendarAPI.getMonthEvents(year, month);
       setEvents(data);
     } catch (error) {
       console.error('Failed to load events:', error);
-      setEvents(getMockEvents());
+      setError('Failed to load calendar events. Please try again.');
+      setEvents([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  const getMockEvents = () => [
-    {
-      id: 1,
-      title: "Project Kickoff - Smart City",
-      description: "Initial meeting with all stakeholders",
-      date: "2025-07-05",
-      time: "09:00",
-      type: "meeting",
-      project: "Smart City Infrastructure",
-      location: "Conference Room A",
-      attendees: ["Sarah Johnson", "Maria Santos", "Tech Team"],
-      status: "scheduled",
-      priority: "high"
-    },
-    {
-      id: 2,
-      title: "Client Review - Downtown Plaza",
-      description: "Present progress and get client feedback",
-      date: "2025-07-08",
-      time: "14:00",
-      type: "review",
-      project: "Downtown Plaza Development",
-      location: "Client Office",
-      attendees: ["Sarah Johnson", "Alex Chen", "Client"],
-      status: "scheduled",
-      priority: "high"
-    },
-    {
-      id: 3,
-      title: "Budget Approval Meeting",
-      description: "Quarterly budget review and approval",
-      date: "2025-07-10",
-      time: "10:30",
-      type: "meeting",
-      project: "Green Energy Initiative",
-      location: "Finance Department",
-      attendees: ["Finance Team", "Sarah Johnson"],
-      status: "scheduled",
-      priority: "medium"
-    },
-    {
-      id: 4,
-      title: "Site Inspection",
-      description: "Monthly safety and progress inspection",
-      date: "2025-07-12",
-      time: "08:00",
-      type: "inspection",
-      project: "Green Energy Initiative",
-      location: "Industrial Zone Site",
-      attendees: ["John Davis", "Safety Team"],
-      status: "scheduled",
-      priority: "high"
-    },
-    {
-      id: 5,
-      title: "Team Standup",
-      description: "Weekly team synchronization meeting",
-      date: "2025-07-15",
-      time: "09:00",
-      type: "meeting",
-      project: "Downtown Plaza Development",
-      location: "Project Office",
-      attendees: ["Development Team"],
-      status: "scheduled",
-      priority: "low"
-    },
-    {
-      id: 6,
-      title: "Equipment Delivery",
-      description: "New construction equipment arrival",
-      date: "2025-07-18",
-      time: "11:00",
-      type: "delivery",
-      project: "Highway Bridge Renovation",
-      location: "Equipment Yard",
-      attendees: ["Mike Wilson", "Equipment Team"],
-      status: "scheduled",
-      priority: "medium"
-    },
-    {
-      id: 7,
-      title: "Project Completion Review",
-      description: "Final review and handover preparation",
-      date: "2025-07-20",
-      time: "15:00",
-      type: "review",
-      project: "Residential Complex Phase 2",
-      location: "Site Office",
-      attendees: ["Lisa Wang", "Quality Team"],
-      status: "scheduled",
-      priority: "high"
-    }
-  ];
-
-  const handleMenuItemClick = (itemId, href) => {
-    console.log('Navigate to:', href);
   };
 
   const navigateMonth = (direction) => {
@@ -158,7 +75,6 @@ const CalendarPage = () => {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-
     const days = [];
     
     // Add empty cells for days before month starts
@@ -178,37 +94,52 @@ const CalendarPage = () => {
     if (!day) return [];
     
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return events.filter(event => event.date === dateStr);
+    return filteredEvents.filter(event => event.date === dateStr);
   };
 
   const getEventTypeColor = (type) => {
     switch (type) {
-      case 'meeting': return 'bg-blue-500';
-      case 'review': return 'bg-purple-500';
-      case 'inspection': return 'bg-green-500';
-      case 'delivery': return 'bg-orange-500';
-      case 'deadline': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'meeting': return 'from-blue-500 to-blue-600';
+      case 'review': return 'from-purple-500 to-purple-600';
+      case 'inspection': return 'from-green-500 to-green-600';
+      case 'delivery': return 'from-orange-500 to-orange-600';
+      case 'deadline': return 'from-red-500 to-red-600';
+      case 'project_start': return 'from-emerald-500 to-emerald-600';
+      case 'task_start': return 'from-cyan-500 to-cyan-600';
+      default: return 'from-gray-500 to-gray-600';
     }
   };
 
   const getEventTypeIcon = (type) => {
+    const iconClass = "h-3 w-3";
     switch (type) {
-      case 'meeting': return <Users className="h-3 w-3" />;
-      case 'review': return <Eye className="h-3 w-3" />;
-      case 'inspection': return <CheckCircle className="h-3 w-3" />;
-      case 'delivery': return <Building2 className="h-3 w-3" />;
-      case 'deadline': return <AlertTriangle className="h-3 w-3" />;
-      default: return <Calendar className="h-3 w-3" />;
+      case 'meeting': return <Users className={iconClass} />;
+      case 'review': return <Eye className={iconClass} />;
+      case 'inspection': return <CheckCircle className={iconClass} />;
+      case 'delivery': return <Building2 className={iconClass} />;
+      case 'deadline': return <AlertTriangle className={iconClass} />;
+      case 'project_start': return <Target className={iconClass} />;
+      case 'task_start': return <FileText className={iconClass} />;
+      default: return <Calendar className={iconClass} />;
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'border-l-red-500';
-      case 'medium': return 'border-l-yellow-500';
-      case 'low': return 'border-l-green-500';
-      default: return 'border-l-gray-300';
+      case 'high': return 'border-l-red-400 bg-red-50/50';
+      case 'medium': return 'border-l-amber-400 bg-amber-50/50';
+      case 'low': return 'border-l-emerald-400 bg-emerald-50/50';
+      default: return 'border-l-gray-300 bg-gray-50/50';
+    }
+  };
+
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case 'project': return 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white';
+      case 'task': return 'bg-gradient-to-r from-green-500 to-emerald-500 text-white';
+      case 'tender': return 'bg-gradient-to-r from-amber-500 to-orange-500 text-white';
+      case 'event': return 'bg-gradient-to-r from-purple-500 to-pink-500 text-white';
+      default: return 'bg-gradient-to-r from-gray-500 to-gray-600 text-white';
     }
   };
 
@@ -234,56 +165,113 @@ const CalendarPage = () => {
     }
   };
 
+  // Filter events based on selected filters
   const filteredEvents = events.filter(event => {
-    if (eventFilter === 'all') return true;
-    return event.type === eventFilter;
+    if (eventFilter !== 'all' && event.type !== eventFilter) return false;
+    if (categoryFilter !== 'all' && event.category !== categoryFilter) return false;
+    return true;
   });
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const todayEvents = filteredEvents.filter(event => {
+    const today = new Date();
+    const eventDate = new Date(event.date);
+    return eventDate.toDateString() === today.toDateString();
+  });
+
+  const upcomingEvents = filteredEvents.filter(event => {
+    const eventDate = new Date(event.date);
+    const today = new Date();
+    const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return eventDate > today && eventDate <= weekFromNow;
+  });
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
-          <p className="mt-6 text-xl text-gray-700 font-semibold">Loading Calendar...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-100">
+        <div className="text-center space-y-4">
+          <div className="relative">
+            <Loader className="h-16 w-16 text-indigo-600 animate-spin mx-auto" />
+            <div className="absolute inset-0 rounded-full bg-indigo-100 opacity-20 animate-ping"></div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-2xl font-bold text-gray-800">Loading Calendar</h3>
+            <p className="text-gray-600">Fetching your events and schedules...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-pink-50 to-rose-100">
+        <div className="text-center space-y-6 max-w-md mx-auto p-8">
+          <div className="relative">
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto" />
+            <div className="absolute inset-0 rounded-full bg-red-100 opacity-30 animate-pulse"></div>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-2xl font-bold text-gray-800">Calendar Unavailable</h3>
+            <p className="text-red-600 leading-relaxed">{error}</p>
+          </div>
+          <button 
+            onClick={() => loadEvents()} 
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-xl hover:from-red-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <Zap className="h-5 w-5 mr-2" />
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex">
-      {/* <Sidebar 
-        activeItem={activeMenuItem}
-        onItemClick={handleMenuItemClick}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      /> */}
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white/90 backdrop-blur-xl shadow-lg border-b border-white/30 sticky top-0 z-30">
-          <div className="px-6 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="flex-1 flex flex-col">
+        {/* Modern Header */}
+        <header className="bg-white/70 backdrop-blur-xl border-b border-white/50 sticky top-0 z-40 shadow-sm">
+          <div className="px-6 py-5">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
-                <p className="text-sm text-gray-600 mt-1">
-                  Manage project events, meetings, and deadlines
-                </p>
+              <div className="flex items-center space-x-6">
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    Calendar
+                  </h1>
+                  <p className="text-gray-600 mt-1 font-medium">
+                    Track projects, tasks, deadlines & events
+                  </p>
+                </div>
+                
+                {/* Quick Stats */}
+                <div className="hidden lg:flex items-center space-x-6 ml-8">
+                  <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-semibold text-blue-700">{events.length} Events</span>
+                  </div>
+                  <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl">
+                    <Clock className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-semibold text-green-700">{todayEvents.length} Today</span>
+                  </div>
+                  <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl">
+                    <TrendingUp className="h-4 w-4 text-amber-600" />
+                    <span className="text-sm font-semibold text-amber-700">{upcomingEvents.length} Upcoming</span>
+                  </div>
+                </div>
               </div>
               
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 <button 
                   onClick={() => setShowCreateModal(true)}
-                  className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
+                  className="group flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
-                  <Plus className="h-5 w-5 mr-2" />
+                  <Plus className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-200" />
                   New Event
                 </button>
               </div>
@@ -292,53 +280,70 @@ const CalendarPage = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <main className="flex-1 p-6">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
             
-            {/* Calendar */}
+            {/* Calendar Section */}
             <div className="xl:col-span-3">
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/30 shadow-lg overflow-hidden">
+              <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/50 shadow-xl overflow-hidden">
                 
                 {/* Calendar Header */}
-                <div className="p-6 border-b border-gray-100">
+                <div className="p-8 border-b border-gray-100/50 bg-gradient-to-r from-gray-50/50 to-white/50">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <h2 className="text-xl font-bold text-gray-900">
-                        {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                      </h2>
-                      <div className="flex items-center space-x-1">
-                        <button 
-                          onClick={() => navigateMonth(-1)}
-                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <ChevronLeft className="h-5 w-5" />
-                        </button>
-                        <button 
-                          onClick={() => navigateMonth(1)}
-                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <ChevronRight className="h-5 w-5" />
-                        </button>
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-4">
+                        <h2 className="text-2xl font-bold text-gray-800">
+                          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                        </h2>
+                        <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200/50">
+                          <button 
+                            onClick={() => navigateMonth(-1)}
+                            className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-l-xl transition-all duration-200"
+                          >
+                            <ChevronLeft className="h-5 w-5" />
+                          </button>
+                          <div className="w-px h-8 bg-gray-200"></div>
+                          <button 
+                            onClick={() => navigateMonth(1)}
+                            className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-r-xl transition-all duration-200"
+                          >
+                            <ChevronRight className="h-5 w-5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3">
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent text-sm font-medium shadow-sm backdrop-blur-sm"
+                      >
+                        <option value="all">All Categories</option>
+                        <option value="project">Projects</option>
+                        <option value="task">Tasks</option>
+                        <option value="tender">Tenders</option>
+                        <option value="event">Events</option>
+                      </select>
+                      
                       <select
                         value={eventFilter}
                         onChange={(e) => setEventFilter(e.target.value)}
-                        className="px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        className="px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent text-sm font-medium shadow-sm backdrop-blur-sm"
                       >
-                        <option value="all">All Events</option>
+                        <option value="all">All Types</option>
                         <option value="meeting">Meetings</option>
                         <option value="review">Reviews</option>
                         <option value="inspection">Inspections</option>
                         <option value="delivery">Deliveries</option>
                         <option value="deadline">Deadlines</option>
+                        <option value="project_start">Project Starts</option>
+                        <option value="task_start">Task Starts</option>
                       </select>
                       
                       <button
                         onClick={() => setCurrentDate(new Date())}
-                        className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium"
+                        className="px-5 py-2.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-all duration-200 text-sm font-semibold border border-indigo-200/50"
                       >
                         Today
                       </button>
@@ -347,18 +352,18 @@ const CalendarPage = () => {
                 </div>
 
                 {/* Calendar Grid */}
-                <div className="p-6">
+                <div className="p-8">
                   {/* Day Headers */}
-                  <div className="grid grid-cols-7 gap-1 mb-4">
+                  <div className="grid grid-cols-7 gap-2 mb-6">
                     {dayNames.map(day => (
-                      <div key={day} className="p-3 text-center text-sm font-medium text-gray-500">
+                      <div key={day} className="p-4 text-center text-sm font-bold text-gray-600 uppercase tracking-wider">
                         {day}
                       </div>
                     ))}
                   </div>
 
                   {/* Calendar Days */}
-                  <div className="grid grid-cols-7 gap-1">
+                  <div className="grid grid-cols-7 gap-2">
                     {getDaysInMonth(currentDate).map((day, index) => {
                       const dayEvents = getEventsForDate(day);
                       
@@ -367,17 +372,17 @@ const CalendarPage = () => {
                           key={index}
                           onClick={() => handleDateClick(day)}
                           className={`
-                            min-h-24 p-2 border border-gray-100 rounded-lg cursor-pointer transition-all duration-200
-                            ${day ? 'hover:bg-blue-50 hover:border-blue-200' : 'bg-gray-50'}
-                            ${isToday(day) ? 'bg-blue-100 border-blue-300' : ''}
-                            ${isSelected(day) ? 'ring-2 ring-blue-500' : ''}
+                            min-h-28 p-3 rounded-2xl cursor-pointer transition-all duration-300 group relative overflow-hidden
+                            ${!day ? 'bg-transparent cursor-default' : 'bg-white/60 hover:bg-white/90 hover:shadow-lg border border-gray-100/50 hover:border-gray-200/50'}
+                            ${isToday(day) ? 'bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200 shadow-md ring-2 ring-indigo-100' : ''}
+                            ${isSelected(day) ? 'ring-2 ring-indigo-400 shadow-lg scale-105' : ''}
                           `}
                         >
                           {day && (
                             <>
                               <div className={`
-                                text-sm font-medium mb-1
-                                ${isToday(day) ? 'text-blue-700' : 'text-gray-700'}
+                                text-sm font-bold mb-2 transition-colors duration-200
+                                ${isToday(day) ? 'text-indigo-700' : 'text-gray-700 group-hover:text-gray-900'}
                               `}>
                                 {day}
                               </div>
@@ -386,20 +391,29 @@ const CalendarPage = () => {
                                   <div 
                                     key={event.id}
                                     className={`
-                                      text-xs p-1 rounded text-white truncate
-                                      ${getEventTypeColor(event.type)}
+                                      text-xs px-2 py-1 rounded-lg text-white font-medium truncate cursor-pointer
+                                      bg-gradient-to-r ${getEventTypeColor(event.type)}
+                                      hover:shadow-md transform hover:scale-105 transition-all duration-200
                                     `}
-                                    title={event.title}
+                                    title={`${event.title} - ${event.project} (${event.category})`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedEvent(event);
+                                    }}
                                   >
                                     {event.title}
                                   </div>
                                 ))}
                                 {dayEvents.length > 2 && (
-                                  <div className="text-xs text-gray-500 font-medium">
+                                  <div className="text-xs text-gray-500 font-semibold px-2 py-1 bg-gray-100 rounded-lg">
                                     +{dayEvents.length - 2} more
                                   </div>
                                 )}
                               </div>
+                              {/* Today indicator */}
+                              {isToday(day) && (
+                                <div className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                              )}
                             </>
                           )}
                         </div>
@@ -410,112 +424,143 @@ const CalendarPage = () => {
               </div>
             </div>
 
-            {/* Event Details Sidebar */}
+            {/* Enhanced Sidebar */}
             <div className="space-y-6">
               
               {/* Event Legend */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/30 shadow-lg">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Event Types</h3>
-                <div className="space-y-2">
+              <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 border border-white/50 shadow-xl">
+                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                  <Grid3x3 className="h-5 w-5 mr-3 text-indigo-600" />
+                  Categories
+                </h3>
+                <div className="space-y-3">
                   {[
-                    { type: 'meeting', label: 'Meetings' },
-                    { type: 'review', label: 'Reviews' },
-                    { type: 'inspection', label: 'Inspections' },
-                    { type: 'delivery', label: 'Deliveries' },
-                    { type: 'deadline', label: 'Deadlines' }
-                  ].map(({ type, label }) => (
-                    <div key={type} className="flex items-center space-x-3">
-                      <div className={`w-4 h-4 rounded ${getEventTypeColor(type)}`}></div>
-                      <span className="text-sm text-gray-700">{label}</span>
+                    { category: 'project', label: 'Projects', color: 'from-blue-500 to-indigo-500', count: events.filter(e => e.category === 'project').length },
+                    { category: 'task', label: 'Tasks', color: 'from-green-500 to-emerald-500', count: events.filter(e => e.category === 'task').length },
+                    { category: 'tender', label: 'Tenders', color: 'from-amber-500 to-orange-500', count: events.filter(e => e.category === 'tender').length },
+                    { category: 'event', label: 'Events', color: 'from-purple-500 to-pink-500', count: events.filter(e => e.category === 'event').length }
+                  ].map(({ category, label, color, count }) => (
+                    <div key={category} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50/50 transition-colors duration-200">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-4 h-4 rounded-lg bg-gradient-to-r ${color} shadow-sm`}></div>
+                        <span className="text-sm font-semibold text-gray-700">{label}</span>
+                      </div>
+                      <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{count}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Today's Events */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/30 shadow-lg">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Today's Events</h3>
-                <div className="space-y-3">
-                  {filteredEvents
-                    .filter(event => {
-                      const today = new Date();
-                      const eventDate = new Date(event.date);
-                      return eventDate.toDateString() === today.toDateString();
-                    })
-                    .slice(0, 3)
-                    .map(event => (
-                      <div key={event.id} className={`p-3 rounded-lg border-l-4 bg-gray-50 ${getPriorityColor(event.priority)}`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <div className={`p-1 rounded text-white ${getEventTypeColor(event.type)}`}>
-                                {getEventTypeIcon(event.type)}
-                              </div>
-                              <h4 className="font-medium text-gray-900 text-sm">{event.title}</h4>
+              <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 border border-white/50 shadow-xl">
+                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                  <Clock className="h-5 w-5 mr-3 text-green-600" />
+                  Today's Events
+                  {todayEvents.length > 0 && (
+                    <span className="ml-2 bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full">
+                      {todayEvents.length}
+                    </span>
+                  )}
+                </h3>
+                <div className="space-y-4">
+                  {todayEvents.slice(0, 3).map(event => (
+                    <div key={event.id} className={`p-4 rounded-2xl border-l-4 transition-all duration-200 hover:shadow-md cursor-pointer ${getPriorityColor(event.priority)}`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className={`p-2 rounded-xl text-white bg-gradient-to-r ${getEventTypeColor(event.type)} shadow-sm`}>
+                              {getEventTypeIcon(event.type)}
                             </div>
-                            <p className="text-xs text-gray-600 mb-2">{event.description}</p>
-                            <div className="flex items-center space-x-3 text-xs text-gray-500">
-                              <div className="flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {event.time}
-                              </div>
-                              <div className="flex items-center">
-                                <MapPin className="h-3 w-3 mr-1" />
-                                {event.location}
-                              </div>
+                            <div className="flex-1">
+                              <h4 className="font-bold text-gray-800 text-sm leading-tight">{event.title}</h4>
+                              <span className={`inline-block px-2 py-1 rounded-lg text-xs font-semibold mt-1 ${getCategoryColor(event.category)}`}>
+                                {event.category}
+                              </span>
                             </div>
                           </div>
-                          <button className="p-1 text-gray-400 hover:text-gray-600">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </button>
+                          <p className="text-xs text-gray-600 mb-3 leading-relaxed">{event.description}</p>
+                          <div className="flex items-center space-x-4 text-xs text-gray-500">
+                            <div className="flex items-center bg-gray-100 px-2 py-1 rounded-lg">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {event.time}
+                            </div>
+                            <div className="flex items-center bg-gray-100 px-2 py-1 rounded-lg">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {event.location}
+                            </div>
+                          </div>
                         </div>
+                        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
                       </div>
-                    ))}
+                    </div>
+                  ))}
                   
-                  {filteredEvents.filter(event => {
-                    const today = new Date();
-                    const eventDate = new Date(event.date);
-                    return eventDate.toDateString() === today.toDateString();
-                  }).length === 0 && (
-                    <div className="text-center py-6">
-                      <Calendar className="mx-auto h-12 w-12 text-gray-300" />
-                      <p className="mt-2 text-sm text-gray-500">No events today</p>
+                  {todayEvents.length === 0 && (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Calendar className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <p className="text-sm text-gray-500 font-medium">No events scheduled for today</p>
+                      <p className="text-xs text-gray-400 mt-1">Enjoy your free time!</p>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Upcoming Events */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/30 shadow-lg">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Upcoming This Week</h3>
-                <div className="space-y-3">
-                  {filteredEvents
-                    .filter(event => {
-                      const eventDate = new Date(event.date);
-                      const today = new Date();
-                      const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-                      return eventDate > today && eventDate <= weekFromNow;
-                    })
-                    .slice(0, 5)
-                    .map(event => (
-                      <div key={event.id} className={`p-3 rounded-lg border-l-4 bg-gray-50 ${getPriorityColor(event.priority)}`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <div className={`p-1 rounded text-white ${getEventTypeColor(event.type)}`}>
-                                {getEventTypeIcon(event.type)}
-                              </div>
-                              <h4 className="font-medium text-gray-900 text-sm">{event.title}</h4>
+              <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 border border-white/50 shadow-xl">
+                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                  <TrendingUp className="h-5 w-5 mr-3 text-purple-600" />
+                  This Week
+                  {upcomingEvents.length > 0 && (
+                    <span className="ml-2 bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full">
+                      {upcomingEvents.length}
+                    </span>
+                  )}
+                </h3>
+                <div className="space-y-4">
+                  {upcomingEvents.slice(0, 4).map(event => (
+                    <div key={event.id} className={`p-4 rounded-2xl border-l-4 transition-all duration-200 hover:shadow-md cursor-pointer ${getPriorityColor(event.priority)}`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className={`p-2 rounded-xl text-white bg-gradient-to-r ${getEventTypeColor(event.type)} shadow-sm`}>
+                              {getEventTypeIcon(event.type)}
                             </div>
-                            <p className="text-xs text-gray-600 mb-2">{event.project}</p>
-                            <div className="flex items-center space-x-3 text-xs text-gray-500">
-                              <span>{new Date(event.date).toLocaleDateString()}</span>
-                              <span>{event.time}</span>
+                            <div className="flex-1">
+                              <h4 className="font-bold text-gray-800 text-sm leading-tight">{event.title}</h4>
+                              <span className={`inline-block px-2 py-1 rounded-lg text-xs font-semibold mt-1 ${getCategoryColor(event.category)}`}>
+                                {event.category}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-600 mb-3 leading-relaxed">{event.project}</p>
+                          <div className="flex items-center space-x-4 text-xs text-gray-500">
+                            <div className="flex items-center bg-gray-100 px-2 py-1 rounded-lg">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {new Date(event.date).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center bg-gray-100 px-2 py-1 rounded-lg">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {event.time}
                             </div>
                           </div>
                         </div>
                       </div>
-                    ))}
+                    </div>
+                  ))}
+                  
+                  {upcomingEvents.length === 0 && (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <TrendingUp className="h-8 w-8 text-purple-400" />
+                      </div>
+                      <p className="text-sm text-gray-500 font-medium">No upcoming events this week</p>
+                      <p className="text-xs text-gray-400 mt-1">Time to plan ahead!</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -10,9 +10,15 @@ import TendersPage from '../pages/Tenders';
 import ReportsPage from '../pages/Reports';
 import NotificationsPage from '../pages/Notifications';
 import SettingsPage from '../pages/Settings';
+import ActiveProjectsPage from '../pages/Projects/ActiveProjects';
+import TeamPerformancePage from '../pages/Reports/TeamReports';
+import FinancialReportsPage from '../pages/Reports/FinancialReports';
 
 // Import TeamPage (the actual component name from your file)
 import TeamOverview from '../pages/Team';
+
+// Import Tasks page
+import TasksPage from '../pages/Tasks';
 
 // Fallback component for sub-pages that might have issues
 const ComingSoonPage = ({ title, description }) => (
@@ -30,22 +36,22 @@ const ComingSoonPage = ({ title, description }) => (
 );
 
 // Safe imports with fallbacks for sub-pages
-const ActiveProjects = () => <ComingSoonPage title="Active Projects" />;
 const CompletedProjects = () => <ComingSoonPage title="Completed Projects" />;
 const ProjectTemplates = () => <ComingSoonPage title="Project Templates" />;
-
-const TeamPerformance = () => <ComingSoonPage title="Team Performance" />;
 const TeamSchedule = () => <ComingSoonPage title="Team Schedule" />;
-
 const ActiveTenders = () => <ComingSoonPage title="Active Tenders" />;
 const DraftTenders = () => <ComingSoonPage title="Draft Tenders" />;
 const TenderHistory = () => <ComingSoonPage title="Tender History" />;
-
 const ProjectReports = () => <ComingSoonPage title="Project Reports" />;
 const FinancialReports = () => <ComingSoonPage title="Financial Reports" />;
 const TeamReports = () => <ComingSoonPage title="Team Reports" />;
-
 const ProfilePage = () => <ComingSoonPage title="User Profile" />;
+
+// Task view components - These will use the same TasksPage but with different props/state
+const ActiveTasks = () => <TasksPage initialView="active" />;
+const MyTasks = () => <TasksPage initialView="my-tasks" />;
+const OverdueTasks = () => <TasksPage initialView="overdue" />;
+const CompletedTasks = () => <TasksPage initialView="completed" />;
 
 const UserDashboardRoutes = () => {
   const location = useLocation();
@@ -62,9 +68,16 @@ const UserDashboardRoutes = () => {
       
       {/* Projects routes */}
       <Route path="projects" element={<ProjectsPage />} />
-      <Route path="projects/active" element={<ActiveProjects />} />
+      <Route path="projects/active" element={<ActiveProjectsPage />} />
       <Route path="projects/completed" element={<CompletedProjects />} />
       <Route path="projects/templates" element={<ProjectTemplates />} />
+      
+      {/* Tasks routes */}
+      <Route path="tasks" element={<TasksPage />} />
+      <Route path="tasks/active" element={<ActiveTasks />} />
+      <Route path="tasks/my-tasks" element={<MyTasks />} />
+      <Route path="tasks/overdue" element={<OverdueTasks />} />
+      <Route path="tasks/completed" element={<CompletedTasks />} />
       
       {/* Calendar */}
       <Route path="calendar" element={<CalendarPage />} />
@@ -72,7 +85,7 @@ const UserDashboardRoutes = () => {
       {/* Team routes */}
       <Route path="team" element={<Navigate to="/user/team/overview" replace />} />
       <Route path="team/overview" element={<TeamOverview />} />
-      <Route path="team/performance" element={<TeamPerformance />} />
+      <Route path="team/performance" element={<TeamPerformancePage />} />
       <Route path="team/schedule" element={<TeamSchedule />} />
       
       {/* Tenders */}
@@ -87,7 +100,7 @@ const UserDashboardRoutes = () => {
       {/* Reports */}
       <Route path="reports" element={<ReportsPage />} />
       <Route path="reports/projects" element={<ProjectReports />} />
-      <Route path="reports/financial" element={<FinancialReports />} />
+      <Route path="reports/financial" element={<FinancialReportsPage />} />
       <Route path="reports/team" element={<TeamReports />} />
       
       {/* Notifications */}

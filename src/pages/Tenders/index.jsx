@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dashboardAPI } from '../../services/api';
+import { dashboardAPI, tendersAPI } from '../../services/api';
 import { 
   Briefcase,
   Plus,
@@ -21,18 +21,28 @@ import {
   TrendingUp,
   Target,
   Award,
-  ArrowRight
+  ArrowRight,
+  AlertCircle,
+  RefreshCw,
+  X
 } from 'lucide-react';
 
 const TendersPage = () => {
+  // State management
   const [tenders, setTenders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Filters and search
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [activeTab, setActiveTab] = useState('active'); // 'active', 'drafts', 'history'
+  const [activeTab, setActiveTab] = useState('active');
+  
+  // UI state
   const [selectedTender, setSelectedTender] = useState(null);
-  const [activeMenuItem, setActiveMenuItem] = useState('tenders');
+  const [actionLoading, setActionLoading] = useState({});
 
   useEffect(() => {
     loadTenders();
@@ -41,29 +51,156 @@ const TendersPage = () => {
   const loadTenders = async () => {
     try {
       setLoading(true);
-      let data;
+      setError(null);
+      
+      let data = [];
+      
+      console.log(`Loading tenders for tab: ${activeTab}`);
+      
       switch (activeTab) {
         case 'active':
-          data = await dashboardAPI.getTenders();
+          try {
+            data = await tendersAPI.getByStatus('active');
+            console.log('Active tenders data:', data);
+          } catch (activeError) {
+            console.warn('Failed to get active tenders, falling back to all tenders');
+            const allTenders = await dashboardAPI.getTenders();
+            data = Array.isArray(allTenders) ? allTenders : allTenders.tenders || [];
+            data = data.filter(t => t.status === 'active' || !t.status);
+          }
           break;
+          
         case 'drafts':
-          // data = await dashboardAPI.getDraftTenders();
-          data = getMockTenders().filter(t => t.status === 'draft');
+          try {
+            data = await tendersAPI.getByStatus('draft');
+            console.log('Draft tenders data:', data);
+          } catch (draftError) {
+            console.warn('Failed to get draft tenders, falling back to all tenders');
+            const allTenders = await dashboardAPI.getTenders();
+            data = Array.isArray(allTenders) ? allTenders : allTenders.tenders || [];
+            data = data.filter(t => t.status === 'draft');
+          }
           break;
+          
         case 'history':
-          // data = await dashboardAPI.getTenderHistory();
-          data = getMockTenders().filter(t => t.status === 'completed' || t.status === 'rejected');
+          try {
+            const allTenders = await dashboardAPI.getTenders();
+            data = Array.isArray(allTenders) ? allTenders : allTenders.tenders || [];
+            data = data.filter(t => ['completed', 'rejected', 'cancelled'].includes(t.status));
+            console.log('History tenders data:', data);
+          } catch (historyError) {
+            console.error('Failed to get tender history:', historyError);
+            data = [];
+          }
           break;
+          
         default:
           data = await dashboardAPI.getTenders();
+          console.log('Default tenders data:', data);
       }
-      setTenders(data);
+      
+      // Ensure data is an array
+      const tendersArray = Array.isArray(data) ? data : data.tenders || [];
+      
+      console.log(`Loaded ${tendersArray.length} tenders for ${activeTab} tab`);
+      setTenders(tendersArray);
+      
     } catch (error) {
       console.error('Failed to load tenders:', error);
-      setTenders(getMockTenders());
+      setError(error.message || 'Failed to load tenders. Please try again.');
+      
+      // Only show mock data in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Using mock data for development');
+        setTenders(getMockTenders());
+      } else {
+        setTenders([]);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshTenders = async () => {
+    setRefreshing(true);
+    await loadTenders();
+    setRefreshing(false);
+  };
+
+  const setActionLoadingState = (tenderId, action, state) => {
+    setActionLoading(prev => ({
+      ...prev,
+      [`${tenderId}_${action}`]: state
+    }));
+  };
+
+  const handleCreateTender = async () => {
+    // TODO: Implement create tender modal/form
+    console.log('Create tender clicked');
+    alert('Create tender feature will be implemented soon!');
+  };
+
+  const handleEditTender = async (tender) => {
+    // TODO: Implement edit tender modal/form
+    console.log('Edit tender:', tender);
+    alert(`Edit tender "${tender.title}" feature will be implemented soon!`);
+  };
+
+  const handleDeleteTender = async (tenderId) => {
+    if (!window.confirm('Are you sure you want to delete this tender?')) {
+      return;
+    }
+
+    try {
+      setActionLoadingState(tenderId, 'delete', true);
+      await tendersAPI.delete(tenderId);
+      
+      // Remove from local state immediately for better UX
+      setTenders(prev => prev.filter(t => t.id !== tenderId));
+      
+      console.log('Tender deleted successfully');
+      // Optionally show success message
+    } catch (error) {
+      console.error('Failed to delete tender:', error);
+      alert('Failed to delete tender. Please try again.');
+      // Refresh to ensure consistency
+      await refreshTenders();
+    } finally {
+      setActionLoadingState(tenderId, 'delete', false);
+    }
+  };
+
+  const handleConvertToProject = async (tenderId) => {
+    if (!window.confirm('Are you sure you want to convert this tender to a project?')) {
+      return;
+    }
+
+    try {
+      setActionLoadingState(tenderId, 'convert', true);
+      const result = await tendersAPI.convertToProject(tenderId);
+      
+      // Update the tender status in local state
+      setTenders(prev => prev.map(t => 
+        t.id === tenderId 
+          ? { ...t, status: 'converted' }
+          : t
+      ));
+      
+      console.log('Tender converted to project successfully:', result);
+      alert('Tender converted to project successfully!');
+    } catch (error) {
+      console.error('Failed to convert tender:', error);
+      alert('Failed to convert tender to project. Please try again.');
+    } finally {
+      setActionLoadingState(tenderId, 'convert', false);
+    }
+  };
+
+  const handleViewDetails = (tender) => {
+    setSelectedTender(tender);
+    // TODO: Implement tender details modal
+    console.log('View tender details:', tender);
+    alert(`View details for "${tender.title}" will be implemented soon!`);
   };
 
   const getMockTenders = () => [
@@ -86,95 +223,13 @@ const TendersPage = () => {
       submission_count: 8,
       estimated_duration: "18 months"
     },
-    {
-      id: 2,
-      title: "Park Infrastructure Upgrade",
-      description: "Modernization of Central Park infrastructure including new playground equipment, walking paths, lighting, and landscaping improvements.",
-      deadline: "2025-07-20",
-      created_date: "2025-06-05",
-      budget_estimate: 850000,
-      responsible: "Mike Wilson",
-      lead_person: "Sarah Johnson",
-      project_id: 2,
-      status: "active",
-      priority: "medium",
-      category: "Infrastructure",
-      location: "Central Park",
-      client: "Parks & Recreation Dept",
-      requirements: ["Park construction experience", "Environmental compliance", "Safety certification"],
-      submission_count: 5,
-      estimated_duration: "8 months"
-    },
-    {
-      id: 3,
-      title: "Highway Bridge Expansion",
-      description: "Expansion and reinforcement of the Main Street Bridge to accommodate increased traffic flow and improve structural integrity.",
-      deadline: "2025-08-01",
-      created_date: "2025-06-10",
-      budget_estimate: 4200000,
-      responsible: "Alex Chen",
-      lead_person: "Sarah Johnson",
-      project_id: 3,
-      status: "draft",
-      priority: "high",
-      category: "Infrastructure",
-      location: "Highway 101",
-      client: "Department of Transportation",
-      requirements: ["Bridge construction expertise", "Heavy equipment", "Traffic management"],
-      submission_count: 0,
-      estimated_duration: "24 months"
-    },
-    {
-      id: 4,
-      title: "School Campus Development",
-      description: "Construction of new elementary school campus including classrooms, gymnasium, cafeteria, and administrative buildings.",
-      deadline: "2025-06-30",
-      created_date: "2025-05-01",
-      budget_estimate: 8500000,
-      responsible: "Lisa Wang",
-      lead_person: "Sarah Johnson",
-      project_id: 4,
-      status: "completed",
-      priority: "high",
-      category: "Education",
-      location: "Suburban District",
-      client: "School District 42",
-      requirements: ["Educational facility experience", "LEED certification", "Local hiring preference"],
-      submission_count: 12,
-      estimated_duration: "30 months",
-      selected_contractor: "BuildRight Construction",
-      completion_date: "2025-06-15"
-    },
-    {
-      id: 5,
-      title: "Residential Complex Phase 3",
-      description: "Third phase of luxury residential development with 150 units, amenities, and underground parking.",
-      deadline: "2025-05-15",
-      created_date: "2025-04-01",
-      budget_estimate: 12000000,
-      responsible: "John Davis",
-      lead_person: "Sarah Johnson",
-      project_id: 5,
-      status: "rejected",
-      priority: "medium",
-      category: "Residential",
-      location: "Riverside Development",
-      client: "Riverside Properties LLC",
-      requirements: ["Residential construction", "Quality track record", "Financial stability"],
-      submission_count: 6,
-      estimated_duration: "36 months",
-      rejection_reason: "Budget constraints - project postponed"
-    }
+    // Add more mock data as needed
   ];
 
-  const handleMenuItemClick = (itemId, href) => {
-    console.log('Navigate to:', href);
-  };
-
   const filteredTenders = tenders.filter(tender => {
-    const matchesSearch = tender.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tender.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tender.client.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = tender.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tender.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tender.client?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || tender.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || tender.priority === priorityFilter;
@@ -188,6 +243,7 @@ const TendersPage = () => {
       case 'draft': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'completed': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+      case 'converted': return 'bg-purple-100 text-purple-800 border-purple-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -207,6 +263,7 @@ const TendersPage = () => {
       case 'draft': return <FileText className="h-4 w-4" />;
       case 'completed': return <CheckCircle className="h-4 w-4" />;
       case 'rejected': return <AlertTriangle className="h-4 w-4" />;
+      case 'converted': return <ArrowRight className="h-4 w-4" />;
       default: return <Briefcase className="h-4 w-4" />;
     }
   };
@@ -222,15 +279,16 @@ const TendersPage = () => {
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const tenderStats = {
     active: tenders.filter(t => t.status === 'active').length,
     draft: tenders.filter(t => t.status === 'draft').length,
     completed: tenders.filter(t => t.status === 'completed').length,
+    converted: tenders.filter(t => t.status === 'converted').length,
     totalValue: tenders.reduce((sum, t) => sum + (t.budget_estimate || 0), 0),
-    avgSubmissions: tenders.reduce((sum, t) => sum + (t.submission_count || 0), 0) / tenders.length || 0
+    avgSubmissions: tenders.length > 0 ? tenders.reduce((sum, t) => sum + (t.submission_count || 0), 0) / tenders.length : 0
   };
 
   const TenderCard = ({ tender }) => (
@@ -250,14 +308,32 @@ const TendersPage = () => {
             </span>
           </div>
           <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
-            <span className="font-medium text-blue-600">{tender.category}</span>
+            <span className="font-medium text-blue-600">{tender.category || 'General'}</span>
             <span>•</span>
-            <span>{tender.client}</span>
+            <span>{tender.client || 'Internal'}</span>
           </div>
         </div>
-        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-          <MoreHorizontal className="h-5 w-5" />
-        </button>
+        <div className="flex items-center space-x-2">
+          <button 
+            onClick={() => handleEditTender(tender)}
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Edit tender"
+          >
+            <Edit className="h-4 w-4" />
+          </button>
+          <button 
+            onClick={() => handleDeleteTender(tender.id)}
+            disabled={actionLoading[`${tender.id}_delete`]}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+            title="Delete tender"
+          >
+            {actionLoading[`${tender.id}_delete`] ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
 
       <p className="text-sm text-gray-600 mb-4 line-clamp-2">{tender.description}</p>
@@ -270,7 +346,7 @@ const TendersPage = () => {
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-            {tender.location}
+            {tender.location || 'TBD'}
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <User className="h-4 w-4 mr-2 text-gray-400" />
@@ -280,26 +356,27 @@ const TendersPage = () => {
         <div className="space-y-2">
           <div className="flex items-center text-sm text-gray-600">
             <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-            {tender.status === 'active' && (
+            {tender.status === 'active' && tender.deadline && (
               <>
                 Due: {new Date(tender.deadline).toLocaleDateString()}
-                {getDaysUntilDeadline(tender.deadline) <= 7 && (
+                {getDaysUntilDeadline(tender.deadline) <= 7 && getDaysUntilDeadline(tender.deadline) > 0 && (
                   <span className="ml-2 text-xs text-red-600 font-medium">
                     ({getDaysUntilDeadline(tender.deadline)} days left)
                   </span>
                 )}
               </>
             )}
-            {tender.status === 'completed' && `Completed: ${new Date(tender.completion_date).toLocaleDateString()}`}
-            {tender.status === 'draft' && `Created: ${new Date(tender.created_date).toLocaleDateString()}`}
+            {tender.status === 'completed' && `Completed: ${new Date(tender.completion_date || tender.deadline).toLocaleDateString()}`}
+            {tender.status === 'draft' && `Created: ${new Date(tender.created_date || tender.created_at).toLocaleDateString()}`}
+            {tender.status === 'converted' && `Converted: ${new Date(tender.updated_at || tender.created_at).toLocaleDateString()}`}
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <Clock className="h-4 w-4 mr-2 text-gray-400" />
-            {tender.estimated_duration}
+            {tender.estimated_duration || 'TBD'}
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <FileText className="h-4 w-4 mr-2 text-gray-400" />
-            {tender.submission_count} submissions
+            {tender.submission_count || 0} submissions
           </div>
         </div>
       </div>
@@ -340,23 +417,54 @@ const TendersPage = () => {
         </div>
       )}
 
+      {tender.status === 'converted' && (
+        <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="flex items-center space-x-2">
+            <ArrowRight className="h-4 w-4 text-purple-600" />
+            <span className="text-sm font-medium text-purple-800">Successfully converted to project</span>
+          </div>
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="flex items-center space-x-2 pt-4 border-t border-gray-100">
-        <button className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+        <button 
+          onClick={() => handleViewDetails(tender)}
+          className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+        >
           <Eye className="h-4 w-4 mr-1" />
           View Details
         </button>
+        
         {tender.status === 'draft' && (
-          <button className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+          <button 
+            onClick={() => handleEditTender(tender)}
+            className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+          >
             <Edit className="h-4 w-4 mr-1" />
             Edit & Publish
           </button>
         )}
+        
         {tender.status === 'active' && (
-          <button className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-            <FileText className="h-4 w-4 mr-1" />
-            Submissions
-          </button>
+          <>
+            <button className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+              <FileText className="h-4 w-4 mr-1" />
+              Submissions
+            </button>
+            <button 
+              onClick={() => handleConvertToProject(tender.id)}
+              disabled={actionLoading[`${tender.id}_convert`]}
+              className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {actionLoading[`${tender.id}_convert`] ? (
+                <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <ArrowRight className="h-4 w-4 mr-1" />
+              )}
+              Convert
+            </button>
+          </>
         )}
       </div>
     </div>
@@ -375,8 +483,6 @@ const TendersPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex">
-      
-
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white/90 backdrop-blur-xl shadow-lg border-b border-white/30 sticky top-0 z-30">
@@ -390,7 +496,20 @@ const TendersPage = () => {
               </div>
               
               <div className="flex items-center space-x-4">
-                <button className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
+                <button 
+                  onClick={refreshTenders}
+                  disabled={refreshing}
+                  className={`px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2 ${
+                    refreshing ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+                </button>
+                <button 
+                  onClick={handleCreateTender}
+                  className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
+                >
                   <Plus className="h-5 w-5 mr-2" />
                   New Tender
                 </button>
@@ -401,7 +520,31 @@ const TendersPage = () => {
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6">
-          
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-red-800 font-medium">Error Loading Tenders</h3>
+                  <p className="text-red-700 mt-1">{error}</p>
+                  <button 
+                    onClick={refreshTenders}
+                    className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+                  >
+                    Try again
+                  </button>
+                </div>
+                <button 
+                  onClick={() => setError(null)}
+                  className="text-red-400 hover:text-red-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Tender Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/30 shadow-lg">
@@ -415,7 +558,6 @@ const TendersPage = () => {
                 </div>
               </div>
             </div>
-
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/30 shadow-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -427,7 +569,6 @@ const TendersPage = () => {
                 </div>
               </div>
             </div>
-
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/30 shadow-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -439,7 +580,6 @@ const TendersPage = () => {
                 </div>
               </div>
             </div>
-
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/30 shadow-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
@@ -451,7 +591,6 @@ const TendersPage = () => {
                 </div>
               </div>
             </div>
-
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/30 shadow-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
@@ -471,7 +610,7 @@ const TendersPage = () => {
               {[
                 { id: 'active', label: 'Active Tenders', count: tenderStats.active },
                 { id: 'drafts', label: 'Drafts', count: tenderStats.draft },
-                { id: 'history', label: 'History', count: tenderStats.completed }
+                { id: 'history', label: 'History', count: tenderStats.completed + tenderStats.converted }
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -536,11 +675,27 @@ const TendersPage = () => {
           ) : (
             <div className="text-center py-12">
               <Briefcase className="mx-auto h-16 w-16 text-gray-300" />
-              <p className="mt-4 text-lg text-gray-500">No tenders found</p>
-              <p className="text-sm text-gray-400">Try adjusting your search or create a new tender</p>
-              <button className="mt-4 flex items-center mx-auto px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
-                <Plus className="h-5 w-5 mr-2" />
-                Create First Tender
+              <p className="mt-4 text-lg text-gray-500">
+                {error ? 'Failed to load tenders' : 'No tenders found'}
+              </p>
+              <p className="text-sm text-gray-400">
+                {error ? 'Please check your connection and try again' : 'Try adjusting your search or create a new tender'}
+              </p>
+              <button 
+                onClick={error ? refreshTenders : handleCreateTender}
+                className="mt-4 flex items-center mx-auto px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
+              >
+                {error ? (
+                  <>
+                    <RefreshCw className="h-5 w-5 mr-2" />
+                    Try Again
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-5 w-5 mr-2" />
+                    Create First Tender
+                  </>
+                )}
               </button>
             </div>
           )}
