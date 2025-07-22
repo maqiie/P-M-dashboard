@@ -3,203 +3,164 @@ import {
   Users, Plus, Search, Filter, Mail, Phone, MapPin, Calendar,
   Award, TrendingUp, Clock, CheckCircle, Building2, Star,
   Edit, Eye, MoreVertical, Target, Activity, Shield, Crown,
-  Briefcase, GraduationCap, MessageCircle, UserPlus
+  Briefcase, GraduationCap, MessageCircle, UserPlus, Loader,
+  AlertTriangle
 } from 'lucide-react';
 
-const TeamPage = () => {
+// Import your API functions
+import { 
+  fetchProjectManagers, 
+  supervisorsAPI, 
+  siteManagersAPI, 
+  teamMembersAPI 
+} from '../../services/api';
+
+const TeamPage = ({ sidebarCollapsed = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [teamMembers] = useState([
-    {
-      id: 1,
-      name: 'John Smith',
-      role: 'Project Manager',
-      department: 'Management',
-      email: 'john.smith@constructpro.com',
-      phone: '+1 (555) 123-4567',
-      avatar: 'JS',
-      status: 'active',
-      location: 'Main Office',
-      joinDate: '2022-01-15',
-      currentProjects: ['Downtown Office Complex', 'Bridge Construction'],
-      completedProjects: 8,
-      tasksCompleted: 145,
-      efficiency: 94,
-      hoursThisMonth: 160,
-      certification: ['PMP', 'OSHA 30'],
-      specialties: ['Project Planning', 'Risk Management', 'Team Leadership'],
-      rating: 4.8,
-      experience: '8 years'
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      role: 'Site Supervisor',
-      department: 'Operations',
-      email: 'sarah.johnson@constructpro.com',
-      phone: '+1 (555) 234-5678',
-      avatar: 'SJ',
-      status: 'active',
-      location: 'Downtown Site',
-      joinDate: '2021-08-20',
-      currentProjects: ['Downtown Office Complex'],
-      completedProjects: 12,
-      tasksCompleted: 198,
-      efficiency: 91,
-      hoursThisMonth: 168,
-      certification: ['OSHA 30', 'First Aid'],
-      specialties: ['Site Management', 'Safety Protocols', 'Quality Control'],
-      rating: 4.6,
-      experience: '6 years'
-    },
-    {
-      id: 3,
-      name: 'Mike Wilson',
-      role: 'Construction Foreman',
-      department: 'Operations',
-      email: 'mike.wilson@constructpro.com',
-      phone: '+1 (555) 345-6789',
-      avatar: 'MW',
-      status: 'active',
-      location: 'Industrial Site',
-      joinDate: '2020-03-10',
-      currentProjects: ['Industrial Warehouse'],
-      completedProjects: 15,
-      tasksCompleted: 267,
-      efficiency: 96,
-      hoursThisMonth: 172,
-      certification: ['OSHA 30', 'Crane Operator'],
-      specialties: ['Heavy Equipment', 'Structural Work', 'Crew Management'],
-      rating: 4.9,
-      experience: '12 years'
-    },
-    {
-      id: 4,
-      name: 'Emily Davis',
-      role: 'Civil Engineer',
-      department: 'Engineering',
-      email: 'emily.davis@constructpro.com',
-      phone: '+1 (555) 456-7890',
-      avatar: 'ED',
-      status: 'active',
-      location: 'Engineering Office',
-      joinDate: '2023-02-01',
-      currentProjects: ['Shopping Mall Renovation', 'Bridge Construction'],
-      completedProjects: 3,
-      tasksCompleted: 89,
-      efficiency: 88,
-      hoursThisMonth: 155,
-      certification: ['PE License', 'AutoCAD'],
-      specialties: ['Structural Design', 'AutoCAD', 'Project Analysis'],
-      rating: 4.4,
-      experience: '4 years'
-    },
-    {
-      id: 5,
-      name: 'David Chen',
-      role: 'Electrical Contractor',
-      department: 'Trades',
-      email: 'david.chen@constructpro.com',
-      phone: '+1 (555) 567-8901',
-      avatar: 'DC',
-      status: 'active',
-      location: 'Riverside Site',
-      joinDate: '2021-11-12',
-      currentProjects: ['Riverside Residential'],
-      completedProjects: 9,
-      tasksCompleted: 156,
-      efficiency: 93,
-      hoursThisMonth: 164,
-      certification: ['Master Electrician', 'OSHA 10'],
-      specialties: ['Electrical Systems', 'Industrial Wiring', 'Code Compliance'],
-      rating: 4.7,
-      experience: '10 years'
-    },
-    {
-      id: 6,
-      name: 'Lisa Brown',
-      role: 'Safety Inspector',
-      department: 'Safety',
-      email: 'lisa.brown@constructpro.com',
-      phone: '+1 (555) 678-9012',
-      avatar: 'LB',
-      status: 'active',
-      location: 'Mobile',
-      joinDate: '2022-06-30',
-      currentProjects: ['All Active Projects'],
-      completedProjects: 25,
-      tasksCompleted: 312,
-      efficiency: 97,
-      hoursThisMonth: 148,
-      certification: ['CSP', 'OSHA 30', 'CHST'],
-      specialties: ['Safety Audits', 'Compliance', 'Risk Assessment'],
-      rating: 4.9,
-      experience: '7 years'
-    },
-    {
-      id: 7,
-      name: 'Robert Garcia',
-      role: 'Quality Control',
-      department: 'Quality',
-      email: 'robert.garcia@constructpro.com',
-      phone: '+1 (555) 789-0123',
-      avatar: 'RG',
-      status: 'on-leave',
-      location: 'Quality Lab',
-      joinDate: '2020-09-14',
-      currentProjects: [],
-      completedProjects: 18,
-      tasksCompleted: 203,
-      efficiency: 89,
-      hoursThisMonth: 0,
-      certification: ['CQE', 'NDT Level II'],
-      specialties: ['Materials Testing', 'Quality Assurance', 'Documentation'],
-      rating: 4.5,
-      experience: '9 years'
-    },
-    {
-      id: 8,
-      name: 'Jennifer Lee',
-      role: 'Architect',
-      department: 'Design',
-      email: 'jennifer.lee@constructpro.com',
-      phone: '+1 (555) 890-1234',
-      avatar: 'JL',
-      status: 'active',
-      location: 'Design Studio',
-      joinDate: '2023-04-18',
-      currentProjects: ['Shopping Mall Renovation'],
-      completedProjects: 2,
-      tasksCompleted: 67,
-      efficiency: 85,
-      hoursThisMonth: 162,
-      certification: ['Licensed Architect', 'LEED AP'],
-      specialties: ['Architectural Design', 'Sustainable Design', '3D Modeling'],
-      rating: 4.3,
-      experience: '5 years'
-    }
-  ]);
+  // Fetch team members data from API
+  useEffect(() => {
+    const fetchTeamData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch all team member types in parallel
+        const [projectManagersData, supervisorsData, siteManagersData] = await Promise.allSettled([
+          fetchProjectManagers(),
+          supervisorsAPI.getAll(),
+          siteManagersAPI.getAll()
+        ]);
 
+        let allTeamMembers = [];
+
+        // Process Project Managers
+        if (projectManagersData.status === 'fulfilled') {
+          const managers = Array.isArray(projectManagersData.value) ? projectManagersData.value : [];
+          const normalizedManagers = managers.map(manager => ({
+            id: `pm_${manager.id}`,
+            name: manager.name || manager.full_name || `${manager.first_name || ''} ${manager.last_name || ''}`.trim() || 'Unnamed Manager',
+            role: 'Project Manager',
+            roleType: 'project_manager',
+            department: 'Management',
+            email: manager.email || 'No email provided',
+            phone: manager.phone || manager.phone_number || 'No phone provided',
+            avatar: getInitials(manager.name || manager.full_name || `${manager.first_name || ''} ${manager.last_name || ''}`),
+            status: manager.status || (manager.active ? 'active' : 'inactive'),
+            location: manager.location || manager.office_location || 'Main Office',
+            joinDate: manager.created_at || manager.join_date || manager.hire_date,
+            currentProjects: manager.current_projects || manager.projects || [],
+            completedProjects: manager.completed_projects_count || manager.projects_completed || 0,
+            tasksCompleted: manager.tasks_completed || manager.completed_tasks || 0,
+            efficiency: manager.efficiency || manager.performance_rating || 85,
+            hoursThisMonth: manager.hours_this_month || manager.monthly_hours || 0,
+            certification: manager.certifications || manager.certificates || [],
+            specialties: manager.specialties || manager.skills || ['Project Management'],
+            rating: manager.rating || manager.performance_score || 4.0,
+            experience: manager.experience_years ? `${manager.experience_years} years` : manager.experience || 'Not specified',
+            ...manager
+          }));
+          allTeamMembers = [...allTeamMembers, ...normalizedManagers];
+        }
+
+        // Process Supervisors
+        if (supervisorsData.status === 'fulfilled') {
+          const supervisors = Array.isArray(supervisorsData.value) ? supervisorsData.value : [];
+          const normalizedSupervisors = supervisors.map(supervisor => ({
+            id: `sup_${supervisor.id}`,
+            name: supervisor.name || supervisor.full_name || `${supervisor.first_name || ''} ${supervisor.last_name || ''}`.trim() || 'Unnamed Supervisor',
+            role: 'Site Supervisor',
+            roleType: 'supervisor',
+            department: 'Operations',
+            email: supervisor.email || 'No email provided',
+            phone: supervisor.phone || supervisor.phone_number || 'No phone provided',
+            avatar: getInitials(supervisor.name || supervisor.full_name || `${supervisor.first_name || ''} ${supervisor.last_name || ''}`),
+            status: supervisor.status || (supervisor.active ? 'active' : 'inactive'),
+            location: supervisor.location || supervisor.site_location || 'Field Site',
+            joinDate: supervisor.created_at || supervisor.join_date || supervisor.hire_date,
+            currentProjects: supervisor.current_projects || supervisor.projects || [],
+            completedProjects: supervisor.completed_projects_count || supervisor.projects_completed || 0,
+            tasksCompleted: supervisor.tasks_completed || supervisor.completed_tasks || 0,
+            efficiency: supervisor.efficiency || supervisor.performance_rating || 85,
+            hoursThisMonth: supervisor.hours_this_month || supervisor.monthly_hours || 0,
+            certification: supervisor.certifications || supervisor.certificates || [],
+            specialties: supervisor.specialties || supervisor.skills || ['Site Management'],
+            rating: supervisor.rating || supervisor.performance_score || 4.0,
+            experience: supervisor.experience_years ? `${supervisor.experience_years} years` : supervisor.experience || 'Not specified',
+            ...supervisor
+          }));
+          allTeamMembers = [...allTeamMembers, ...normalizedSupervisors];
+        }
+
+        // Process Site Managers
+        if (siteManagersData.status === 'fulfilled') {
+          const siteManagers = Array.isArray(siteManagersData.value) ? siteManagersData.value : [];
+          const normalizedSiteManagers = siteManagers.map(siteManager => ({
+            id: `sm_${siteManager.id}`,
+            name: siteManager.name || siteManager.full_name || `${siteManager.first_name || ''} ${siteManager.last_name || ''}`.trim() || 'Unnamed Site Manager',
+            role: 'Site Manager',
+            roleType: 'site_manager',
+            department: 'Site Management',
+            email: siteManager.email || 'No email provided',
+            phone: siteManager.phone || siteManager.phone_number || 'No phone provided',
+            avatar: getInitials(siteManager.name || siteManager.full_name || `${siteManager.first_name || ''} ${siteManager.last_name || ''}`),
+            status: siteManager.status || (siteManager.active ? 'active' : 'inactive'),
+            location: siteManager.location || siteManager.site_location || 'Construction Site',
+            joinDate: siteManager.created_at || siteManager.join_date || siteManager.hire_date,
+            currentProjects: siteManager.current_projects || siteManager.projects || [],
+            completedProjects: siteManager.completed_projects_count || siteManager.projects_completed || 0,
+            tasksCompleted: siteManager.tasks_completed || siteManager.completed_tasks || 0,
+            efficiency: siteManager.efficiency || siteManager.performance_rating || 85,
+            hoursThisMonth: siteManager.hours_this_month || siteManager.monthly_hours || 0,
+            certification: siteManager.certifications || siteManager.certificates || [],
+            specialties: siteManager.specialties || siteManager.skills || ['Site Management'],
+            rating: siteManager.rating || siteManager.performance_score || 4.0,
+            experience: siteManager.experience_years ? `${siteManager.experience_years} years` : siteManager.experience || 'Not specified',
+            ...siteManager
+          }));
+          allTeamMembers = [...allTeamMembers, ...normalizedSiteManagers];
+        }
+
+        setTeamMembers(allTeamMembers);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load team members. Please try again.');
+        console.error('Error fetching team data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeamData();
+  }, []);
+
+  // Helper function to get initials
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const words = name.trim().split(' ').filter(word => word.length > 0);
+    if (words.length === 0) return 'U';
+    if (words.length === 1) return words[0].charAt(0).toUpperCase();
+    return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+  };
+
+  // Dynamic role options based on actual data
   const roleOptions = [
     { value: 'all', label: 'All Roles' },
-    { value: 'Project Manager', label: 'Project Manager' },
-    { value: 'Site Supervisor', label: 'Site Supervisor' },
-    { value: 'Construction Foreman', label: 'Construction Foreman' },
-    { value: 'Civil Engineer', label: 'Civil Engineer' },
-    { value: 'Electrical Contractor', label: 'Electrical Contractor' },
-    { value: 'Safety Inspector', label: 'Safety Inspector' },
-    { value: 'Quality Control', label: 'Quality Control' },
-    { value: 'Architect', label: 'Architect' }
+    ...Array.from(new Set(teamMembers.map(member => member.role)))
+      .map(role => ({ value: role, label: role }))
   ];
 
   const statusOptions = [
     { value: 'all', label: 'All Status' },
     { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
     { value: 'on-leave', label: 'On Leave' },
-    { value: 'inactive', label: 'Inactive' }
+    { value: 'suspended', label: 'Suspended' }
   ];
 
   const getStatusColor = (status) => {
@@ -207,6 +168,7 @@ const TeamPage = () => {
       case 'active': return 'bg-green-100 text-green-700 border-green-200';
       case 'on-leave': return 'bg-orange-100 text-orange-700 border-orange-200';
       case 'inactive': return 'bg-red-100 text-red-700 border-red-200';
+      case 'suspended': return 'bg-gray-100 text-gray-700 border-gray-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
@@ -215,6 +177,7 @@ const TeamPage = () => {
     switch (role) {
       case 'Project Manager': return <Crown className="h-6 w-6" />;
       case 'Site Supervisor': return <Shield className="h-6 w-6" />;
+      case 'Site Manager': return <Building2 className="h-6 w-6" />;
       case 'Construction Foreman': return <Briefcase className="h-6 w-6" />;
       case 'Civil Engineer': return <GraduationCap className="h-6 w-6" />;
       case 'Electrical Contractor': return <Activity className="h-6 w-6" />;
@@ -227,20 +190,32 @@ const TeamPage = () => {
 
   const filteredMembers = teamMembers
     .filter(member => {
-      const matchesSearch = member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          member.department.toLowerCase().includes(searchQuery.toLowerCase());
+      const searchText = [
+        member.name || '',
+        member.role || '',
+        member.department || '',
+        member.email || ''
+      ].join(' ').toLowerCase();
+      
+      const matchesSearch = searchText.includes(searchQuery.toLowerCase());
       const matchesRole = roleFilter === 'all' || member.role === roleFilter;
       const matchesStatus = statusFilter === 'all' || member.status === statusFilter;
+      
       return matchesSearch && matchesRole && matchesStatus;
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case 'efficiency': return b.efficiency - a.efficiency;
-        case 'experience': return parseInt(b.experience) - parseInt(a.experience);
-        case 'rating': return b.rating - a.rating;
-        case 'joinDate': return new Date(b.joinDate) - new Date(a.joinDate);
-        default: return a.name.localeCompare(b.name);
+        case 'efficiency': return (b.efficiency || 0) - (a.efficiency || 0);
+        case 'experience': 
+          const expA = parseInt(a.experience) || 0;
+          const expB = parseInt(b.experience) || 0;
+          return expB - expA;
+        case 'rating': return (b.rating || 0) - (a.rating || 0);
+        case 'joinDate': 
+          const dateA = a.joinDate ? new Date(a.joinDate) : new Date(0);
+          const dateB = b.joinDate ? new Date(b.joinDate) : new Date(0);
+          return dateB - dateA;
+        default: return (a.name || '').localeCompare(b.name || '');
       }
     });
 
@@ -248,265 +223,316 @@ const TeamPage = () => {
     total: teamMembers.length,
     active: teamMembers.filter(m => m.status === 'active').length,
     onLeave: teamMembers.filter(m => m.status === 'on-leave').length,
-    avgEfficiency: Math.round(teamMembers.reduce((sum, m) => sum + m.efficiency, 0) / teamMembers.length),
-    totalHours: teamMembers.reduce((sum, m) => sum + m.hoursThisMonth, 0),
-    avgRating: (teamMembers.reduce((sum, m) => sum + m.rating, 0) / teamMembers.length).toFixed(1)
+    inactive: teamMembers.filter(m => m.status === 'inactive').length,
+    avgEfficiency: teamMembers.length > 0 ? Math.round(teamMembers.reduce((sum, m) => sum + (m.efficiency || 0), 0) / teamMembers.length) : 0,
+    totalHours: teamMembers.reduce((sum, m) => sum + (m.hoursThisMonth || 0), 0),
+    avgRating: teamMembers.length > 0 ? (teamMembers.reduce((sum, m) => sum + (m.rating || 0), 0) / teamMembers.length).toFixed(1) : '0.0'
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
-      {/* Header */}
-      <div className="mb-12">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-          <div>
-            <h1 className="text-6xl font-bold text-gray-900 mb-4 tracking-tight">
-              Team
-            </h1>
-            <p className="text-2xl text-gray-600 leading-relaxed">
-              Manage your construction team members and monitor their performance
-            </p>
-          </div>
-          
-          <button className="flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xl font-semibold rounded-2xl hover:shadow-xl transition-all duration-300">
-            <UserPlus className="h-6 w-6" />
-            <span>Add Team Member</span>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="h-16 w-16 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-2xl text-gray-600">Loading team members...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <p className="text-2xl text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all"
+          >
+            Retry
           </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-12">
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 text-center">
-          <Users className="h-10 w-10 text-blue-500 mx-auto mb-3" />
-          <p className="text-3xl font-bold text-gray-900 mb-1">{teamStats.total}</p>
-          <p className="text-lg text-gray-600">Total Members</p>
-        </div>
-
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 text-center">
-          <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-3" />
-          <p className="text-3xl font-bold text-gray-900 mb-1">{teamStats.active}</p>
-          <p className="text-lg text-gray-600">Active</p>
-        </div>
-
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 text-center">
-          <Calendar className="h-10 w-10 text-orange-500 mx-auto mb-3" />
-          <p className="text-3xl font-bold text-gray-900 mb-1">{teamStats.onLeave}</p>
-          <p className="text-lg text-gray-600">On Leave</p>
-        </div>
-
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 text-center">
-          <TrendingUp className="h-10 w-10 text-purple-500 mx-auto mb-3" />
-          <p className="text-3xl font-bold text-gray-900 mb-1">{teamStats.avgEfficiency}%</p>
-          <p className="text-lg text-gray-600">Avg Efficiency</p>
-        </div>
-
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 text-center">
-          <Clock className="h-10 w-10 text-red-500 mx-auto mb-3" />
-          <p className="text-3xl font-bold text-gray-900 mb-1">{teamStats.totalHours}</p>
-          <p className="text-lg text-gray-600">Hours This Month</p>
-        </div>
-
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 text-center">
-          <Star className="h-10 w-10 text-yellow-500 mx-auto mb-3" />
-          <p className="text-3xl font-bold text-gray-900 mb-1">{teamStats.avgRating}</p>
-          <p className="text-lg text-gray-600">Avg Rating</p>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-1">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search team members..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 text-xl border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="text-xl px-4 py-4 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none"
-          >
-            {roleOptions.map(option => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xl px-4 py-4 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none"
-          >
-            {statusOptions.map(option => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="text-xl px-4 py-4 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none"
-          >
-            <option value="name">Sort by Name</option>
-            <option value="efficiency">Sort by Efficiency</option>
-            <option value="experience">Sort by Experience</option>
-            <option value="rating">Sort by Rating</option>
-            <option value="joinDate">Sort by Join Date</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Team Members Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-        {filteredMembers.map((member) => (
-          <div key={member.id} className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300">
-            {/* Member Header */}
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
-                  {member.avatar}
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{member.name}</h3>
-                  <div className="flex items-center space-x-2 mt-1">
-                    {getRoleIcon(member.role)}
-                    <span className="text-lg text-gray-600">{member.role}</span>
-                  </div>
-                </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      {/* Main Content Area - adjusted for dynamic sidebar */}
+      <div 
+        className={`transition-all duration-300 ease-in-out ${
+          sidebarCollapsed 
+            ? 'lg:ml-16' // Collapsed sidebar (64px)
+            : 'lg:ml-80' // Expanded sidebar (320px)
+        }`}
+      >
+        <div className="p-4 lg:p-8">
+          {/* Header */}
+          <div className="mb-8 lg:mb-12">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
+              <div>
+                <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-2 lg:mb-4 tracking-tight">
+                  Team
+                </h1>
+                <p className="text-lg lg:text-2xl text-gray-600 leading-relaxed">
+                  Manage your construction team members and monitor their performance
+                </p>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(member.status)}`}>
-                  {member.status.replace('-', ' ').toUpperCase()}
-                </span>
-                <button className="p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all">
-                  <MoreVertical className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Member Stats */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="text-center p-4 bg-blue-50 rounded-2xl">
-                <p className="text-2xl font-bold text-blue-600">{member.efficiency}%</p>
-                <p className="text-sm text-gray-600">Efficiency</p>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-2xl">
-                <p className="text-2xl font-bold text-green-600">{member.rating}</p>
-                <p className="text-sm text-gray-600">Rating</p>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-2xl">
-                <p className="text-2xl font-bold text-purple-600">{member.completedProjects}</p>
-                <p className="text-sm text-gray-600">Projects</p>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-2xl">
-                <p className="text-2xl font-bold text-orange-600">{member.tasksCompleted}</p>
-                <p className="text-sm text-gray-600">Tasks</p>
-              </div>
-            </div>
-
-            {/* Contact Info */}
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center space-x-3">
-                <Mail className="h-5 w-5 text-gray-500" />
-                <span className="text-lg text-gray-700">{member.email}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="h-5 w-5 text-gray-500" />
-                <span className="text-lg text-gray-700">{member.phone}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-5 w-5 text-gray-500" />
-                <span className="text-lg text-gray-700">{member.location}</span>
-              </div>
-            </div>
-
-            {/* Current Projects */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Current Projects</h4>
-              {member.currentProjects.length > 0 ? (
-                <div className="space-y-2">
-                  {member.currentProjects.map((project, index) => (
-                    <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-                      <Building2 className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm text-gray-700">{project}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 italic">No active projects</p>
-              )}
-            </div>
-
-            {/* Specialties */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Specialties</h4>
-              <div className="flex flex-wrap gap-2">
-                {member.specialties.map((specialty, index) => (
-                  <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                    {specialty}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Certifications */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Certifications</h4>
-              <div className="flex flex-wrap gap-2">
-                {member.certification.map((cert, index) => (
-                  <span key={index} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                    <Award className="h-3 w-3 inline mr-1" />
-                    {cert}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Additional Info */}
-            <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-gray-100">
-              <div>
-                <p className="text-sm text-gray-500">Experience</p>
-                <p className="text-lg font-semibold text-gray-900">{member.experience}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Hours This Month</p>
-                <p className="text-lg font-semibold text-gray-900">{member.hoursThisMonth}h</p>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-3">
-              <button className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all">
-                <Eye className="h-5 w-5" />
-                <span className="font-semibold">Profile</span>
-              </button>
-              <button className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-all">
-                <MessageCircle className="h-5 w-5" />
-                <span className="font-semibold">Message</span>
+              <button className="flex items-center space-x-3 px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg lg:text-xl font-semibold rounded-2xl hover:shadow-xl transition-all duration-300 whitespace-nowrap">
+                <UserPlus className="h-5 w-5 lg:h-6 lg:w-6" />
+                <span>Add Team Member</span>
               </button>
             </div>
           </div>
-        ))}
-      </div>
 
-      {filteredMembers.length === 0 && (
-        <div className="text-center py-16">
-          <Users className="h-24 w-24 text-gray-300 mx-auto mb-6" />
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">No team members found</h3>
-          <p className="text-xl text-gray-600 mb-8">Try adjusting your search or filter criteria</p>
-          <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xl font-semibold rounded-2xl hover:shadow-xl transition-all duration-300">
-            Add Team Member
-          </button>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-6 mb-8 lg:mb-12">
+            <div className="bg-white rounded-2xl lg:rounded-3xl p-3 lg:p-6 shadow-xl border border-gray-100 text-center">
+              <Users className="h-6 w-6 lg:h-10 lg:w-10 text-blue-500 mx-auto mb-2 lg:mb-3" />
+              <p className="text-lg lg:text-3xl font-bold text-gray-900 mb-1">{teamStats.total}</p>
+              <p className="text-sm lg:text-lg text-gray-600">Total Members</p>
+            </div>
+            <div className="bg-white rounded-2xl lg:rounded-3xl p-3 lg:p-6 shadow-xl border border-gray-100 text-center">
+              <CheckCircle className="h-6 w-6 lg:h-10 lg:w-10 text-green-500 mx-auto mb-2 lg:mb-3" />
+              <p className="text-lg lg:text-3xl font-bold text-gray-900 mb-1">{teamStats.active}</p>
+              <p className="text-sm lg:text-lg text-gray-600">Active</p>
+            </div>
+            <div className="bg-white rounded-2xl lg:rounded-3xl p-3 lg:p-6 shadow-xl border border-gray-100 text-center">
+              <Calendar className="h-6 w-6 lg:h-10 lg:w-10 text-orange-500 mx-auto mb-2 lg:mb-3" />
+              <p className="text-lg lg:text-3xl font-bold text-gray-900 mb-1">{teamStats.onLeave}</p>
+              <p className="text-sm lg:text-lg text-gray-600">On Leave</p>
+            </div>
+            <div className="bg-white rounded-2xl lg:rounded-3xl p-3 lg:p-6 shadow-xl border border-gray-100 text-center">
+              <TrendingUp className="h-6 w-6 lg:h-10 lg:w-10 text-purple-500 mx-auto mb-2 lg:mb-3" />
+              <p className="text-lg lg:text-3xl font-bold text-gray-900 mb-1">{teamStats.avgEfficiency}%</p>
+              <p className="text-sm lg:text-lg text-gray-600">Avg Efficiency</p>
+            </div>
+            <div className="bg-white rounded-2xl lg:rounded-3xl p-3 lg:p-6 shadow-xl border border-gray-100 text-center">
+              <Clock className="h-6 w-6 lg:h-10 lg:w-10 text-red-500 mx-auto mb-2 lg:mb-3" />
+              <p className="text-lg lg:text-3xl font-bold text-gray-900 mb-1">{teamStats.totalHours}</p>
+              <p className="text-sm lg:text-lg text-gray-600">Hours This Month</p>
+            </div>
+            <div className="bg-white rounded-2xl lg:rounded-3xl p-3 lg:p-6 shadow-xl border border-gray-100 text-center">
+              <Star className="h-6 w-6 lg:h-10 lg:w-10 text-yellow-500 mx-auto mb-2 lg:mb-3" />
+              <p className="text-lg lg:text-3xl font-bold text-gray-900 mb-1">{teamStats.avgRating}</p>
+              <p className="text-sm lg:text-lg text-gray-600">Avg Rating</p>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-xl border border-gray-100 mb-8 lg:mb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
+              <div className="lg:col-span-1">
+                <div className="relative">
+                  <Search className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 lg:h-6 lg:w-6 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search team members..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 lg:pl-12 pr-4 py-3 lg:py-4 text-base lg:text-xl border-2 border-gray-200 rounded-xl lg:rounded-2xl focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="text-base lg:text-xl px-3 lg:px-4 py-3 lg:py-4 border-2 border-gray-200 rounded-xl lg:rounded-2xl focus:border-blue-500 focus:outline-none"
+              >
+                {roleOptions.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="text-base lg:text-xl px-3 lg:px-4 py-3 lg:py-4 border-2 border-gray-200 rounded-xl lg:rounded-2xl focus:border-blue-500 focus:outline-none"
+              >
+                {statusOptions.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="text-base lg:text-xl px-3 lg:px-4 py-3 lg:py-4 border-2 border-gray-200 rounded-xl lg:rounded-2xl focus:border-blue-500 focus:outline-none"
+              >
+                <option value="name">Sort by Name</option>
+                <option value="efficiency">Sort by Efficiency</option>
+                <option value="experience">Sort by Experience</option>
+                <option value="rating">Sort by Rating</option>
+                <option value="joinDate">Sort by Join Date</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Team Members Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-8">
+            {filteredMembers.map((member) => (
+              <div key={member.id} className="bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300">
+                {/* Member Header */}
+                <div className="flex items-start justify-between mb-4 lg:mb-6">
+                  <div className="flex items-center space-x-3 lg:space-x-4">
+                    <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg lg:text-xl">
+                      {member.avatar}
+                    </div>
+                    <div>
+                      <h3 className="text-lg lg:text-2xl font-bold text-gray-900">{member.name}</h3>
+                      <div className="flex items-center space-x-2 mt-1">
+                        {getRoleIcon(member.role)}
+                        <span className="text-sm lg:text-lg text-gray-600">{member.role}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm font-semibold border ${getStatusColor(member.status)}`}>
+                      {(member.status || 'unknown').replace('-', ' ').toUpperCase()}
+                    </span>
+                    <button className="p-1 lg:p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all">
+                      <MoreVertical className="h-4 w-4 lg:h-5 lg:w-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Member Stats */}
+                <div className="grid grid-cols-2 gap-2 lg:gap-4 mb-4 lg:mb-6">
+                  <div className="text-center p-2 lg:p-4 bg-blue-50 rounded-xl lg:rounded-2xl">
+                    <p className="text-lg lg:text-2xl font-bold text-blue-600">{member.efficiency || 0}%</p>
+                    <p className="text-xs lg:text-sm text-gray-600">Efficiency</p>
+                  </div>
+                  <div className="text-center p-2 lg:p-4 bg-green-50 rounded-xl lg:rounded-2xl">
+                    <p className="text-lg lg:text-2xl font-bold text-green-600">{member.rating || 0}</p>
+                    <p className="text-xs lg:text-sm text-gray-600">Rating</p>
+                  </div>
+                  <div className="text-center p-2 lg:p-4 bg-purple-50 rounded-xl lg:rounded-2xl">
+                    <p className="text-lg lg:text-2xl font-bold text-purple-600">{member.completedProjects || 0}</p>
+                    <p className="text-xs lg:text-sm text-gray-600">Projects</p>
+                  </div>
+                  <div className="text-center p-2 lg:p-4 bg-orange-50 rounded-xl lg:rounded-2xl">
+                    <p className="text-lg lg:text-2xl font-bold text-orange-600">{member.tasksCompleted || 0}</p>
+                    <p className="text-xs lg:text-sm text-gray-600">Tasks</p>
+                  </div>
+                </div>
+
+                {/* Contact Info */}
+                <div className="space-y-2 lg:space-y-3 mb-4 lg:mb-6">
+                  <div className="flex items-center space-x-2 lg:space-x-3">
+                    <Mail className="h-4 w-4 lg:h-5 lg:w-5 text-gray-500" />
+                    <span className="text-sm lg:text-lg text-gray-700 truncate">{member.email}</span>
+                  </div>
+                  <div className="flex items-center space-x-2 lg:space-x-3">
+                    <Phone className="h-4 w-4 lg:h-5 lg:w-5 text-gray-500" />
+                    <span className="text-sm lg:text-lg text-gray-700">{member.phone}</span>
+                  </div>
+                  <div className="flex items-center space-x-2 lg:space-x-3">
+                    <MapPin className="h-4 w-4 lg:h-5 lg:w-5 text-gray-500" />
+                    <span className="text-sm lg:text-lg text-gray-700">{member.location}</span>
+                  </div>
+                </div>
+
+                {/* Current Projects */}
+                <div className="mb-4 lg:mb-6">
+                  <h4 className="text-sm lg:text-lg font-semibold text-gray-900 mb-2 lg:mb-3">Current Projects</h4>
+                  {Array.isArray(member.currentProjects) && member.currentProjects.length > 0 ? (
+                    <div className="space-y-1 lg:space-y-2">
+                      {member.currentProjects.slice(0, 2).map((project, index) => (
+                        <div key={index} className="flex items-center space-x-2 p-1 lg:p-2 bg-gray-50 rounded-lg">
+                          <Building2 className="h-3 w-3 lg:h-4 lg:w-4 text-blue-500" />
+                          <span className="text-xs lg:text-sm text-gray-700 truncate">{project}</span>
+                        </div>
+                      ))}
+                      {member.currentProjects.length > 2 && (
+                        <p className="text-xs text-gray-500">+{member.currentProjects.length - 2} more</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 italic text-sm">No active projects</p>
+                  )}
+                </div>
+
+                {/* Specialties */}
+                {Array.isArray(member.specialties) && member.specialties.length > 0 && (
+                  <div className="mb-4 lg:mb-6">
+                    <h4 className="text-sm lg:text-lg font-semibold text-gray-900 mb-2 lg:mb-3">Specialties</h4>
+                    <div className="flex flex-wrap gap-1 lg:gap-2">
+                      {member.specialties.slice(0, 3).map((specialty, index) => (
+                        <span key={index} className="px-2 lg:px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs lg:text-sm font-medium">
+                          {specialty}
+                        </span>
+                      ))}
+                      {member.specialties.length > 3 && (
+                        <span className="text-xs text-gray-500">+{member.specialties.length - 3}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Certifications */}
+                {Array.isArray(member.certification) && member.certification.length > 0 && (
+                  <div className="mb-4 lg:mb-6">
+                    <h4 className="text-sm lg:text-lg font-semibold text-gray-900 mb-2 lg:mb-3">Certifications</h4>
+                    <div className="flex flex-wrap gap-1 lg:gap-2">
+                      {member.certification.slice(0, 2).map((cert, index) => (
+                        <span key={index} className="px-2 lg:px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs lg:text-sm font-medium">
+                          <Award className="h-2 w-2 lg:h-3 lg:w-3 inline mr-1" />
+                          {cert}
+                        </span>
+                      ))}
+                      {member.certification.length > 2 && (
+                        <span className="text-xs text-gray-500">+{member.certification.length - 2}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Info */}
+                <div className="grid grid-cols-2 gap-2 lg:gap-4 mb-4 lg:mb-6 pt-3 lg:pt-4 border-t border-gray-100">
+                  <div>
+                    <p className="text-xs lg:text-sm text-gray-500">Experience</p>
+                    <p className="text-sm lg:text-lg font-semibold text-gray-900">{member.experience}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs lg:text-sm text-gray-500">Hours This Month</p>
+                    <p className="text-sm lg:text-lg font-semibold text-gray-900">{member.hoursThisMonth || 0}h</p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-2 lg:space-x-3">
+                  <button className="flex-1 flex items-center justify-center space-x-1 lg:space-x-2 px-3 lg:px-4 py-2 lg:py-3 bg-blue-50 text-blue-600 rounded-lg lg:rounded-xl hover:bg-blue-100 transition-all">
+                    <Eye className="h-4 w-4 lg:h-5 lg:w-5" />
+                    <span className="text-sm lg:text-base font-semibold">Profile</span>
+                  </button>
+                  <button className="flex-1 flex items-center justify-center space-x-1 lg:space-x-2 px-3 lg:px-4 py-2 lg:py-3 bg-green-50 text-green-600 rounded-lg lg:rounded-xl hover:bg-green-100 transition-all">
+                    <MessageCircle className="h-4 w-4 lg:h-5 lg:w-5" />
+                    <span className="text-sm lg:text-base font-semibold">Message</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Empty State */}
+          {filteredMembers.length === 0 && !loading && (
+            <div className="text-center py-12 lg:py-16">
+              <Users className="h-16 w-16 lg:h-24 lg:w-24 text-gray-300 mx-auto mb-4 lg:mb-6" />
+              <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2 lg:mb-4">No team members found</h3>
+              <p className="text-lg lg:text-xl text-gray-600 mb-6 lg:mb-8">
+                {searchQuery || roleFilter !== 'all' || statusFilter !== 'all'
+                  ? "Try adjusting your search or filter criteria" 
+                  : "Get started by adding your first team member"
+                }
+              </p>
+              <button className="px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg lg:text-xl font-semibold rounded-xl lg:rounded-2xl hover:shadow-xl transition-all duration-300">
+                Add Team Member
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

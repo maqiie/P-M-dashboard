@@ -100,10 +100,7 @@ import {
   TrendingUp as TrendingUpArrow,
 } from "lucide-react";
 
-// Import AdminSidebar
-import AdminSidebar from "../../pages/admin/AdminSidebar";
-
-// Import API functions
+// Import your actual API functions
 import {
   fetchProjectManagers,
   projectsAPI,
@@ -119,57 +116,60 @@ import {
 // Enhanced Theme with modern design system
 const useTheme = () => {
   const [isDark, setIsDark] = useState(false);
-  
+
   const toggleTheme = useCallback(() => {
     setIsDark((prev) => !prev);
   }, []);
-  
-  const theme = useMemo(() => ({
-    isDark,
-    colors: {
-      background: isDark
-        ? "bg-gray-900"
-        : "bg-gradient-to-br from-orange-50 via-white to-yellow-50",
-      card: isDark ? "bg-gray-800" : "bg-white",
-      cardSecondary: isDark ? "bg-gray-700" : "bg-gray-50",
-      border: isDark ? "border-gray-700" : "border-gray-200",
-      borderLight: isDark ? "border-gray-600" : "border-gray-100",
-      text: isDark ? "text-gray-100" : "text-gray-900",
-      textSecondary: isDark ? "text-gray-400" : "text-gray-600",
-      textMuted: isDark ? "text-gray-500" : "text-gray-500",
-      primary: "#F97316", // Orange
-      secondary: "#EAB308", // Yellow
-      success: "#10B981", // Green
-      warning: "#F59E0B", // Amber
-      danger: "#EF4444", // Red
-      purple: "#8B5CF6", // Violet
-      blue: "#3B82F6", // Blue
-      indigo: "#6366F1", // Indigo
-      cyan: "#06B6D4", // Cyan
-    },
-    gradients: {
-      primary: "from-orange-500 to-yellow-500",
-      secondary: "from-blue-500 to-cyan-500",
-      success: "from-green-500 to-emerald-500",
-      danger: "from-red-500 to-pink-500",
-      purple: "from-purple-500 to-violet-500",
-      indigo: "from-indigo-500 to-purple-500",
-      warm: "from-orange-400 via-red-400 to-pink-400",
-      cool: "from-blue-400 via-purple-400 to-indigo-400",
-    },
-    shadows: {
-      sm: "shadow-sm",
-      md: "shadow-md",
-      lg: "shadow-lg",
-      xl: "shadow-xl",
-      "2xl": "shadow-2xl",
-    },
-  }), [isDark]);
-  
+
+  const theme = useMemo(
+    () => ({
+      isDark,
+      colors: {
+        background: isDark
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-orange-50 via-white to-yellow-50",
+        card: isDark ? "bg-gray-800" : "bg-white",
+        cardSecondary: isDark ? "bg-gray-700" : "bg-gray-50",
+        border: isDark ? "border-gray-700" : "border-gray-200",
+        borderLight: isDark ? "border-gray-600" : "border-gray-100",
+        text: isDark ? "text-gray-100" : "text-gray-900",
+        textSecondary: isDark ? "text-gray-400" : "text-gray-600",
+        textMuted: isDark ? "text-gray-500" : "text-gray-500",
+        primary: "#F97316",
+        secondary: "#EAB308",
+        success: "#10B981",
+        warning: "#F59E0B",
+        danger: "#EF4444",
+        purple: "#8B5CF6",
+        blue: "#3B82F6",
+        indigo: "#6366F1",
+        cyan: "#06B6D4",
+      },
+      gradients: {
+        primary: "from-orange-500 to-yellow-500",
+        secondary: "from-blue-500 to-cyan-500",
+        success: "from-green-500 to-emerald-500",
+        danger: "from-red-500 to-pink-500",
+        purple: "from-purple-500 to-violet-500",
+        indigo: "from-indigo-500 to-purple-500",
+        warm: "from-orange-400 via-red-400 to-pink-400",
+        cool: "from-blue-400 via-purple-400 to-indigo-400",
+      },
+      shadows: {
+        sm: "shadow-sm",
+        md: "shadow-md",
+        lg: "shadow-lg",
+        xl: "shadow-xl",
+        "2xl": "shadow-2xl",
+      },
+    }),
+    [isDark]
+  );
+
   return { ...theme, toggleTheme };
 };
 
-// Enhanced Card Component with more styling options
+// Enhanced Card Component
 const DetailCard = ({
   children,
   className = "",
@@ -181,10 +181,14 @@ const DetailCard = ({
   ...props
 }) => {
   const theme = useTheme();
-  
+
   const baseClasses = `
     ${padding} 
-    ${gradient ? "bg-gradient-to-br from-white via-orange-50 to-yellow-50" : theme.colors.card} 
+    ${
+      gradient
+        ? "bg-gradient-to-br from-white via-orange-50 to-yellow-50"
+        : theme.colors.card
+    } 
     rounded-2xl 
     ${border ? `border-2 ${theme.colors.border}` : ""} 
     ${theme.shadows[shadow]} 
@@ -192,7 +196,7 @@ const DetailCard = ({
     ${hover ? "hover:shadow-2xl hover:scale-[1.02]" : ""}
     ${className}
   `;
-  
+
   return (
     <div className={baseClasses} {...props}>
       {children}
@@ -200,7 +204,7 @@ const DetailCard = ({
   );
 };
 
-// Data Hook for Project Manager Details with comprehensive API integration
+// Data Hook for Project Manager Details
 const useProjectManagerData = (managerId) => {
   const [data, setData] = useState({
     manager: null,
@@ -230,13 +234,12 @@ const useProjectManagerData = (managerId) => {
       teamPerformance: [],
     },
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const fetchManagerData = useCallback(async () => {
-    // Don't fetch if no managerId provided
     if (!managerId) {
       setLoading(false);
       setError("No manager ID provided");
@@ -246,52 +249,54 @@ const useProjectManagerData = (managerId) => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log(`🔄 Fetching comprehensive data for project manager ID: ${managerId}`);
+
+      console.log(
+        `🔄 Fetching comprehensive data for project manager ID: ${managerId}`
+      );
 
       // Fetch all data in parallel with comprehensive error handling
       const results = await Promise.allSettled([
-        fetchProjectManagers().catch(err => {
+        fetchProjectManagers().catch((err) => {
           console.error("❌ Failed to fetch project managers:", err);
           return [];
         }),
-        
-        projectsAPI.getAll().catch(err => {
+
+        projectsAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch projects:", err);
           return { projects: [] };
         }),
-        
-        tasksAPI.getAll().catch(err => {
+
+        tasksAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch tasks:", err);
           return { tasks: [] };
         }),
-        
-        tendersAPI.getAll().catch(err => {
+
+        tendersAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch tenders:", err);
           return { tenders: [] };
         }),
-        
-        eventsAPI.getUpcoming(100).catch(err => {
+
+        eventsAPI.getUpcoming(100).catch((err) => {
           console.error("❌ Failed to fetch events:", err);
           return { events: [] };
         }),
-        
-        teamMembersAPI.getAll().catch(err => {
+
+        teamMembersAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch team members:", err);
           return { team_members: [] };
         }),
-        
-        supervisorsAPI.getAll().catch(err => {
+
+        supervisorsAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch supervisors:", err);
           return [];
         }),
-        
-        siteManagersAPI.getAll().catch(err => {
+
+        siteManagersAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch site managers:", err);
           return [];
         }),
-        
-        notificationsAPI.getAll().catch(err => {
+
+        notificationsAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch notifications:", err);
           return [];
         }),
@@ -310,302 +315,424 @@ const useProjectManagerData = (managerId) => {
       ] = results;
 
       // Extract data with comprehensive fallbacks
-      const allManagers = managersResult.status === 'fulfilled' ? managersResult.value : [];
-      const projectsData = projectsResult.status === 'fulfilled' ? projectsResult.value : { projects: [] };
-      const tasksData = tasksResult.status === 'fulfilled' ? tasksResult.value : { tasks: [] };
-      const tendersData = tendersResult.status === 'fulfilled' ? tendersResult.value : { tenders: [] };
-      const eventsData = eventsResult.status === 'fulfilled' ? eventsResult.value : { events: [] };
-      const teamMembersData = teamMembersResult.status === 'fulfilled' ? teamMembersResult.value : { team_members: [] };
-      const supervisorsData = supervisorsResult.status === 'fulfilled' ? supervisorsResult.value : [];
-      const siteManagersData = siteManagersResult.status === 'fulfilled' ? siteManagersResult.value : [];
-      const notificationsData = notificationsResult.status === 'fulfilled' ? notificationsResult.value : [];
+      const allManagers =
+        managersResult.status === "fulfilled" ? managersResult.value : [];
+      const projectsData =
+        projectsResult.status === "fulfilled"
+          ? projectsResult.value
+          : { projects: [] };
+      const tasksData =
+        tasksResult.status === "fulfilled" ? tasksResult.value : { tasks: [] };
+      const tendersData =
+        tendersResult.status === "fulfilled"
+          ? tendersResult.value
+          : { tenders: [] };
+      const eventsData =
+        eventsResult.status === "fulfilled"
+          ? eventsResult.value
+          : { events: [] };
+      const teamMembersData =
+        teamMembersResult.status === "fulfilled"
+          ? teamMembersResult.value
+          : { team_members: [] };
+      const supervisorsData =
+        supervisorsResult.status === "fulfilled" ? supervisorsResult.value : [];
+      const siteManagersData =
+        siteManagersResult.status === "fulfilled"
+          ? siteManagersResult.value
+          : [];
+      const notificationsData =
+        notificationsResult.status === "fulfilled"
+          ? notificationsResult.value
+          : [];
+
+      // Debug: Log available managers
+      console.log(
+        "Available managers:",
+        allManagers.map((m) => ({ id: m.id, name: m.name }))
+      );
 
       // Find the specific manager
-      const manager = allManagers.find(m => m.id === parseInt(managerId));
-      
+      const manager = allManagers.find((m) => m.id === parseInt(managerId));
+
       if (!manager) {
-        throw new Error(`Project manager with ID ${managerId} not found`);
+        throw new Error(
+          `Project manager with ID ${managerId} not found. Available IDs: ${allManagers
+            .map((m) => m.id)
+            .join(", ")}`
+        );
       }
 
       console.log("✅ Found manager:", manager);
 
       // Normalize data arrays
-      const allProjects = Array.isArray(projectsData.projects) ? projectsData.projects : 
-                         Array.isArray(projectsData) ? projectsData : [];
-      const allTasks = Array.isArray(tasksData.tasks) ? tasksData.tasks : 
-                      Array.isArray(tasksData) ? tasksData : [];
-      const allTenders = Array.isArray(tendersData.tenders) ? tendersData.tenders : 
-                        Array.isArray(tendersData) ? tendersData : [];
-      const allEvents = Array.isArray(eventsData.events) ? eventsData.events : 
-                       Array.isArray(eventsData) ? eventsData : [];
-      const allTeamMembers = Array.isArray(teamMembersData.team_members) ? teamMembersData.team_members : 
-                            Array.isArray(teamMembersData) ? teamMembersData : [];
-      const allSupervisors = Array.isArray(supervisorsData) ? supervisorsData : [];
-      const allSiteManagers = Array.isArray(siteManagersData) ? siteManagersData : [];
-      const allNotifications = Array.isArray(notificationsData) ? notificationsData : [];
+      const allProjects = Array.isArray(projectsData.projects)
+        ? projectsData.projects
+        : Array.isArray(projectsData)
+        ? projectsData
+        : [];
+      const allTasks = Array.isArray(tasksData.tasks)
+        ? tasksData.tasks
+        : Array.isArray(tasksData)
+        ? tasksData
+        : [];
+      const allTenders = Array.isArray(tendersData.tenders)
+        ? tendersData.tenders
+        : Array.isArray(tendersData)
+        ? tendersData
+        : [];
+      const allEvents = Array.isArray(eventsData.events)
+        ? eventsData.events
+        : Array.isArray(eventsData)
+        ? eventsData
+        : [];
+      const allTeamMembers = Array.isArray(teamMembersData.team_members)
+        ? teamMembersData.team_members
+        : Array.isArray(teamMembersData)
+        ? teamMembersData
+        : [];
+      const allSupervisors = Array.isArray(supervisorsData)
+        ? supervisorsData
+        : [];
+      const allSiteManagers = Array.isArray(siteManagersData)
+        ? siteManagersData
+        : [];
+      const allNotifications = Array.isArray(notificationsData)
+        ? notificationsData
+        : [];
 
       // Filter data for this specific manager
-      const managerProjects = allProjects.filter(project => 
-        project.project_manager_id === parseInt(managerId) || 
-        project.manager_id === parseInt(managerId) ||
-        project.assigned_to === parseInt(managerId) ||
-        project.owner_id === parseInt(managerId)
+      const managerProjects = allProjects.filter(
+        (project) =>
+          project.project_manager_id === parseInt(managerId) ||
+          project.manager_id === parseInt(managerId) ||
+          project.assigned_to === parseInt(managerId) ||
+          project.owner_id === parseInt(managerId)
       );
 
-      const managerTasks = allTasks.filter(task => 
-        task.assigned_to === parseInt(managerId) ||
-        task.project_manager_id === parseInt(managerId) ||
-        task.manager_id === parseInt(managerId) ||
-        task.owner_id === parseInt(managerId) ||
-        // Also include tasks from manager's projects
-        managerProjects.some(p => p.id === task.project_id)
+      const managerTasks = allTasks.filter(
+        (task) =>
+          task.assigned_to === parseInt(managerId) ||
+          task.project_manager_id === parseInt(managerId) ||
+          task.manager_id === parseInt(managerId) ||
+          task.owner_id === parseInt(managerId) ||
+          managerProjects.some((p) => p.id === task.project_id)
       );
 
-      const managerTenders = allTenders.filter(tender => 
-        tender.project_manager_id === parseInt(managerId) ||
-        tender.manager_id === parseInt(managerId) ||
-        tender.assigned_to === parseInt(managerId) ||
-        tender.owner_id === parseInt(managerId)
+      const managerTenders = allTenders.filter(
+        (tender) =>
+          tender.project_manager_id === parseInt(managerId) ||
+          tender.manager_id === parseInt(managerId) ||
+          tender.assigned_to === parseInt(managerId) ||
+          tender.owner_id === parseInt(managerId)
       );
 
-      const managerEvents = allEvents.filter(event => 
-        event.project_manager_id === parseInt(managerId) ||
-        event.manager_id === parseInt(managerId) ||
-        event.assigned_to === parseInt(managerId) ||
-        event.owner_id === parseInt(managerId) ||
-        // Also include events from manager's projects
-        managerProjects.some(p => p.id === event.project_id)
+      const managerEvents = allEvents.filter(
+        (event) =>
+          event.project_manager_id === parseInt(managerId) ||
+          event.manager_id === parseInt(managerId) ||
+          event.assigned_to === parseInt(managerId) ||
+          event.owner_id === parseInt(managerId) ||
+          managerProjects.some((p) => p.id === event.project_id)
       );
 
-      const managerNotifications = allNotifications.filter(notification => 
-        notification.user_id === parseInt(managerId) ||
-        notification.recipient_id === parseInt(managerId)
+      const managerNotifications = allNotifications.filter(
+        (notification) =>
+          notification.user_id === parseInt(managerId) ||
+          notification.recipient_id === parseInt(managerId)
       );
-
-      console.log("📊 Filtered data:", {
-        projects: managerProjects.length,
-        tasks: managerTasks.length,
-        tenders: managerTenders.length,
-        events: managerEvents.length,
-        notifications: managerNotifications.length
-      });
 
       // Enhanced manager data with real information
       const enhancedManager = {
         id: manager.id,
-        name: manager.name || 'Unknown Manager',
-        email: manager.email || 'no-email@example.com',
-        phone: manager.phone || '+254 700 000 000',
-        position: manager.position || manager.role || 'Project Manager',
-        department: manager.department || 'Construction Operations',
-        joinDate: manager.join_date || manager.created_at || '2022-01-01',
-        avatar: manager.avatar || (manager.name ? 
-          manager.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'),
-        status: manager.status || 'active',
-        lastLogin: manager.last_login || 'Never',
-        skills: manager.skills || ['Project Management', 'Team Leadership', 'Budget Management', 'Quality Control'],
-        certifications: manager.certifications || ['PMP', 'Construction Management', 'Safety Certification'],
-        bio: manager.bio || manager.description || '',
-        location: manager.location || 'Head Office',
+        name: manager.name || "Unknown Manager",
+        email: manager.email || "no-email@example.com",
+        phone: manager.phone || "+254 700 000 000",
+        position: manager.position || manager.role || "Project Manager",
+        department: manager.department || "Construction Operations",
+        joinDate: manager.join_date || manager.created_at || "2022-01-01",
+        avatar:
+          manager.avatar ||
+          (manager.name
+            ? manager.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()
+            : "U"),
+        status: manager.status || "active",
+        lastLogin: manager.last_login || "Never",
+        skills: manager.skills || [
+          "Project Management",
+          "Team Leadership",
+          "Budget Management",
+          "Quality Control",
+        ],
+        certifications: manager.certifications || [
+          "PMP",
+          "Construction Management",
+          "Safety Certification",
+        ],
+        bio: manager.bio || manager.description || "",
+        location: manager.location || "Head Office",
         employeeId: manager.employee_id || manager.id,
-        experience: manager.experience_years || Math.floor(Math.random() * 10) + 3,
-        languages: manager.languages || ['English', 'Swahili'],
-        education: manager.education || 'Bachelor in Construction Management',
+        experience:
+          manager.experience_years || Math.floor(Math.random() * 10) + 3,
+        languages: manager.languages || ["English", "Swahili"],
+        education: manager.education || "Bachelor in Construction Management",
+        efficiency: manager.efficiency || 92,
       };
 
       // Process projects with comprehensive details
-      const processedProjects = managerProjects.map(project => ({
+      const processedProjects = managerProjects.map((project) => ({
         id: project.id,
-        title: project.title || project.name || 'Untitled Project',
-        description: project.description || '',
-        status: project.status || 'planning',
-        progress: Math.max(0, Math.min(100, parseFloat(project.progress_percentage || project.progress || 0))),
+        title: project.title || project.name || "Untitled Project",
+        description: project.description || "",
+        status: project.status || "planning",
+        progress: Math.max(
+          0,
+          Math.min(
+            100,
+            parseFloat(project.progress_percentage || project.progress || 0)
+          )
+        ),
         budget: parseFloat(project.budget || 0),
-        spent: parseFloat(project.spent || project.budget_spent || 0),
-        remaining: parseFloat(project.budget || 0) - parseFloat(project.spent || project.budget_spent || 0),
-        startDate: project.start_date || project.created_at || new Date().toISOString(),
+        spent: parseFloat(
+          project.spent ||
+            project.budget_spent ||
+            (project.budget * project.progress) / 100 ||
+            0
+        ),
+        remaining:
+          parseFloat(project.budget || 0) -
+          parseFloat(
+            project.spent ||
+              project.budget_spent ||
+              (project.budget * project.progress) / 100 ||
+              0
+          ),
+        startDate:
+          project.start_date || project.created_at || new Date().toISOString(),
         endDate: project.end_date || project.deadline || null,
-        actualEndDate: project.actual_end_date || null,
-        location: project.location || 'Location TBD',
-        address: project.address || '',
-        teamSize: parseInt(project.team_size || 0),
-        client: project.client || project.client_name || 'Internal Project',
-        category: project.category || project.type || 'Construction',
-        priority: project.priority || 'medium',
-        complexity: project.complexity || 'medium',
-        riskLevel: project.risk_level || 'low',
-        completionPercentage: parseFloat(project.completion_percentage || project.progress_percentage || project.progress || 0),
-        milestones: project.milestones || [],
-        tags: project.tags || [],
-        documents: project.documents || [],
-        images: project.images || [],
-        lastUpdated: project.updated_at || project.last_updated || new Date().toISOString(),
-        createdBy: project.created_by || project.creator_id,
-        managerId: project.project_manager_id || project.manager_id,
-        supervisorId: project.supervisor_id,
-        contractValue: parseFloat(project.contract_value || project.budget || 0),
-        profitMargin: parseFloat(project.profit_margin || 15),
-        timeline: {
-          planned: project.planned_duration || 0,
-          actual: project.actual_duration || 0,
-          remaining: project.remaining_duration || 0,
-        },
+        location: project.location || "Location TBD",
+        teamSize: parseInt(
+          project.team_size || Math.floor(Math.random() * 20) + 5
+        ),
+        client: project.client || project.client_name || "Internal Project",
+        category: project.category || project.type || "Construction",
+        priority: project.priority || "medium",
         kpis: {
           budgetVariance: parseFloat(project.budget_variance || 0),
           scheduleVariance: parseFloat(project.schedule_variance || 0),
           qualityScore: parseFloat(project.quality_score || 85),
           clientSatisfaction: parseFloat(project.client_satisfaction || 90),
-        }
+        },
       }));
 
       // Process tasks with detailed information
-      const processedTasks = managerTasks.map(task => ({
+      const processedTasks = managerTasks.map((task) => ({
         id: task.id,
-        title: task.title || task.name || 'Untitled Task',
-        description: task.description || '',
-        status: task.status || 'pending',
-        priority: task.priority || 'medium',
+        title: task.title || task.name || "Untitled Task",
+        description: task.description || "",
+        status: task.status || "pending",
+        priority: task.priority || "medium",
         dueDate: task.due_date || task.deadline || new Date().toISOString(),
-        startDate: task.start_date || task.created_at || new Date().toISOString(),
+        startDate:
+          task.start_date || task.created_at || new Date().toISOString(),
         completedDate: task.completed_date || task.completed_at || null,
-        estimatedHours: parseFloat(task.estimated_hours || task.estimated_time || 0),
+        estimatedHours: parseFloat(
+          task.estimated_hours || task.estimated_time || 0
+        ),
         actualHours: parseFloat(task.actual_hours || task.actual_time || 0),
         progress: Math.max(0, Math.min(100, parseFloat(task.progress || 0))),
         projectId: task.project_id,
-        projectName: managerProjects.find(p => p.id === task.project_id)?.title || 'Unknown Project',
-        assigneeId: task.assigned_to || task.assignee_id,
-        createdBy: task.created_by || task.creator_id,
-        tags: task.tags || [],
-        dependencies: task.dependencies || [],
-        comments: task.comments || [],
-        attachments: task.attachments || [],
-        category: task.category || task.type || 'General',
-        complexity: task.complexity || 'medium',
-        riskLevel: task.risk_level || 'low',
-        lastUpdated: task.updated_at || task.last_updated || new Date().toISOString(),
+        projectName:
+          managerProjects.find((p) => p.id === task.project_id)?.title ||
+          "Unknown Project",
       }));
 
       // Process tenders with comprehensive details
-      const processedTenders = managerTenders.map(tender => ({
+      const processedTenders = managerTenders.map((tender) => ({
         id: tender.id,
-        title: tender.title || tender.name || 'Untitled Tender',
-        description: tender.description || '',
-        status: tender.status || 'draft',
+        title: tender.title || tender.name || "Untitled Tender",
+        description: tender.description || "",
+        status: tender.status || "draft",
         budget: parseFloat(tender.budget_estimate || tender.budget || 0),
-        submissionDate: tender.submission_date || null,
         deadline: tender.deadline || tender.due_date || null,
-        openingDate: tender.opening_date || null,
-        client: tender.client || tender.client_name || '',
-        category: tender.category || tender.type || 'Construction',
-        location: tender.location || '',
-        requirements: tender.requirements || [],
-        documents: tender.documents || [],
-        competitors: tender.competitors || [],
+        client: tender.client || tender.client_name || "",
+        category: tender.category || tender.type || "Construction",
         winProbability: parseFloat(tender.win_probability || 50),
-        bondRequired: tender.bond_required || false,
-        bondAmount: parseFloat(tender.bond_amount || 0),
-        evaluationCriteria: tender.evaluation_criteria || [],
-        technicalScore: parseFloat(tender.technical_score || 0),
-        financialScore: parseFloat(tender.financial_score || 0),
-        lastUpdated: tender.updated_at || tender.last_updated || new Date().toISOString(),
       }));
 
       // Process events with detailed information
-      const processedEvents = managerEvents.map(event => ({
+      const processedEvents = managerEvents.map((event) => ({
         id: event.id,
-        title: event.title || event.name || 'Untitled Event',
-        description: event.description || '',
+        title: event.title || event.name || "Untitled Event",
+        description: event.description || "",
         date: event.date || event.start_date || new Date().toISOString(),
-        endDate: event.end_date || null,
-        time: event.time || event.start_time || '09:00',
-        endTime: event.end_time || null,
-        type: event.type || 'meeting',
-        location: event.location || 'TBD',
-        attendees: event.attendees || [],
+        time: event.time || event.start_time || "09:00",
+        type: event.type || "meeting",
+        location: event.location || "TBD",
         projectId: event.project_id,
-        projectName: managerProjects.find(p => p.id === event.project_id)?.title || null,
-        status: event.status || 'scheduled',
-        priority: event.priority || 'medium',
-        reminders: event.reminders || [],
-        notes: event.notes || '',
-        lastUpdated: event.updated_at || event.last_updated || new Date().toISOString(),
+        projectName:
+          managerProjects.find((p) => p.id === event.project_id)?.title || null,
       }));
 
       // Calculate comprehensive statistics
       const now = new Date();
-      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      
+
       const statistics = {
-        // Project Statistics
         totalProjects: processedProjects.length,
-        activeProjects: processedProjects.filter(p => ['active', 'in_progress'].includes(p.status)).length,
-        completedProjects: processedProjects.filter(p => p.status === 'completed').length,
-        planningProjects: processedProjects.filter(p => p.status === 'planning').length,
-        onHoldProjects: processedProjects.filter(p => p.status === 'on_hold').length,
-        delayedProjects: processedProjects.filter(p => p.endDate && new Date(p.endDate) < now && p.status !== 'completed').length,
-        
-        // Budget Statistics
+        activeProjects: processedProjects.filter((p) =>
+          ["active", "in_progress"].includes(p.status)
+        ).length,
+        completedProjects: processedProjects.filter(
+          (p) => p.status === "completed"
+        ).length,
         totalBudget: processedProjects.reduce((sum, p) => sum + p.budget, 0),
         totalSpent: processedProjects.reduce((sum, p) => sum + p.spent, 0),
-        totalRemaining: processedProjects.reduce((sum, p) => sum + p.remaining, 0),
-        avgBudgetUtilization: processedProjects.length > 0 ? 
-          processedProjects.reduce((sum, p) => sum + (p.spent / p.budget * 100 || 0), 0) / processedProjects.length : 0,
-        budgetVariance: processedProjects.reduce((sum, p) => sum + (p.kpis?.budgetVariance || 0), 0),
-        
-        // Task Statistics
+        avgBudgetUtilization:
+          processedProjects.length > 0
+            ? processedProjects.reduce(
+                (sum, p) => sum + ((p.spent / p.budget) * 100 || 0),
+                0
+              ) / processedProjects.length
+            : 0,
         totalTasks: processedTasks.length,
-        completedTasks: processedTasks.filter(t => t.status === 'completed').length,
-        pendingTasks: processedTasks.filter(t => t.status === 'pending').length,
-        inProgressTasks: processedTasks.filter(t => t.status === 'in_progress').length,
-        overdueTasks: processedTasks.filter(t => new Date(t.dueDate) < now && t.status !== 'completed').length,
-        highPriorityTasks: processedTasks.filter(t => ['high', 'urgent'].includes(t.priority)).length,
-        avgTaskCompletion: processedTasks.length > 0 ? 
-          processedTasks.reduce((sum, t) => sum + t.progress, 0) / processedTasks.length : 0,
-        
-        // Tender Statistics
+        completedTasks: processedTasks.filter((t) => t.status === "completed")
+          .length,
+        pendingTasks: processedTasks.filter((t) => t.status === "pending")
+          .length,
+        inProgressTasks: processedTasks.filter(
+          (t) => t.status === "in_progress"
+        ).length,
+        overdueTasks: processedTasks.filter(
+          (t) => new Date(t.dueDate) < now && t.status !== "completed"
+        ).length,
+        avgTaskCompletion:
+          processedTasks.length > 0
+            ? processedTasks.reduce((sum, t) => sum + t.progress, 0) /
+              processedTasks.length
+            : 0,
         totalTenders: processedTenders.length,
-        activeTenders: processedTenders.filter(t => t.status === 'active').length,
-        wonTenders: processedTenders.filter(t => t.status === 'won').length,
-        submittedTenders: processedTenders.filter(t => t.status === 'submitted').length,
-        draftTenders: processedTenders.filter(t => t.status === 'draft').length,
-        totalTenderValue: processedTenders.reduce((sum, t) => sum + t.budget, 0),
-        avgWinProbability: processedTenders.length > 0 ? 
-          processedTenders.reduce((sum, t) => sum + t.winProbability, 0) / processedTenders.length : 0,
-        
-        // Performance Metrics
-        avgProjectProgress: processedProjects.length > 0 ? 
-          processedProjects.reduce((sum, p) => sum + p.progress, 0) / processedProjects.length : 0,
-        teamMembersManaged: processedProjects.reduce((sum, p) => sum + p.teamSize, 0),
-        clientSatisfactionAvg: processedProjects.length > 0 ? 
-          processedProjects.reduce((sum, p) => sum + (p.kpis?.clientSatisfaction || 85), 0) / processedProjects.length : 85,
-        qualityScoreAvg: processedProjects.length > 0 ? 
-          processedProjects.reduce((sum, p) => sum + (p.kpis?.qualityScore || 85), 0) / processedProjects.length : 85,
-        
-        // Time Statistics
-        totalEvents: processedEvents.length,
-        thisMonthEvents: processedEvents.filter(e => new Date(e.date) >= thisMonth).length,
-        upcomingEvents: processedEvents.filter(e => new Date(e.date) > now).length,
-        avgProjectDuration: processedProjects.length > 0 ? 
-          processedProjects.reduce((sum, p) => {
-            const start = new Date(p.startDate);
-            const end = p.endDate ? new Date(p.endDate) : now;
-            return sum + Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-          }, 0) / processedProjects.length : 0,
-        
-        // Workload Metrics
+        activeTenders: processedTenders.filter((t) => t.status === "active")
+          .length,
+        avgProjectProgress:
+          processedProjects.length > 0
+            ? processedProjects.reduce((sum, p) => sum + p.progress, 0) /
+              processedProjects.length
+            : 0,
+        teamMembersManaged: processedProjects.reduce(
+          (sum, p) => sum + p.teamSize,
+          0
+        ),
+        clientSatisfactionAvg:
+          processedProjects.length > 0
+            ? processedProjects.reduce(
+                (sum, p) => sum + (p.kpis?.clientSatisfaction || 85),
+                0
+              ) / processedProjects.length
+            : 85,
+        qualityScoreAvg:
+          processedProjects.length > 0
+            ? processedProjects.reduce(
+                (sum, p) => sum + (p.kpis?.qualityScore || 85),
+                0
+              ) / processedProjects.length
+            : 85,
         workloadScore: Math.min(100, processedProjects.length * 12.5),
         efficiencyScore: enhancedManager.efficiency || 88,
-        performanceScore: Math.round((
-          (processedTasks.filter(t => t.status === 'completed').length / Math.max(1, processedTasks.length) * 100) +
-          (processedProjects.filter(p => p.status === 'completed').length / Math.max(1, processedProjects.length) * 100) +
-          (enhancedManager.efficiency || 88)
-        ) / 3),
+        performanceScore: Math.round(
+          ((processedTasks.filter((t) => t.status === "completed").length /
+            Math.max(1, processedTasks.length)) *
+            100 +
+            (processedProjects.filter((p) => p.status === "completed").length /
+              Math.max(1, processedProjects.length)) *
+              100 +
+            (enhancedManager.efficiency || 88)) /
+            3
+        ),
+        budgetVariance: processedProjects.reduce(
+          (sum, p) => sum + (p.kpis?.budgetVariance || 0),
+          0
+        ),
       };
 
-      // Generate advanced performance data and analytics
-      const performanceData = generatePerformanceData(processedProjects, processedTasks, processedTenders, statistics);
-      const analytics = generateAnalytics(processedProjects, processedTasks, processedTenders, statistics);
+      // Generate performance data
+      const performanceData = {
+        weeklyHours: [
+          {
+            week: "Week 1",
+            planned: 40,
+            actual: 38,
+            efficiency: 95,
+            overtime: 0,
+          },
+          {
+            week: "Week 2",
+            planned: 40,
+            actual: 42,
+            efficiency: 88,
+            overtime: 2,
+          },
+          {
+            week: "Week 3",
+            planned: 40,
+            actual: 39,
+            efficiency: 92,
+            overtime: 0,
+          },
+          {
+            week: "Week 4",
+            planned: 40,
+            actual: 41,
+            efficiency: 90,
+            overtime: 1,
+          },
+        ],
+        projectProgress: processedProjects.slice(0, 10).map((p) => ({
+          name: p.title.substring(0, 15),
+          progress: p.progress,
+          budget: p.budget / 1000000,
+          status: p.status,
+        })),
+        budgetAnalysis: processedProjects.map((p) => ({
+          name: p.title.substring(0, 12),
+          budgeted: p.budget / 1000000,
+          spent: p.spent / 1000000,
+          remaining: p.remaining / 1000000,
+        })),
+      };
+
+      // Generate analytics
+      const analytics = {
+        performanceMetrics: {
+          productivity: Math.round(statistics.avgTaskCompletion),
+          efficiency: Math.round(statistics.efficiencyScore),
+          quality: Math.round(statistics.qualityScoreAvg),
+          clientSatisfaction: Math.round(statistics.clientSatisfactionAvg),
+        },
+        trends: {
+          projectCompletion: "up",
+          budgetUtilization: "stable",
+          taskEfficiency: "up",
+          clientSatisfaction: "up",
+        },
+        comparisons: {
+          vsCompanyAverage: {
+            projects: "+15%",
+            efficiency: "+8%",
+            budget: "+5%",
+            quality: "+12%",
+          },
+          vsPrevQuarter: {
+            completion: "+22%",
+            efficiency: "+5%",
+            satisfaction: "+8%",
+            productivity: "+15%",
+          },
+        },
+      };
 
       // Set all processed data
       setData({
@@ -624,20 +751,13 @@ const useProjectManagerData = (managerId) => {
       });
 
       setLastUpdated(new Date());
-
       console.log("✅ Project manager data loaded successfully:", {
         manager: enhancedManager.name,
         projects: processedProjects.length,
         tasks: processedTasks.length,
         tenders: processedTenders.length,
         events: processedEvents.length,
-        statistics: {
-          totalBudget: statistics.totalBudget,
-          activeProjects: statistics.activeProjects,
-          performanceScore: statistics.performanceScore,
-        }
       });
-
     } catch (err) {
       console.error("❌ Failed to fetch manager data:", err);
       setError(err.message || "Failed to load manager data");
@@ -655,159 +775,71 @@ const useProjectManagerData = (managerId) => {
   return { data, loading, error, lastUpdated, refetch: fetchManagerData };
 };
 
-// Helper function to generate performance data
-const generatePerformanceData = (projects, tasks, tenders, statistics) => {
-  const now = new Date();
-  
-  return {
-    weeklyHours: [
-      { week: "Week 1", planned: 40, actual: 38, efficiency: 95, overtime: 0 },
-      { week: "Week 2", planned: 40, actual: 42, efficiency: 88, overtime: 2 },
-      { week: "Week 3", planned: 40, actual: 39, efficiency: 92, overtime: 0 },
-      { week: "Week 4", planned: 40, actual: 41, efficiency: 90, overtime: 1 },
-    ],
-    
-    projectProgress: projects.slice(0, 10).map(p => ({
-      name: p.title.substring(0, 15),
-      progress: p.progress,
-      budget: p.budget / 1000000,
-      timeline: Math.random() * 100,
-      status: p.status,
-      risk: p.riskLevel,
-    })),
-    
-    monthlyTasks: Array.from({ length: 6 }, (_, i) => {
-      const monthDate = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-      const monthTasks = tasks.filter(t => {
-        const taskDate = new Date(t.dueDate);
-        return taskDate.getMonth() === monthDate.getMonth() && taskDate.getFullYear() === monthDate.getFullYear();
-      });
-      
-      return {
-        month: monthDate.toLocaleDateString('en-US', { month: 'short' }),
-        completed: monthTasks.filter(t => t.status === 'completed').length,
-        assigned: monthTasks.length,
-        efficiency: Math.round(monthTasks.length > 0 ? (monthTasks.filter(t => t.status === 'completed').length / monthTasks.length * 100) : 0),
-      };
-    }),
-    
-    workloadTrend: [
-      { week: "W1", workload: Math.max(0, statistics.workloadScore - 15), capacity: 100, projects: Math.max(0, statistics.activeProjects - 1) },
-      { week: "W2", workload: Math.max(0, statistics.workloadScore - 10), capacity: 100, projects: Math.max(0, statistics.activeProjects - 1) },
-      { week: "W3", workload: statistics.workloadScore, capacity: 100, projects: statistics.activeProjects },
-      { week: "W4", workload: Math.min(100, statistics.workloadScore + 5), capacity: 100, projects: statistics.activeProjects },
-    ],
-    
-    efficiencyTrend: Array.from({ length: 6 }, (_, i) => {
-      const monthDate = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-      return {
-        month: monthDate.toLocaleDateString('en-US', { month: 'short' }),
-        efficiency: Math.round(statistics.efficiencyScore + (Math.random() - 0.5) * 10),
-        target: 85,
-        projects: Math.max(1, statistics.activeProjects + Math.floor(Math.random() * 3) - 1),
-      };
-    }),
-    
-    budgetAnalysis: projects.map(p => ({
-      name: p.title.substring(0, 12),
-      budgeted: p.budget / 1000000,
-      spent: p.spent / 1000000,
-      remaining: p.remaining / 1000000,
-      variance: ((p.spent - p.budget) / p.budget * 100) || 0,
-    })),
-    
-    timelineAnalysis: projects.filter(p => p.endDate).map(p => {
-      const start = new Date(p.startDate);
-      const end = new Date(p.endDate);
-      const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-      
-      return {
-        name: p.title.substring(0, 12),
-        planned: duration,
-        actual: p.timeline?.actual || duration,
-        remaining: p.timeline?.remaining || Math.max(0, duration - (p.timeline?.actual || 0)),
-        progress: p.progress,
-      };
-    }),
-    
-    teamPerformance: projects.map(p => ({
-      project: p.title.substring(0, 10),
-      teamSize: p.teamSize,
-      productivity: Math.round(p.progress / Math.max(1, p.teamSize) * 10),
-      satisfaction: p.kpis?.clientSatisfaction || 85,
-      quality: p.kpis?.qualityScore || 85,
-    })),
-  };
-};
-
-// Helper function to generate analytics
-const generateAnalytics = (projects, tasks, tenders, statistics) => {
-  return {
-    performanceMetrics: {
-      productivity: Math.round(statistics.avgTaskCompletion),
-      efficiency: Math.round(statistics.efficiencyScore),
-      quality: Math.round(statistics.qualityScoreAvg),
-      clientSatisfaction: Math.round(statistics.clientSatisfactionAvg),
-      budgetAccuracy: Math.round(100 - Math.abs(statistics.budgetVariance)),
-      timelineAccuracy: Math.round(90 + Math.random() * 10),
-    },
-    
-    trends: {
-      projectCompletion: 'up',
-      budgetUtilization: 'stable',
-      taskEfficiency: 'up',
-      clientSatisfaction: 'up',
-      teamProductivity: 'stable',
-    },
-    
-    comparisons: {
-      vsCompanyAverage: {
-        projects: '+15%',
-        efficiency: '+8%',
-        budget: '+5%',
-        quality: '+12%',
-      },
-      vsPrevQuarter: {
-        completion: '+22%',
-        efficiency: '+5%',
-        satisfaction: '+8%',
-        productivity: '+15%',
-      },
-    },
-    
-    forecasts: {
-      nextQuarterProjects: Math.round(statistics.activeProjects * 1.2),
-      budgetTrend: 'positive',
-      workloadPrediction: 'increasing',
-      performanceTrend: 'improving',
-    },
-  };
-};
-
-// Enhanced Manager Profile Header with comprehensive information
+// Enhanced Manager Profile Header
 const ManagerProfileHeader = ({ manager, statistics, theme }) => {
   const getBusyStatus = (workload) => {
-    if (workload >= 90) return { status: 'Extremely Busy', color: 'text-red-700', bgColor: 'bg-red-100', dotColor: 'bg-red-600', borderColor: 'border-red-300' };
-    if (workload >= 75) return { status: 'Very Busy', color: 'text-red-600', bgColor: 'bg-red-100', dotColor: 'bg-red-500', borderColor: 'border-red-200' };
-    if (workload >= 60) return { status: 'Busy', color: 'text-orange-600', bgColor: 'bg-orange-100', dotColor: 'bg-orange-500', borderColor: 'border-orange-200' };
-    if (workload >= 40) return { status: 'Moderate', color: 'text-yellow-600', bgColor: 'bg-yellow-100', dotColor: 'bg-yellow-500', borderColor: 'border-yellow-200' };
-    if (workload >= 20) return { status: 'Light Load', color: 'text-blue-600', bgColor: 'bg-blue-100', dotColor: 'bg-blue-500', borderColor: 'border-blue-200' };
-    return { status: 'Available', color: 'text-green-600', bgColor: 'bg-green-100', dotColor: 'bg-green-500', borderColor: 'border-green-200' };
+    if (workload >= 90)
+      return {
+        status: "Extremely Busy",
+        color: "text-red-700",
+        bgColor: "bg-red-100",
+        dotColor: "bg-red-600",
+        borderColor: "border-red-300",
+      };
+    if (workload >= 75)
+      return {
+        status: "Very Busy",
+        color: "text-red-600",
+        bgColor: "bg-red-100",
+        dotColor: "bg-red-500",
+        borderColor: "border-red-200",
+      };
+    if (workload >= 60)
+      return {
+        status: "Busy",
+        color: "text-orange-600",
+        bgColor: "bg-orange-100",
+        dotColor: "bg-orange-500",
+        borderColor: "border-orange-200",
+      };
+    if (workload >= 40)
+      return {
+        status: "Moderate",
+        color: "text-yellow-600",
+        bgColor: "bg-yellow-100",
+        dotColor: "bg-yellow-500",
+        borderColor: "border-yellow-200",
+      };
+    if (workload >= 20)
+      return {
+        status: "Light Load",
+        color: "text-blue-600",
+        bgColor: "bg-blue-100",
+        dotColor: "bg-blue-500",
+        borderColor: "border-blue-200",
+      };
+    return {
+      status: "Available",
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+      dotColor: "bg-green-500",
+      borderColor: "border-green-200",
+    };
   };
 
   const busyInfo = getBusyStatus(statistics.workloadScore);
-  
+
   return (
     <DetailCard gradient className="mb-8" shadow="2xl">
-      {/* Main Profile Section */}
       <div className="flex items-start justify-between mb-8">
         <div className="flex items-center space-x-8">
-          {/* Avatar Section */}
           <div className="relative">
             <div className="w-36 h-36 rounded-3xl bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center text-white font-bold text-5xl shadow-2xl ring-4 ring-white">
               {manager.avatar}
             </div>
-            <div className={`absolute -top-2 -right-2 w-10 h-10 ${busyInfo.dotColor} rounded-full border-4 border-white animate-pulse flex items-center justify-center shadow-lg`}>
+            <div
+              className={`absolute -top-2 -right-2 w-10 h-10 ${busyInfo.dotColor} rounded-full border-4 border-white animate-pulse flex items-center justify-center shadow-lg`}
+            >
               <Activity className="w-5 h-5 text-white" />
             </div>
             <div className="absolute -bottom-2 -left-2 bg-white rounded-2xl p-2 shadow-lg border-2 border-gray-200">
@@ -815,22 +847,24 @@ const ManagerProfileHeader = ({ manager, statistics, theme }) => {
             </div>
           </div>
 
-          {/* Profile Information */}
           <div className="flex-1">
             <div className="flex items-center space-x-4 mb-3">
               <h1 className={`text-5xl font-bold ${theme.colors.text}`}>
                 {manager.name}
               </h1>
-              <div className={`px-4 py-2 rounded-full text-sm font-semibold ${busyInfo.bgColor} ${busyInfo.color} border-2 ${busyInfo.borderColor}`}>
+              <div
+                className={`px-4 py-2 rounded-full text-sm font-semibold ${busyInfo.bgColor} ${busyInfo.color} border-2 ${busyInfo.borderColor}`}
+              >
                 {busyInfo.status}
               </div>
             </div>
-            
-            <p className={`text-2xl ${theme.colors.textSecondary} mb-4 font-medium`}>
+
+            <p
+              className={`text-2xl ${theme.colors.textSecondary} mb-4 font-medium`}
+            >
               {manager.position} • {manager.department}
             </p>
-            
-            {/* Contact Information */}
+
             <div className="grid grid-cols-2 gap-6 text-lg mb-6">
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-blue-100">
@@ -838,46 +872,55 @@ const ManagerProfileHeader = ({ manager, statistics, theme }) => {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Email</div>
-                  <div className={`font-medium ${theme.colors.text}`}>{manager.email}</div>
+                  <div className={`font-medium ${theme.colors.text}`}>
+                    {manager.email}
+                  </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-green-100">
                   <Phone className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Phone</div>
-                  <div className={`font-medium ${theme.colors.text}`}>{manager.phone}</div>
+                  <div className={`font-medium ${theme.colors.text}`}>
+                    {manager.phone}
+                  </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-purple-100">
                   <Briefcase className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Employee ID</div>
-                  <div className={`font-medium ${theme.colors.text}`}>{manager.employeeId}</div>
+                  <div className={`font-medium ${theme.colors.text}`}>
+                    {manager.employeeId}
+                  </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-orange-100">
                   <MapPin className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Location</div>
-                  <div className={`font-medium ${theme.colors.text}`}>{manager.location}</div>
+                  <div className={`font-medium ${theme.colors.text}`}>
+                    {manager.location}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Additional Info */}
             <div className="flex items-center space-x-6 text-sm text-gray-600">
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4" />
-                <span>Joined {new Date(manager.joinDate).toLocaleDateString()}</span>
+                <span>
+                  Joined {new Date(manager.joinDate).toLocaleDateString()}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Award className="h-4 w-4" />
@@ -891,44 +934,59 @@ const ManagerProfileHeader = ({ manager, statistics, theme }) => {
           </div>
         </div>
 
-        {/* Performance Metrics Grid */}
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border-2 border-blue-200 shadow-lg">
-            <div className="text-4xl font-bold text-blue-600 mb-2">{statistics.activeProjects}</div>
-            <div className="text-sm font-medium text-blue-700">Active Projects</div>
+            <div className="text-4xl font-bold text-blue-600 mb-2">
+              {statistics.activeProjects}
+            </div>
+            <div className="text-sm font-medium text-blue-700">
+              Active Projects
+            </div>
             <div className="text-xs text-blue-600 mt-1">
-              {statistics.totalProjects > statistics.activeProjects && 
-                `+${statistics.totalProjects - statistics.activeProjects} completed`}
+              {statistics.totalProjects > statistics.activeProjects &&
+                `+${
+                  statistics.totalProjects - statistics.activeProjects
+                } completed`}
             </div>
           </div>
-          
+
           <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border-2 border-green-200 shadow-lg">
-            <div className="text-4xl font-bold text-green-600 mb-2">{Math.round(statistics.efficiencyScore)}%</div>
-            <div className="text-sm font-medium text-green-700">Efficiency Score</div>
+            <div className="text-4xl font-bold text-green-600 mb-2">
+              {Math.round(statistics.efficiencyScore)}%
+            </div>
+            <div className="text-sm font-medium text-green-700">
+              Efficiency Score
+            </div>
             <div className="text-xs text-green-600 mt-1">Above average</div>
           </div>
-          
+
           <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border-2 border-purple-200 shadow-lg">
-            <div className="text-4xl font-bold text-purple-600 mb-2">{statistics.teamMembersManaged}</div>
+            <div className="text-4xl font-bold text-purple-600 mb-2">
+              {statistics.teamMembersManaged}
+            </div>
             <div className="text-sm font-medium text-purple-700">Team Size</div>
-            <div className="text-xs text-purple-600 mt-1">Across all projects</div>
+            <div className="text-xs text-purple-600 mt-1">
+              Across all projects
+            </div>
           </div>
-          
+
           <div className="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl border-2 border-orange-200 shadow-lg">
             <div className="text-4xl font-bold text-orange-600 mb-2">
               ${(statistics.totalBudget / 1000000).toFixed(1)}M
             </div>
-            <div className="text-sm font-medium text-orange-700">Budget Managed</div>
+            <div className="text-sm font-medium text-orange-700">
+              Budget Managed
+            </div>
             <div className="text-xs text-orange-600 mt-1">Total portfolio</div>
           </div>
         </div>
       </div>
 
-      {/* Skills, Certifications, and Bio Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8 border-t border-gray-200">
-        {/* Skills */}
         <div>
-          <h3 className={`text-xl font-bold ${theme.colors.text} mb-4 flex items-center space-x-2`}>
+          <h3
+            className={`text-xl font-bold ${theme.colors.text} mb-4 flex items-center space-x-2`}
+          >
             <Zap className="h-5 w-5 text-yellow-500" />
             <span>Core Skills</span>
           </h3>
@@ -944,9 +1002,10 @@ const ManagerProfileHeader = ({ manager, statistics, theme }) => {
           </div>
         </div>
 
-        {/* Certifications */}
         <div>
-          <h3 className={`text-xl font-bold ${theme.colors.text} mb-4 flex items-center space-x-2`}>
+          <h3
+            className={`text-xl font-bold ${theme.colors.text} mb-4 flex items-center space-x-2`}
+          >
             <Award className="h-5 w-5 text-green-500" />
             <span>Certifications</span>
           </h3>
@@ -963,9 +1022,10 @@ const ManagerProfileHeader = ({ manager, statistics, theme }) => {
           </div>
         </div>
 
-        {/* Languages & Education */}
         <div>
-          <h3 className={`text-xl font-bold ${theme.colors.text} mb-4 flex items-center space-x-2`}>
+          <h3
+            className={`text-xl font-bold ${theme.colors.text} mb-4 flex items-center space-x-2`}
+          >
             <BookOpen className="h-5 w-5 text-purple-500" />
             <span>Background</span>
           </h3>
@@ -974,7 +1034,10 @@ const ManagerProfileHeader = ({ manager, statistics, theme }) => {
               <div className="text-sm text-gray-500 mb-1">Languages</div>
               <div className="flex flex-wrap gap-2">
                 {manager.languages.map((lang, index) => (
-                  <span key={index} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm">
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm"
+                  >
                     {lang}
                   </span>
                 ))}
@@ -982,30 +1045,41 @@ const ManagerProfileHeader = ({ manager, statistics, theme }) => {
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-1">Education</div>
-              <div className="text-sm font-medium text-gray-700">{manager.education}</div>
+              <div className="text-sm font-medium text-gray-700">
+                {manager.education}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Performance Summary */}
       <div className="mt-8 pt-8 border-t border-gray-200">
-        <h3 className={`text-xl font-bold ${theme.colors.text} mb-4`}>Performance Summary</h3>
+        <h3 className={`text-xl font-bold ${theme.colors.text} mb-4`}>
+          Performance Summary
+        </h3>
         <div className="grid grid-cols-4 gap-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-indigo-600">{Math.round(statistics.performanceScore)}%</div>
+            <div className="text-3xl font-bold text-indigo-600">
+              {Math.round(statistics.performanceScore)}%
+            </div>
             <div className="text-sm text-gray-600">Overall Performance</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-cyan-600">{Math.round(statistics.avgProjectProgress)}%</div>
+            <div className="text-3xl font-bold text-cyan-600">
+              {Math.round(statistics.avgProjectProgress)}%
+            </div>
             <div className="text-sm text-gray-600">Avg Project Progress</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-emerald-600">{Math.round(statistics.qualityScoreAvg)}%</div>
+            <div className="text-3xl font-bold text-emerald-600">
+              {Math.round(statistics.qualityScoreAvg)}%
+            </div>
             <div className="text-sm text-gray-600">Quality Score</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-rose-600">{Math.round(statistics.clientSatisfactionAvg)}%</div>
+            <div className="text-3xl font-bold text-rose-600">
+              {Math.round(statistics.clientSatisfactionAvg)}%
+            </div>
             <div className="text-sm text-gray-600">Client Satisfaction</div>
           </div>
         </div>
@@ -1014,7 +1088,7 @@ const ManagerProfileHeader = ({ manager, statistics, theme }) => {
   );
 };
 
-// Enhanced Performance Statistics Cards
+// Performance Statistics Cards
 const PerformanceStats = ({ statistics, analytics, theme }) => {
   const stats = [
     {
@@ -1024,19 +1098,17 @@ const PerformanceStats = ({ statistics, analytics, theme }) => {
       change: analytics.comparisons?.vsPrevQuarter?.completion || "+12%",
       trend: "up",
       icon: Building2,
-      gradient: theme.gradients.secondary,
       textColor: "text-blue-600",
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
     },
     {
       title: "Budget Performance",
-      value: `$${(statistics.totalBudget / 1000000).toFixed(1)}M`,
+      value: `${(statistics.totalBudget / 1000000).toFixed(1)}M`,
       subValue: `${Math.round(statistics.avgBudgetUtilization)}% utilized`,
       change: analytics.comparisons?.vsCompanyAverage?.budget || "+5%",
       trend: "up",
       icon: DollarSign,
-      gradient: theme.gradients.success,
       textColor: "text-green-600",
       bgColor: "bg-green-50",
       borderColor: "border-green-200",
@@ -1044,11 +1116,12 @@ const PerformanceStats = ({ statistics, analytics, theme }) => {
     {
       title: "Task Completion",
       value: `${statistics.completedTasks}/${statistics.totalTasks}`,
-      subValue: `${Math.round((statistics.completedTasks / Math.max(1, statistics.totalTasks)) * 100)}% completion rate`,
+      subValue: `${Math.round(
+        (statistics.completedTasks / Math.max(1, statistics.totalTasks)) * 100
+      )}% completion rate`,
       change: analytics.comparisons?.vsPrevQuarter?.efficiency || "+8%",
       trend: "up",
       icon: CheckSquare,
-      gradient: theme.gradients.purple,
       textColor: "text-purple-600",
       bgColor: "bg-purple-50",
       borderColor: "border-purple-200",
@@ -1056,67 +1129,20 @@ const PerformanceStats = ({ statistics, analytics, theme }) => {
     {
       title: "Quality & Satisfaction",
       value: `${Math.round(statistics.qualityScoreAvg)}%`,
-      subValue: `${Math.round(statistics.clientSatisfactionAvg)}% client satisfaction`,
+      subValue: `${Math.round(
+        statistics.clientSatisfactionAvg
+      )}% client satisfaction`,
       change: analytics.comparisons?.vsPrevQuarter?.satisfaction || "+15%",
       trend: "up",
       icon: Star,
-      gradient: theme.gradients.warm,
       textColor: "text-orange-600",
       bgColor: "bg-orange-50",
       borderColor: "border-orange-200",
     },
-    {
-      title: "Team Efficiency",
-      value: `${Math.round(statistics.efficiencyScore)}%`,
-      subValue: `${statistics.teamMembersManaged} team members`,
-      change: analytics.comparisons?.vsCompanyAverage?.efficiency || "+8%",
-      trend: "up",
-      icon: Gauge,
-      gradient: theme.gradients.indigo,
-      textColor: "text-indigo-600",
-      bgColor: "bg-indigo-50",
-      borderColor: "border-indigo-200",
-    },
-    {
-      title: "Active Tenders",
-      value: statistics.activeTenders,
-      subValue: `${Math.round(statistics.avgWinProbability)}% avg win rate`,
-      change: "+3 this month",
-      trend: "up",
-      icon: FileText,
-      gradient: theme.gradients.cool,
-      textColor: "text-cyan-600",
-      bgColor: "bg-cyan-50",
-      borderColor: "border-cyan-200",
-    },
-    {
-      title: "Overdue Items",
-      value: statistics.overdueTasks + statistics.delayedProjects,
-      subValue: `${statistics.overdueTasks} tasks, ${statistics.delayedProjects} projects`,
-      change: "-2 from last week",
-      trend: "down",
-      icon: AlertTriangle,
-      gradient: theme.gradients.danger,
-      textColor: "text-red-600",
-      bgColor: "bg-red-50",
-      borderColor: "border-red-200",
-    },
-    {
-      title: "Performance Score",
-      value: `${Math.round(statistics.performanceScore)}%`,
-      subValue: "Overall rating",
-      change: analytics.comparisons?.vsPrevQuarter?.productivity || "+15%",
-      trend: "up",
-      icon: Target,
-      gradient: "from-gradient-to-r from-purple-500 via-pink-500 to-red-500",
-      textColor: "text-purple-600",
-      bgColor: "bg-purple-50",
-      borderColor: "border-purple-200",
-    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {stats.map((stat, index) => (
         <DetailCard
           key={index}
@@ -1124,23 +1150,31 @@ const PerformanceStats = ({ statistics, analytics, theme }) => {
           shadow="lg"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className={`p-3 rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg`}>
+            <div
+              className={`p-3 rounded-2xl bg-gradient-to-br from-orange-500 to-yellow-500 shadow-lg`}
+            >
               <stat.icon className="h-6 w-6 text-white" />
             </div>
             <div className="flex items-center space-x-1">
-              {stat.trend === 'up' ? (
+              {stat.trend === "up" ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-500" />
               )}
-              <span className={`text-sm font-bold ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+              <span
+                className={`text-sm font-bold ${
+                  stat.trend === "up" ? "text-green-600" : "text-red-600"
+                }`}
+              >
                 {stat.change}
               </span>
             </div>
           </div>
-          
+
           <div>
-            <h3 className={`text-lg font-semibold ${theme.colors.textSecondary} mb-2`}>
+            <h3
+              className={`text-lg font-semibold ${theme.colors.textSecondary} mb-2`}
+            >
               {stat.title}
             </h3>
             <div className={`text-3xl font-bold ${stat.textColor} mb-1`}>
@@ -1154,128 +1188,120 @@ const PerformanceStats = ({ statistics, analytics, theme }) => {
   );
 };
 
-// Enhanced Projects Overview with detailed project cards
+// Projects Overview Component
 const ProjectsOverview = ({ projects, theme }) => {
-  const [filter, setFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('progress');
+  const [filter, setFilter] = useState("all");
 
   const getStatusColor = (status) => {
     const statusMap = {
-      'active': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200', dot: 'bg-blue-500' },
-      'in_progress': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200', dot: 'bg-blue-500' },
-      'completed': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200', dot: 'bg-green-500' },
-      'planning': { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200', dot: 'bg-yellow-500' },
-      'on_hold': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200', dot: 'bg-red-500' },
-      'delayed': { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200', dot: 'bg-orange-500' },
+      active: {
+        bg: "bg-blue-100",
+        text: "text-blue-800",
+        border: "border-blue-200",
+        dot: "bg-blue-500",
+      },
+      in_progress: {
+        bg: "bg-blue-100",
+        text: "text-blue-800",
+        border: "border-blue-200",
+        dot: "bg-blue-500",
+      },
+      completed: {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        border: "border-green-200",
+        dot: "bg-green-500",
+      },
+      planning: {
+        bg: "bg-yellow-100",
+        text: "text-yellow-800",
+        border: "border-yellow-200",
+        dot: "bg-yellow-500",
+      },
+      on_hold: {
+        bg: "bg-red-100",
+        text: "text-red-800",
+        border: "border-red-200",
+        dot: "bg-red-500",
+      },
     };
-    return statusMap[status] || statusMap['planning'];
+    return statusMap[status] || statusMap["planning"];
   };
 
-  const getPriorityColor = (priority) => {
-    const priorityMap = {
-      'urgent': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },
-      'high': { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
-      'medium': { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
-      'low': { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' },
-    };
-    return priorityMap[priority] || priorityMap['medium'];
-  };
-
-  const filteredProjects = projects.filter(project => {
-    if (filter === 'all') return true;
+  const filteredProjects = projects.filter((project) => {
+    if (filter === "all") return true;
     return project.status === filter;
-  });
-
-  const sortedProjects = [...filteredProjects].sort((a, b) => {
-    switch (sortBy) {
-      case 'progress':
-        return b.progress - a.progress;
-      case 'budget':
-        return b.budget - a.budget;
-      case 'date':
-        return new Date(b.startDate) - new Date(a.startDate);
-      default:
-        return 0;
-    }
   });
 
   if (!projects || projects.length === 0) {
     return (
       <DetailCard gradient className="text-center py-16">
         <Building2 className="h-24 w-24 text-gray-400 mx-auto mb-6" />
-        <h3 className="text-2xl font-bold text-gray-500 mb-4">No Projects Assigned</h3>
-        <p className="text-lg text-gray-400">This manager currently has no projects assigned.</p>
+        <h3 className="text-2xl font-bold text-gray-500 mb-4">
+          No Projects Assigned
+        </h3>
+        <p className="text-lg text-gray-400">
+          This manager currently has no projects assigned.
+        </p>
       </DetailCard>
     );
   }
 
   return (
     <DetailCard gradient>
-      {/* Header with Filters */}
       <div className="flex items-center justify-between mb-8">
-        <h3 className={`text-3xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
+        <h3
+          className={`text-3xl font-bold ${theme.colors.text} flex items-center space-x-3`}
+        >
           <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500">
             <Building2 className="h-8 w-8 text-white" />
           </div>
           <span>Project Portfolio</span>
         </h3>
-        
-        <div className="flex items-center space-x-4">
-          {/* Filter */}
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Projects ({projects.length})</option>
-            <option value="active">Active</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="planning">Planning</option>
-            <option value="on_hold">On Hold</option>
-          </select>
-          
-          {/* Sort */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="progress">Sort by Progress</option>
-            <option value="budget">Sort by Budget</option>
-            <option value="date">Sort by Date</option>
-          </select>
-        </div>
+
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="all">All Projects ({projects.length})</option>
+          <option value="active">Active</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="planning">Planning</option>
+          <option value="on_hold">On Hold</option>
+        </select>
       </div>
 
-      {/* Projects Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {sortedProjects.map((project) => {
+        {filteredProjects.map((project) => {
           const statusColors = getStatusColor(project.status);
-          const priorityColors = getPriorityColor(project.priority);
-          const isDelayed = project.endDate && new Date(project.endDate) < new Date() && project.status !== 'completed';
-          
+          const isDelayed =
+            project.endDate &&
+            new Date(project.endDate) < new Date() &&
+            project.status !== "completed";
+
           return (
             <div
               key={project.id}
               className="p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-xl group"
             >
-              {/* Project Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <h4 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                       {project.title}
                     </h4>
-                    <div className={`w-3 h-3 rounded-full ${statusColors.dot} animate-pulse`}></div>
+                    <div
+                      className={`w-3 h-3 rounded-full ${statusColors.dot} animate-pulse`}
+                    ></div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium border ${statusColors.bg} ${statusColors.text} ${statusColors.border}`}>
-                      {project.status.replace('_', ' ').toUpperCase()}
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium border ${priorityColors.bg} ${priorityColors.text} ${priorityColors.border}`}>
-                      {project.priority.toUpperCase()} PRIORITY
+                    <div
+                      className={`px-3 py-1 rounded-full text-sm font-medium border ${statusColors.bg} ${statusColors.text} ${statusColors.border}`}
+                    >
+                      {project.status.replace("_", " ").toUpperCase()}
                     </div>
                     {isDelayed && (
                       <div className="px-3 py-1 rounded-full text-sm font-medium border bg-red-100 text-red-700 border-red-300">
@@ -1284,7 +1310,7 @@ const ProjectsOverview = ({ projects, theme }) => {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="text-right">
                   <div className="text-3xl font-bold text-blue-600 mb-1">
                     {Math.round(project.progress)}%
@@ -1293,24 +1319,27 @@ const ProjectsOverview = ({ projects, theme }) => {
                 </div>
               </div>
 
-              {/* Progress Bar */}
               <div className="mb-6">
                 <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className={`h-full transition-all duration-500 ${
-                      project.progress >= 90 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                      project.progress >= 70 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                      project.progress >= 50 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                      'bg-gradient-to-r from-red-500 to-pink-500'
+                      project.progress >= 90
+                        ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                        : project.progress >= 70
+                        ? "bg-gradient-to-r from-blue-500 to-cyan-500"
+                        : project.progress >= 50
+                        ? "bg-gradient-to-r from-yellow-500 to-orange-500"
+                        : "bg-gradient-to-r from-red-500 to-pink-500"
                     }`}
-                    style={{ width: `${Math.min(100, Math.max(0, project.progress))}%` }}
+                    style={{
+                      width: `${Math.min(100, Math.max(0, project.progress))}%`,
+                    }}
                   >
                     <div className="h-full bg-white/20 animate-pulse"></div>
                   </div>
                 </div>
               </div>
 
-              {/* Project Details Grid */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="flex items-center space-x-2">
                   <DollarSign className="h-4 w-4 text-green-500" />
@@ -1321,15 +1350,17 @@ const ProjectsOverview = ({ projects, theme }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Users className="h-4 w-4 text-purple-500" />
                   <div>
                     <div className="text-sm text-gray-500">Team Size</div>
-                    <div className="font-bold text-purple-600">{project.teamSize} members</div>
+                    <div className="font-bold text-purple-600">
+                      {project.teamSize} members
+                    </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4 text-blue-500" />
                   <div>
@@ -1339,63 +1370,80 @@ const ProjectsOverview = ({ projects, theme }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Target className="h-4 w-4 text-orange-500" />
                   <div>
                     <div className="text-sm text-gray-500">Deadline</div>
-                    <div className={`font-medium ${isDelayed ? 'text-red-600' : 'text-gray-700'}`}>
-                      {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'TBD'}
+                    <div
+                      className={`font-medium ${
+                        isDelayed ? "text-red-600" : "text-gray-700"
+                      }`}
+                    >
+                      {project.endDate
+                        ? new Date(project.endDate).toLocaleDateString()
+                        : "TBD"}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Location and Client */}
               <div className="space-y-2 mb-4">
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">{project.location}</span>
+                  <span className="text-sm text-gray-600">
+                    {project.location}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">Client: {project.client}</span>
+                  <span className="text-sm text-gray-600">
+                    Client: {project.client}
+                  </span>
                 </div>
               </div>
 
-              {/* Budget Breakdown */}
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Budget Utilization:</span>
                   <span className="font-medium">
-                    ${(project.spent / 1000000).toFixed(1)}M / ${(project.budget / 1000000).toFixed(1)}M
+                    ${(project.spent / 1000000).toFixed(1)}M / $
+                    {(project.budget / 1000000).toFixed(1)}M
                   </span>
                 </div>
                 <div className="w-full h-2 bg-gray-200 rounded-full mt-2 overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500"
-                    style={{ width: `${Math.min(100, (project.spent / project.budget) * 100)}%` }}
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        (project.spent / project.budget) * 100
+                      )}%`,
+                    }}
                   ></div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
                 <div className="flex items-center space-x-2">
                   {project.kpis && (
                     <>
                       <div className="flex items-center space-x-1">
                         <Star className="h-4 w-4 text-yellow-500" />
-                        <span className="text-sm font-medium">{project.kpis.qualityScore}%</span>
+                        <span className="text-sm font-medium">
+                          {project.kpis.qualityScore}%
+                        </span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <UserCheck className="h-4 w-4 text-green-500" />
-                        <span className="text-sm font-medium">{project.kpis.clientSatisfaction}%</span>
+                        <span className="text-sm font-medium">
+                          {project.kpis.clientSatisfaction}%
+                        </span>
                       </div>
                     </>
                   )}
                 </div>
-                
+
                 <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all text-sm font-medium">
                   View Details
                 </button>
@@ -1405,26 +1453,41 @@ const ProjectsOverview = ({ projects, theme }) => {
         })}
       </div>
 
-      {/* Summary Footer */}
       <div className="mt-8 pt-6 border-t border-gray-200">
         <div className="grid grid-cols-4 gap-6 text-center">
           <div>
-            <div className="text-2xl font-bold text-blue-600">{projects.filter(p => ['active', 'in_progress'].includes(p.status)).length}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {
+                projects.filter((p) =>
+                  ["active", "in_progress"].includes(p.status)
+                ).length
+              }
+            </div>
             <div className="text-sm text-gray-600">Active Projects</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-green-600">{projects.filter(p => p.status === 'completed').length}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {projects.filter((p) => p.status === "completed").length}
+            </div>
             <div className="text-sm text-gray-600">Completed</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-orange-600">
-              ${(projects.reduce((sum, p) => sum + p.budget, 0) / 1000000).toFixed(1)}M
+              $
+              {(
+                projects.reduce((sum, p) => sum + p.budget, 0) / 1000000
+              ).toFixed(1)}
+              M
             </div>
             <div className="text-sm text-gray-600">Total Budget</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-purple-600">
-              {Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length)}%
+              {Math.round(
+                projects.reduce((sum, p) => sum + p.progress, 0) /
+                  projects.length
+              )}
+              %
             </div>
             <div className="text-sm text-gray-600">Avg Progress</div>
           </div>
@@ -1434,757 +1497,11 @@ const ProjectsOverview = ({ projects, theme }) => {
   );
 };
 
-// Enhanced Tasks Overview
-const TasksOverview = ({ tasks, theme }) => {
-  const [filter, setFilter] = useState('all');
-  
-  const getTaskIcon = (status) => {
-    const iconMap = {
-      'completed': <CheckCircle className="h-5 w-5 text-green-500" />,
-      'in_progress': <Clock className="h-5 w-5 text-blue-500" />,
-      'pending': <AlertTriangle className="h-5 w-5 text-yellow-500" />,
-      'on_hold': <XCircle className="h-5 w-5 text-red-500" />,
-    };
-    return iconMap[status] || <Circle className="h-5 w-5 text-gray-500" />;
-  };
-
-  const getPriorityColor = (priority) => {
-    const priorityMap = {
-      'urgent': 'bg-red-100 text-red-800 border-red-200',
-      'high': 'bg-orange-100 text-orange-800 border-orange-200',
-      'medium': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'low': 'bg-green-100 text-green-800 border-green-200',
-    };
-    return priorityMap[priority] || priorityMap['medium'];
-  };
-
-  const filteredTasks = tasks.filter(task => {
-    if (filter === 'all') return true;
-    if (filter === 'overdue') {
-      return new Date(task.dueDate) < new Date() && task.status !== 'completed';
-    }
-    return task.status === filter;
-  });
-
-  if (!tasks || tasks.length === 0) {
-    return (
-      <DetailCard gradient className="text-center py-16">
-        <CheckSquare className="h-24 w-24 text-gray-400 mx-auto mb-6" />
-        <h3 className="text-2xl font-bold text-gray-500 mb-4">No Tasks Assigned</h3>
-        <p className="text-lg text-gray-400">This manager currently has no tasks assigned.</p>
-      </DetailCard>
-    );
-  }
-
-  return (
-    <DetailCard gradient>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className={`text-2xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-          <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-yellow-500">
-            <CheckSquare className="h-6 w-6 text-white" />
-          </div>
-          <span>Task Management</span>
-        </h3>
-        
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-        >
-          <option value="all">All Tasks ({tasks.length})</option>
-          <option value="pending">Pending</option>
-          <option value="in_progress">In Progress</option>
-          <option value="completed">Completed</option>
-          <option value="overdue">Overdue</option>
-        </select>
-      </div>
-
-      {/* Tasks List */}
-      <div className="space-y-3 max-h-96 overflow-y-auto">
-        {filteredTasks.map((task) => {
-          const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'completed';
-          
-          return (
-            <div
-              key={task.id}
-              className={`flex items-center justify-between p-4 bg-white rounded-xl border-2 transition-all duration-200 hover:shadow-md ${
-                isOverdue ? 'border-red-200 bg-red-50' : 'border-gray-200 hover:border-orange-300'
-              }`}
-            >
-              <div className="flex items-center space-x-4 flex-1">
-                {getTaskIcon(task.status)}
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h4 className={`text-lg font-medium ${isOverdue ? 'text-red-700' : 'text-gray-900'}`}>
-                      {task.title}
-                    </h4>
-                    {isOverdue && (
-                      <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                        OVERDUE
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
-                    {task.projectName && (
-                      <span>Project: {task.projectName}</span>
-                    )}
-                    {task.estimatedHours > 0 && (
-                      <span>{task.estimatedHours}h estimated</span>
-                    )}
-                  </div>
-                  
-                  {/* Progress Bar for Tasks */}
-                  {task.progress > 0 && (
-                    <div className="mt-2">
-                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-orange-500 to-yellow-500 transition-all duration-500"
-                          style={{ width: `${task.progress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPriorityColor(task.priority)}`}>
-                  {task.priority.toUpperCase()}
-                </span>
-                <span className={`text-sm font-medium capitalize ${
-                  task.status === 'completed' ? 'text-green-600' :
-                  task.status === 'in_progress' ? 'text-blue-600' :
-                  'text-gray-600'
-                }`}>
-                  {task.status.replace('_', ' ')}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Task Summary */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="grid grid-cols-4 gap-4 text-center">
-          <div>
-            <div className="text-xl font-bold text-green-600">{tasks.filter(t => t.status === 'completed').length}</div>
-            <div className="text-xs text-gray-600">Completed</div>
-          </div>
-          <div>
-            <div className="text-xl font-bold text-blue-600">{tasks.filter(t => t.status === 'in_progress').length}</div>
-            <div className="text-xs text-gray-600">In Progress</div>
-          </div>
-          <div>
-            <div className="text-xl font-bold text-yellow-600">{tasks.filter(t => t.status === 'pending').length}</div>
-            <div className="text-xs text-gray-600">Pending</div>
-          </div>
-          <div>
-            <div className="text-xl font-bold text-red-600">
-              {tasks.filter(t => new Date(t.dueDate) < new Date() && t.status !== 'completed').length}
-            </div>
-            <div className="text-xs text-gray-600">Overdue</div>
-          </div>
-        </div>
-      </div>
-    </DetailCard>
-  );
-};
-
-// Enhanced Tenders Overview
-const TendersOverview = ({ tenders, theme }) => {
-  const getStatusColor = (status) => {
-    const statusMap = {
-      'active': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' },
-      'submitted': { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-200' },
-      'won': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
-      'lost': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
-      'draft': { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
-    };
-    return statusMap[status] || statusMap['draft'];
-  };
-
-  if (!tenders || tenders.length === 0) {
-    return (
-      <DetailCard gradient className="text-center py-16">
-        <FileText className="h-24 w-24 text-gray-400 mx-auto mb-6" />
-        <h3 className="text-2xl font-bold text-gray-500 mb-4">No Tenders</h3>
-        <p className="text-lg text-gray-400">This manager currently has no tenders assigned.</p>
-      </DetailCard>
-    );
-  }
-
-  return (
-    <DetailCard gradient>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className={`text-2xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-          <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500">
-            <FileText className="h-6 w-6 text-white" />
-          </div>
-          <span>Tender Portfolio</span>
-        </h3>
-        <span className="text-lg font-semibold text-indigo-600">
-          {tenders.length} Total
-        </span>
-      </div>
-      
-      <div className="space-y-4 max-h-96 overflow-y-auto">
-        {tenders.map((tender) => {
-          const statusColors = getStatusColor(tender.status);
-          const isExpiringSoon = tender.deadline && 
-            new Date(tender.deadline) - new Date() < 7 * 24 * 60 * 60 * 1000 && 
-            new Date(tender.deadline) > new Date();
-          
-          return (
-            <div
-              key={tender.id}
-              className="p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-indigo-300 transition-all duration-200 hover:shadow-md"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-lg font-semibold text-gray-900">{tender.title}</h4>
-                <div className="flex items-center space-x-2">
-                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors.bg} ${statusColors.text} ${statusColors.border} border`}>
-                    {tender.status.replace("_", " ").toUpperCase()}
-                  </div>
-                  {isExpiringSoon && (
-                    <div className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                      EXPIRES SOON
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 mb-3">
-                <div className="flex items-center space-x-2">
-                  <DollarSign className="h-4 w-4 text-green-500" />
-                  <div>
-                    <div className="text-sm text-gray-500">Budget</div>
-                    <div className="font-bold text-green-600">
-                      ${(tender.budget / 1000000).toFixed(1)}M
-                    </div>
-                  </div>
-                </div>
-                
-                {tender.deadline && (
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-blue-500" />
-                    <div>
-                      <div className="text-sm text-gray-500">Deadline</div>
-                      <div className={`font-medium ${isExpiringSoon ? 'text-red-600' : 'text-gray-700'}`}>
-                        {new Date(tender.deadline).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {tender.winProbability && (
-                <div className="mb-3">
-                  <div className="flex justify-between items-center text-sm mb-1">
-                    <span className="text-gray-500">Win Probability:</span>
-                    <span className="font-medium">{tender.winProbability}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full transition-all duration-500 ${
-                        tender.winProbability >= 70 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                        tender.winProbability >= 40 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                        'bg-gradient-to-r from-red-500 to-pink-500'
-                      }`}
-                      style={{ width: `${tender.winProbability}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
-              
-              {tender.client && (
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">Client:</span> {tender.client}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      
-      {/* Tender Summary */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-xl font-bold text-blue-600">{tenders.filter(t => t.status === 'active').length}</div>
-            <div className="text-xs text-gray-600">Active</div>
-          </div>
-          <div>
-            <div className="text-xl font-bold text-green-600">{tenders.filter(t => t.status === 'won').length}</div>
-            <div className="text-xs text-gray-600">Won</div>
-          </div>
-          <div>
-            <div className="text-xl font-bold text-purple-600">
-              ${(tenders.reduce((sum, t) => sum + t.budget, 0) / 1000000).toFixed(1)}M
-            </div>
-            <div className="text-xs text-gray-600">Total Value</div>
-          </div>
-        </div>
-      </div>
-    </DetailCard>
-  );
-};
-
-// Enhanced Events Overview
-const EventsOverview = ({ events, theme }) => {
-  const [filter, setFilter] = useState('all');
-  
-  const getEventIcon = (type) => {
-    const iconMap = {
-      'meeting': <Users className="h-5 w-5 text-blue-500" />,
-      'deadline': <Clock className="h-5 w-5 text-red-500" />,
-      'milestone': <Flag className="h-5 w-5 text-green-500" />,
-      'review': <Eye className="h-5 w-5 text-purple-500" />,
-      'presentation': <FileText className="h-5 w-5 text-orange-500" />,
-    };
-    return iconMap[type] || <Calendar className="h-5 w-5 text-gray-500" />;
-  };
-
-  const filteredEvents = events.filter(event => {
-    if (filter === 'all') return true;
-    if (filter === 'upcoming') return new Date(event.date) > new Date();
-    if (filter === 'today') {
-      const today = new Date().toDateString();
-      return new Date(event.date).toDateString() === today;
-    }
-    return event.type === filter;
-  });
-
-  if (!events || events.length === 0) {
-    return (
-      <DetailCard gradient className="text-center py-16">
-        <Calendar className="h-24 w-24 text-gray-400 mx-auto mb-6" />
-        <h3 className="text-2xl font-bold text-gray-500 mb-4">No Events Scheduled</h3>
-        <p className="text-lg text-gray-400">This manager has no upcoming events.</p>
-      </DetailCard>
-    );
-  }
-
-  return (
-    <DetailCard gradient>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className={`text-2xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-          <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500">
-            <Calendar className="h-6 w-6 text-white" />
-          </div>
-          <span>Upcoming Events</span>
-        </h3>
-        
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-        >
-          <option value="all">All Events ({events.length})</option>
-          <option value="today">Today</option>
-          <option value="upcoming">Upcoming</option>
-          <option value="meeting">Meetings</option>
-          <option value="deadline">Deadlines</option>
-        </select>
-      </div>
-      
-      <div className="space-y-3 max-h-96 overflow-y-auto">
-        {filteredEvents.slice(0, 10).map((event) => {
-          const isToday = new Date(event.date).toDateString() === new Date().toDateString();
-          const isPast = new Date(event.date) < new Date();
-          
-          return (
-            <div
-              key={event.id}
-              className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200 ${
-                isToday ? 'bg-blue-50 border-blue-200' : 
-                isPast ? 'bg-gray-50 border-gray-200 opacity-60' :
-                'bg-white border-gray-200 hover:border-cyan-300'
-              }`}
-            >
-              <div className="flex items-center space-x-4">
-                {getEventIcon(event.type)}
-                <div>
-                  <h4 className={`text-lg font-medium ${isPast ? 'text-gray-500' : 'text-gray-900'}`}>
-                    {event.title}
-                  </h4>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <span>{new Date(event.date).toLocaleDateString()}</span>
-                    <span>{event.time}</span>
-                    {event.location && <span>{event.location}</span>}
-                    {event.projectName && <span>Project: {event.projectName}</span>}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                {isToday && (
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                    TODAY
-                  </span>
-                )}
-                <span className="text-sm font-medium text-gray-600 capitalize">
-                  {event.type}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </DetailCard>
-  );
-};
-
-// Advanced Analytics Dashboard
-const AdvancedAnalytics = ({ performanceData, analytics, theme }) => {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-8">
-      {/* Workload Analysis */}
-      <DetailCard gradient>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className={`text-2xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500">
-              <Activity className="h-6 w-6 text-white" />
-            </div>
-            <span>Workload Trend</span>
-          </h3>
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={performanceData.workloadTrend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            <XAxis dataKey="week" stroke="#6b7280" fontSize={12} />
-            <YAxis stroke="#6b7280" fontSize={12} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #8b5cf6',
-                borderRadius: '12px',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="capacity"
-              stackId="1"
-              stroke="#e5e7eb"
-              fill="#f3f4f6"
-            />
-            <Area
-              type="monotone"
-              dataKey="workload"
-              stackId="1"
-              stroke="#8b5cf6"
-              fill="#c4b5fd"
-            />
-            <Line
-              type="monotone"
-              dataKey="projects"
-              stroke="#f97316"
-              strokeWidth={3}
-            />
-            <Legend />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </DetailCard>
-
-      {/* Efficiency Trend */}
-      <DetailCard gradient>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className={`text-2xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-            <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500">
-              <TrendingUp className="h-6 w-6 text-white" />
-            </div>
-            <span>Efficiency Trend</span>
-          </h3>
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={performanceData.efficiencyTrend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            <XAxis dataKey="month" stroke="#6b7280" fontSize={12} />
-            <YAxis stroke="#6b7280" fontSize={12} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #10b981',
-                borderRadius: '12px',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-              }}
-            />
-            <Line
-              type="monotone"
-              dataKey="efficiency"
-              stroke="#10b981"
-              strokeWidth={3}
-              dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="target"
-              stroke="#f59e0b"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
-            />
-            <Legend />
-          </LineChart>
-        </ResponsiveContainer>
-      </DetailCard>
-
-      {/* Budget Analysis */}
-      <DetailCard gradient>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className={`text-2xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-            <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500">
-              <DollarSign className="h-6 w-6 text-white" />
-            </div>
-            <span>Budget Performance</span>
-          </h3>
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={performanceData.budgetAnalysis?.slice(0, 5) || []}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            <XAxis dataKey="name" stroke="#6b7280" fontSize={10} />
-            <YAxis stroke="#6b7280" fontSize={12} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #10b981',
-                borderRadius: '12px',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-              }}
-            />
-            <Bar dataKey="budgeted" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="spent" fill="#10b981" radius={[4, 4, 0, 0]} />
-            <Legend />
-          </BarChart>
-        </ResponsiveContainer>
-      </DetailCard>
-
-      {/* Project Progress Scatter */}
-      <DetailCard gradient className="lg:col-span-2">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className={`text-2xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500">
-              <Target className="h-6 w-6 text-white" />
-            </div>
-            <span>Project Performance Matrix</span>
-          </h3>
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <ScatterChart data={performanceData.projectProgress}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            <XAxis 
-              dataKey="budget" 
-              stroke="#6b7280" 
-              fontSize={12}
-              label={{ value: 'Budget (M)', position: 'insideBottom', offset: -5 }}
-            />
-            <YAxis 
-              dataKey="progress" 
-              stroke="#6b7280" 
-              fontSize={12}
-              label={{ value: 'Progress %', angle: -90, position: 'insideLeft' }}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #3b82f6',
-                borderRadius: '12px',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-              }}
-            />
-            <Scatter dataKey="progress" fill="#3b82f6" />
-          </ScatterChart>
-        </ResponsiveContainer>
-      </DetailCard>
-
-      {/* Team Performance */}
-      <DetailCard gradient>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className={`text-2xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-            <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-red-500">
-              <Users className="h-6 w-6 text-white" />
-            </div>
-            <span>Team Performance</span>
-          </h3>
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <RadialBarChart 
-            data={performanceData.teamPerformance?.slice(0, 4) || []} 
-            innerRadius="20%" 
-            outerRadius="80%"
-          >
-            <RadialBar dataKey="productivity" cornerRadius={10} fill="#f97316" />
-            <Tooltip />
-          </RadialBarChart>
-        </ResponsiveContainer>
-      </DetailCard>
-    </div>
-  );
-};
-
-// Monthly Performance Chart
-const MonthlyPerformance = ({ performanceData, theme }) => {
-  return (
-    <DetailCard gradient>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className={`text-3xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-          <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500">
-            <BarChart3 className="h-8 w-8 text-white" />
-          </div>
-          <span>Monthly Task Performance</span>
-        </h3>
-      </div>
-      <ResponsiveContainer width="100%" height={400}>
-        <ComposedChart data={performanceData.monthlyTasks}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-          <XAxis dataKey="month" stroke="#6b7280" fontSize={14} />
-          <YAxis stroke="#6b7280" fontSize={14} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: 'white',
-              border: '2px solid #6366f1',
-              borderRadius: '12px',
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-              fontSize: '14px'
-            }}
-          />
-          <Bar dataKey="completed" fill="#10b981" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="assigned" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-          <Line type="monotone" dataKey="efficiency" stroke="#6366f1" strokeWidth={3} />
-          <Legend />
-        </ComposedChart>
-      </ResponsiveContainer>
-    </DetailCard>
-  );
-};
-
-// Performance Insights Panel
-const PerformanceInsights = ({ analytics, statistics, theme }) => {
-  const insights = [
-    {
-      title: "Productivity Trend",
-      value: analytics.trends?.taskEfficiency || "up",
-      description: "Task completion rate is improving",
-      icon: TrendingUp,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-    },
-    {
-      title: "Budget Accuracy",
-      value: `${100 - Math.abs(statistics.budgetVariance || 0)}%`,
-      description: "Budget variance within acceptable range",
-      icon: Target,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
-    },
-    {
-      title: "Team Performance",
-      value: analytics.trends?.teamProductivity || "stable",
-      description: "Team productivity metrics",
-      icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
-    },
-    {
-      title: "Client Satisfaction",
-      value: `${Math.round(statistics.clientSatisfactionAvg || 85)}%`,
-      description: "Above industry average",
-      icon: Star,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-100",
-    },
-  ];
-
-  return (
-    <DetailCard gradient>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className={`text-2xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-          <div className="p-2 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500">
-            <Eye className="h-6 w-6 text-white" />
-          </div>
-          <span>Performance Insights</span>
-        </h3>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {insights.map((insight, index) => (
-          <div key={index} className={`p-4 rounded-xl ${insight.bgColor} border border-gray-200`}>
-            <div className="flex items-center space-x-3 mb-3">
-              <insight.icon className={`h-6 w-6 ${insight.color}`} />
-              <h4 className="text-lg font-semibold text-gray-900">{insight.title}</h4>
-            </div>
-            <div className={`text-2xl font-bold ${insight.color} mb-2`}>
-              {insight.value}
-            </div>
-            <p className="text-sm text-gray-600">{insight.description}</p>
-          </div>
-        ))}
-      </div>
-      
-      {/* Comparison Metrics */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <h4 className="text-lg font-semibold text-gray-900 mb-4">Performance Comparisons</h4>
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <h5 className="text-sm font-medium text-gray-600 mb-2">vs Company Average</h5>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm">Projects</span>
-                <span className="text-sm font-medium text-green-600">
-                  {analytics.comparisons?.vsCompanyAverage?.projects || '+15%'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Efficiency</span>
-                <span className="text-sm font-medium text-green-600">
-                  {analytics.comparisons?.vsCompanyAverage?.efficiency || '+8%'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Quality</span>
-                <span className="text-sm font-medium text-green-600">
-                  {analytics.comparisons?.vsCompanyAverage?.quality || '+12%'}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h5 className="text-sm font-medium text-gray-600 mb-2">vs Previous Quarter</h5>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm">Completion</span>
-                <span className="text-sm font-medium text-blue-600">
-                  {analytics.comparisons?.vsPrevQuarter?.completion || '+22%'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Efficiency</span>
-                <span className="text-sm font-medium text-blue-600">
-                  {analytics.comparisons?.vsPrevQuarter?.efficiency || '+5%'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Satisfaction</span>
-                <span className="text-sm font-medium text-blue-600">
-                  {analytics.comparisons?.vsPrevQuarter?.satisfaction || '+8%'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </DetailCard>
-  );
-};
-
 // Loading Screen
 const LoadingScreen = ({ theme }) => (
-  <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center`}>
+  <div
+    className={`min-h-screen ${theme.colors.background} flex items-center justify-center`}
+  >
     <div className="text-center">
       <div className="relative">
         <div className="w-24 h-24 border-8 border-orange-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-8"></div>
@@ -2192,18 +1509,26 @@ const LoadingScreen = ({ theme }) => (
           <Users className="h-8 w-8 text-orange-500" />
         </div>
       </div>
-      <h3 className={`text-3xl font-bold ${theme.colors.text} mb-4`}>Loading Manager Details</h3>
-      <p className={`text-xl ${theme.colors.textSecondary}`}>Fetching comprehensive data...</p>
+      <h3 className={`text-3xl font-bold ${theme.colors.text} mb-4`}>
+        Loading Manager Details
+      </h3>
+      <p className={`text-xl ${theme.colors.textSecondary}`}>
+        Fetching comprehensive data...
+      </p>
     </div>
   </div>
 );
 
 // Error Screen
 const ErrorScreen = ({ theme, error, onRetry }) => (
-  <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center p-8`}>
+  <div
+    className={`min-h-screen ${theme.colors.background} flex items-center justify-center p-8`}
+  >
     <DetailCard className="max-w-lg w-full text-center" shadow="2xl">
       <AlertTriangle className="h-24 w-24 text-red-500 mx-auto mb-8" />
-      <h3 className={`text-3xl font-bold ${theme.colors.text} mb-6`}>Error Loading Data</h3>
+      <h3 className={`text-3xl font-bold ${theme.colors.text} mb-6`}>
+        Error Loading Data
+      </h3>
       <p className={`text-xl ${theme.colors.textSecondary} mb-8`}>{error}</p>
       <button
         onClick={onRetry}
@@ -2221,190 +1546,1702 @@ const ProjectManagerDetails = ({ managerId: propManagerId }) => {
   const { managerId: urlManagerId } = useParams();
   const navigate = useNavigate();
   const theme = useTheme();
-  
-  // Use managerId from props first, then URL params, then null
-  const effectiveManagerId = propManagerId || urlManagerId;
-  
-  // Debug logging
-  useEffect(() => {
-    console.log("=== ProjectManagerDetails Debug ===");
-    console.log("Manager ID from props:", propManagerId);
-    console.log("Manager ID from URL:", urlManagerId);
-    console.log("Effective Manager ID:", effectiveManagerId);
-  }, [propManagerId, urlManagerId, effectiveManagerId]);
-  
-  const { data, loading, error, lastUpdated, refetch } = useProjectManagerData(effectiveManagerId);
+
+  const effectiveManagerId = propManagerId || urlManagerId || "1";
+
+  const { data, loading, error, lastUpdated, refetch } =
+    useProjectManagerData(effectiveManagerId);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Add error handling for missing managerId
-  if (!effectiveManagerId) {
-    return (
-      <ErrorScreen 
-        theme={theme} 
-        error="No manager ID provided. Please select a manager or provide a valid manager ID." 
-        onRetry={() => navigate("/admin/dashboard")} 
-      />
-    );
-  }
-
   if (loading) return <LoadingScreen theme={theme} />;
-  if (error) return <ErrorScreen theme={theme} error={error} onRetry={refetch} />;
-
+  if (error)
+    return <ErrorScreen theme={theme} error={error} onRetry={refetch} />;
   if (!data.manager) {
     return (
-      <ErrorScreen 
-        theme={theme} 
-        error="Manager data not found" 
-        onRetry={refetch} 
+      <ErrorScreen
+        theme={theme}
+        error="Manager data not found"
+        onRetry={refetch}
       />
     );
   }
 
   return (
-    <div className={`min-h-screen ${theme.colors.background} transition-all duration-300`}>
-      {/* Enhanced Sidebar */}
-      <AdminSidebar 
-        isOpen={sidebarOpen} 
-        setIsOpen={setSidebarOpen} 
-        theme={theme} 
-      />
+    <div
+      className={`min-h-screen ${theme.colors.background} transition-all duration-300`}
+    >
+      <div className="p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-6">
+            <button
+              onClick={() => navigate("/admin/dashboard")}
+              className="p-4 rounded-2xl bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 transition-all shadow-lg hover:shadow-xl"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </button>
 
-      {/* Main Content */}
-      <div className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-80" : "lg:ml-0"}`}>
-        <div className="p-8">
-          {/* Enhanced Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-6">
-              <button
-                onClick={() => navigate("/admin/dashboard")}
-                className="p-4 rounded-2xl bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 transition-all shadow-lg hover:shadow-xl"
-              >
-                <ArrowLeft className="h-6 w-6" />
-              </button>
-              
-              <div>
-                <h1 className={`text-5xl font-bold ${theme.colors.text} mb-2`}>
-                  Project Manager Analytics
-                </h1>
-                <p className={`text-2xl ${theme.colors.textSecondary}`}>
-                  Comprehensive performance overview for {data.manager.name}
+            <div>
+              <h1 className={`text-5xl font-bold ${theme.colors.text} mb-2`}>
+                Project Manager Analytics
+              </h1>
+              <p className={`text-2xl ${theme.colors.textSecondary}`}>
+                Comprehensive performance overview for {data.manager.name}
+              </p>
+              {lastUpdated && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Last updated: {lastUpdated.toLocaleString()}
                 </p>
-                {lastUpdated && (
-                  <p className="text-sm text-gray-500 mt-2">
-                    Last updated: {lastUpdated.toLocaleString()}
-                  </p>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={refetch}
-                className="p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg hover:shadow-xl"
-              >
-                <RefreshCw className="h-6 w-6" />
-              </button>
-              
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-4 rounded-2xl bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:from-orange-600 hover:to-yellow-600 transition-all shadow-lg hover:shadow-xl"
-              >
-                <Menu className="h-6 w-6" />
-              </button>
+              )}
             </div>
           </div>
 
-          {/* Manager Profile Header */}
-          <ManagerProfileHeader
-            manager={data.manager}
-            statistics={data.statistics}
-            theme={theme}
-          />
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={refetch}
+              className="p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg hover:shadow-xl"
+            >
+              <RefreshCw className="h-6 w-6" />
+            </button>
 
-          {/* Performance Statistics Grid */}
-          <PerformanceStats 
-            statistics={data.statistics} 
-            analytics={data.analytics}
-            theme={theme} 
-          />
+            <button
+              onClick={theme.toggleTheme}
+              className="p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl"
+            >
+              <Palette className="h-6 w-6" />
+            </button>
 
-          {/* Advanced Analytics Dashboard */}
-          <AdvancedAnalytics 
-            performanceData={data.performanceData}
-            analytics={data.analytics}
-            theme={theme}
-          />
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
-            {/* Projects Overview - Takes 2 columns */}
-            <div className="xl:col-span-2">
-              <ProjectsOverview projects={data.projects} theme={theme} />
-            </div>
-            
-            {/* Right Sidebar - Takes 1 column */}
-            <div className="xl:col-span-1 space-y-8">
-              <TasksOverview tasks={data.tasks} theme={theme} />
-              <TendersOverview tenders={data.tenders} theme={theme} />
-              <EventsOverview events={data.events} theme={theme} />
-            </div>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-4 rounded-2xl bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:from-orange-600 hover:to-yellow-600 transition-all shadow-lg hover:shadow-xl"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
           </div>
-
-          {/* Performance Insights and Monthly Performance */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <PerformanceInsights 
-              analytics={data.analytics}
-              statistics={data.statistics}
-              theme={theme}
-            />
-            <MonthlyPerformance performanceData={data.performanceData} theme={theme} />
-          </div>
-
-          {/* Footer with Summary */}
-          <DetailCard gradient className="text-center">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div>
-                <div className="text-4xl font-bold text-blue-600 mb-2">
-                  {data.statistics.totalProjects}
-                </div>
-                <div className="text-lg text-gray-600">Total Projects Managed</div>
-              </div>
-              
-              <div>
-                <div className="text-4xl font-bold text-green-600 mb-2">
-                  ${(data.statistics.totalBudget / 1000000).toFixed(1)}M
-                </div>
-                <div className="text-lg text-gray-600">Total Budget Managed</div>
-              </div>
-              
-              <div>
-                <div className="text-4xl font-bold text-purple-600 mb-2">
-                  {data.statistics.teamMembersManaged}
-                </div>
-                <div className="text-lg text-gray-600">Team Members Managed</div>
-              </div>
-              
-              <div>
-                <div className="text-4xl font-bold text-orange-600 mb-2">
-                  {Math.round(data.statistics.performanceScore)}%
-                </div>
-                <div className="text-lg text-gray-600">Overall Performance Score</div>
-              </div>
-            </div>
-            
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <p className={`text-xl ${theme.colors.textMuted}`}>
-                Ujenzi & Paints Enterprise • Project Manager Analytics Dashboard
-              </p>
-              <p className={`text-lg ${theme.colors.textMuted} mt-2`}>
-                © 2024 Construction & Paint Management Platform
-              </p>
-            </div>
-          </DetailCard>
         </div>
+
+        <ManagerProfileHeader
+          manager={data.manager}
+          statistics={data.statistics}
+          theme={theme}
+        />
+
+        <PerformanceStats
+          statistics={data.statistics}
+          analytics={data.analytics}
+          theme={theme}
+        />
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
+          <div className="xl:col-span-2">
+            <ProjectsOverview projects={data.projects} theme={theme} />
+          </div>
+
+          <div className="xl:col-span-1 space-y-8">
+            <DetailCard gradient>
+              <h3 className={`text-2xl font-bold ${theme.colors.text} mb-4`}>
+                Quick Stats
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span>Total Tasks</span>
+                  <span className="font-bold">
+                    {data.statistics.totalTasks}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Active Tenders</span>
+                  <span className="font-bold">
+                    {data.statistics.activeTenders}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Team Members</span>
+                  <span className="font-bold">
+                    {data.statistics.teamMembersManaged}
+                  </span>
+                </div>
+              </div>
+            </DetailCard>
+          </div>
+        </div>
+
+        <DetailCard gradient className="text-center">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">
+                {data.statistics.totalProjects}
+              </div>
+              <div className="text-lg text-gray-600">
+                Total Projects Managed
+              </div>
+            </div>
+
+            <div>
+              <div className="text-4xl font-bold text-green-600 mb-2">
+                ${(data.statistics.totalBudget / 1000000).toFixed(1)}M
+              </div>
+              <div className="text-lg text-gray-600">Total Budget Managed</div>
+            </div>
+
+            <div>
+              <div className="text-4xl font-bold text-purple-600 mb-2">
+                {data.statistics.teamMembersManaged}
+              </div>
+              <div className="text-lg text-gray-600">Team Members Managed</div>
+            </div>
+
+            <div>
+              <div className="text-4xl font-bold text-orange-600 mb-2">
+                {Math.round(data.statistics.performanceScore)}%
+              </div>
+              <div className="text-lg text-gray-600">
+                Overall Performance Score
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <p className={`text-xl ${theme.colors.textMuted}`}>
+              Ujenzi & Paints Enterprise • Project Manager Analytics Dashboard
+            </p>
+            <p className={`text-lg ${theme.colors.textMuted} mt-2`}>
+              © 2024 Construction & Paint Management Platform
+            </p>
+          </div>
+        </DetailCard>
       </div>
     </div>
   );
 };
 
 export default ProjectManagerDetails;
+
+
+
+
+// import React, { useState, useEffect, useCallback, useMemo } from "react";
+// import {
+//   BarChart,
+//   Bar,
+//   XAxis,
+//   YAxis,
+//   CartesianGrid,
+//   ResponsiveContainer,
+//   LineChart,
+//   Line,
+//   PieChart,
+//   Pie,
+//   Cell,
+//   AreaChart,
+//   Area,
+//   Tooltip,
+//   Legend,
+// } from "recharts";
+// import {
+//   Clock,
+//   DollarSign,
+//   Users,
+//   Building2,
+//   TrendingUp,
+//   TrendingDown,
+//   Target,
+//   Zap,
+//   RefreshCw,
+//   ArrowRight,
+//   Bell,
+//   User,
+//   Plus,
+//   FileText,
+//   Shield,
+//   AlertTriangle,
+//   CheckSquare,
+//   Activity,
+//   Award,
+//   Star,
+//   Calendar,
+//   MapPin,
+//   Flame,
+//   Eye,
+//   Download,
+//   Filter,
+//   Settings,
+//   UserCheck,
+//   Loader,
+//   AlertCircle,
+//   Timer,
+//   Users2,
+//   Edit,
+//   Trash2,
+//   CalendarDays,
+//   ChevronLeft,
+//   ChevronRight,
+//   MoreHorizontal,
+//   Menu,
+//   Palette,
+//   Brush,
+//   Home,
+//   BarChart3,
+//   Mail,
+//   Phone,
+//   ArrowLeft,
+//   Briefcase,
+//   Hash,
+//   CheckCircle,
+//   XCircle,
+//   PieChart as PieChartIcon,
+//   Maximize2,
+//   Minimize2,
+//   ExternalLink,
+//   FolderOpen,
+//   MessageSquare,
+//   Paperclip,
+//   Globe,
+//   BookOpen,
+//   Layers,
+//   Archive,
+//   Search,
+//   Copy,
+//   Share,
+//   Flag,
+//   GitBranch,
+//   Gauge,
+//   Percent,
+//   Circle,
+//   Info,
+//   Wallet,
+//   Clock3,
+//   BarChart4,
+//   Calculator,
+//   MousePointer,
+//   LineChart as LineChartIcon,
+//   PieChart as PieIcon,
+//   BarChart2,
+//   Database,
+//   Cloud,
+//   Cpu,
+//   HardDrive,
+//   Wifi,
+//   Smartphone,
+//   Monitor,
+//   Keyboard,
+//   Mouse,
+//   Printer,
+//   Camera,
+//   Mic,
+//   Speaker,
+//   Tablet,
+//   Watch,
+//   Laptop,
+//   Tv,
+//   Router,
+//   Battery,
+//   Lightbulb,
+//   Thermometer,
+//   Volume2,
+//   VolumeX,
+//   Play,
+//   Pause,
+//   SkipForward,
+//   SkipBack,
+//   FastForward,
+//   Rewind,
+//   Shuffle,
+//   Repeat,
+//   Maximize,
+//   Minimize,
+//   RotateCcw,
+//   RotateCw,
+//   ZoomIn,
+//   ZoomOut,
+//   Lock,
+//   Unlock,
+//   Key,
+//   UserX,
+//   UserPlus,
+//   UserMinus,
+//   UserCog,
+//   PersonStanding,
+//   Crown
+// } from "lucide-react";
+
+// // Import your actual API functions - adjust the import path to match your project structure
+// import {
+//   fetchProjectManagers,
+//   projectsAPI,
+//   tendersAPI,
+//   tasksAPI,
+//   eventsAPI,
+//   teamMembersAPI,
+//   supervisorsAPI,
+//   siteManagersAPI,
+//   notificationsAPI,
+// } from "../../services/api";
+
+// // Enhanced Theme Hook
+// const useTheme = () => {
+//   const [isDark, setIsDark] = useState(false);
+
+//   const toggleTheme = useCallback(() => {
+//     setIsDark((prev) => !prev);
+//   }, []);
+
+//   const theme = useMemo(
+//     () => ({
+//       isDark,
+//       colors: {
+//         background: isDark
+//           ? "bg-gray-900"
+//           : "bg-gradient-to-br from-orange-50 via-white to-yellow-50",
+//         card: isDark ? "bg-gray-800" : "bg-white",
+//         cardSecondary: isDark ? "bg-gray-700" : "bg-gray-50",
+//         border: isDark ? "border-gray-700" : "border-gray-200",
+//         borderLight: isDark ? "border-gray-600" : "border-gray-100",
+//         text: isDark ? "text-gray-100" : "text-gray-900",
+//         textSecondary: isDark ? "text-gray-400" : "text-gray-600",
+//         textMuted: isDark ? "text-gray-500" : "text-gray-500",
+//         primary: "#F97316",
+//         secondary: "#EAB308",
+//         success: "#10B981",
+//         warning: "#F59E0B",
+//         danger: "#EF4444",
+//         purple: "#8B5CF6",
+//         blue: "#3B82F6",
+//         indigo: "#6366F1",
+//         cyan: "#06B6D4",
+//       },
+//       gradients: {
+//         primary: "from-orange-500 to-yellow-500",
+//         secondary: "from-blue-500 to-cyan-500",
+//         success: "from-green-500 to-emerald-500",
+//         danger: "from-red-500 to-pink-500",
+//         purple: "from-purple-500 to-violet-500",
+//         indigo: "from-indigo-500 to-purple-500",
+//         warm: "from-orange-400 via-red-400 to-pink-400",
+//         cool: "from-blue-400 via-purple-400 to-indigo-400",
+//       },
+//       shadows: {
+//         sm: "shadow-sm",
+//         md: "shadow-md",
+//         lg: "shadow-lg",
+//         xl: "shadow-xl",
+//         "2xl": "shadow-2xl",
+//       },
+//     }),
+//     [isDark]
+//   );
+
+//   return { ...theme, toggleTheme };
+// };
+
+// // Enhanced Card Component
+// const DetailCard = ({
+//   children,
+//   className = "",
+//   padding = "p-6",
+//   gradient = false,
+//   hover = true,
+//   border = true,
+//   shadow = "xl",
+//   ...props
+// }) => {
+//   const theme = useTheme();
+
+//   const baseClasses = `
+//     ${padding} 
+//     ${
+//       gradient
+//         ? "bg-gradient-to-br from-white via-orange-50 to-yellow-50"
+//         : theme.colors.card
+//     } 
+//     rounded-2xl 
+//     ${border ? `border-2 ${theme.colors.border}` : ""} 
+//     ${theme.shadows[shadow]} 
+//     transition-all duration-300 
+//     ${hover ? "hover:shadow-2xl hover:scale-[1.02]" : ""}
+//     ${className}
+//   `;
+
+//   return (
+//     <div className={baseClasses} {...props}>
+//       {children}
+//     </div>
+//   );
+// };
+
+// // Data Hook for Project Manager Details with Enhanced Statistics
+// const useProjectManagerData = (managerId) => {
+//   const [data, setData] = useState({
+//     manager: null,
+//     projects: [],
+//     tasks: [],
+//     tenders: [],
+//     events: [],
+//     teamMembers: [],
+//     supervisors: [],
+//     siteManagers: [],
+//     notifications: [],
+//     statistics: {},
+//     analytics: {
+//       performanceMetrics: {},
+//       trends: {},
+//       comparisons: {},
+//       forecasts: {},
+//     },
+//     performanceData: {
+//       weeklyHours: [],
+//       projectProgress: [],
+//       monthlyTasks: [],
+//       workloadTrend: [],
+//       efficiencyTrend: [],
+//       budgetAnalysis: [],
+//       timelineAnalysis: [],
+//       teamPerformance: [],
+//       financialMetrics: [],
+//       productivityData: [],
+//       riskAssessment: [],
+//       clientMetrics: [],
+//       resourceUtilization: [],
+//       qualityMetrics: [],
+//       timelineComparison: [],
+//       budgetTrends: [],
+//       taskDistribution: [],
+//       projectCategories: [],
+//       monthlyRevenue: [],
+//       yearlyComparison: [],
+//     },
+//     advancedMetrics: {
+//       kpis: {},
+//       benchmarks: {},
+//       forecasting: {},
+//       riskMatrix: {},
+//       performanceIndex: {},
+//       efficiency: {},
+//       financials: {},
+//       productivity: {},
+//       quality: {},
+//       client: {},
+//       team: {},
+//       innovation: {},
+//     },
+//   });
+
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [lastUpdated, setLastUpdated] = useState(null);
+
+//   const fetchManagerData = useCallback(async () => {
+//     if (!managerId) {
+//       setLoading(false);
+//       setError("No manager ID provided");
+//       return;
+//     }
+
+//     try {
+//       setLoading(true);
+//       setError(null);
+
+//       console.log(`🔄 Fetching comprehensive data for project manager ID: ${managerId}`);
+
+//       // Fetch all data in parallel with comprehensive error handling
+//       const results = await Promise.allSettled([
+//         fetchProjectManagers().catch((err) => {
+//           console.error("❌ Failed to fetch project managers:", err);
+//           return [];
+//         }),
+
+//         projectsAPI.getAll().catch((err) => {
+//           console.error("❌ Failed to fetch projects:", err);
+//           return { projects: [] };
+//         }),
+
+//         tasksAPI.getAll().catch((err) => {
+//           console.error("❌ Failed to fetch tasks:", err);
+//           return { tasks: [] };
+//         }),
+
+//         tendersAPI.getAll().catch((err) => {
+//           console.error("❌ Failed to fetch tenders:", err);
+//           return { tenders: [] };
+//         }),
+
+//         eventsAPI.getUpcoming(100).catch((err) => {
+//           console.error("❌ Failed to fetch events:", err);
+//           return { events: [] };
+//         }),
+
+//         teamMembersAPI.getAll().catch((err) => {
+//           console.error("❌ Failed to fetch team members:", err);
+//           return { team_members: [] };
+//         }),
+
+//         supervisorsAPI.getAll().catch((err) => {
+//           console.error("❌ Failed to fetch supervisors:", err);
+//           return [];
+//         }),
+
+//         siteManagersAPI.getAll().catch((err) => {
+//           console.error("❌ Failed to fetch site managers:", err);
+//           return [];
+//         }),
+
+//         notificationsAPI.getAll().catch((err) => {
+//           console.error("❌ Failed to fetch notifications:", err);
+//           return [];
+//         }),
+//       ]);
+
+//       const [
+//         managersResult,
+//         projectsResult,
+//         tasksResult,
+//         tendersResult,
+//         eventsResult,
+//         teamMembersResult,
+//         supervisorsResult,
+//         siteManagersResult,
+//         notificationsResult,
+//       ] = results;
+
+//       // Extract data with comprehensive fallbacks
+//       const allManagers = managersResult.status === "fulfilled" ? managersResult.value : [];
+//       const projectsData = projectsResult.status === "fulfilled" ? projectsResult.value : { projects: [] };
+//       const tasksData = tasksResult.status === "fulfilled" ? tasksResult.value : { tasks: [] };
+//       const tendersData = tendersResult.status === "fulfilled" ? tendersResult.value : { tenders: [] };
+//       const eventsData = eventsResult.status === "fulfilled" ? eventsResult.value : { events: [] };
+//       const teamMembersData = teamMembersResult.status === "fulfilled" ? teamMembersResult.value : { team_members: [] };
+//       const supervisorsData = supervisorsResult.status === "fulfilled" ? supervisorsResult.value : [];
+//       const siteManagersData = siteManagersResult.status === "fulfilled" ? siteManagersResult.value : [];
+//       const notificationsData = notificationsResult.status === "fulfilled" ? notificationsResult.value : [];
+
+//       // Find the specific manager
+//       const manager = allManagers.find((m) => m.id === parseInt(managerId));
+
+//       if (!manager) {
+//         throw new Error(`Project manager with ID ${managerId} not found. Available IDs: ${allManagers.map((m) => m.id).join(", ")}`);
+//       }
+
+//       console.log("✅ Found manager:", manager);
+
+//       // Normalize data arrays
+//       const allProjects = Array.isArray(projectsData.projects) ? projectsData.projects : Array.isArray(projectsData) ? projectsData : [];
+//       const allTasks = Array.isArray(tasksData.tasks) ? tasksData.tasks : Array.isArray(tasksData) ? tasksData : [];
+//       const allTenders = Array.isArray(tendersData.tenders) ? tendersData.tenders : Array.isArray(tendersData) ? tendersData : [];
+//       const allEvents = Array.isArray(eventsData.events) ? eventsData.events : Array.isArray(eventsData) ? eventsData : [];
+//       const allTeamMembers = Array.isArray(teamMembersData.team_members) ? teamMembersData.team_members : Array.isArray(teamMembersData) ? teamMembersData : [];
+//       const allSupervisors = Array.isArray(supervisorsData) ? supervisorsData : [];
+//       const allSiteManagers = Array.isArray(siteManagersData) ? siteManagersData : [];
+//       const allNotifications = Array.isArray(notificationsData) ? notificationsData : [];
+
+//       // Filter data for this specific manager
+//       const managerProjects = allProjects.filter(
+//         (project) =>
+//           project.project_manager_id === parseInt(managerId) ||
+//           project.manager_id === parseInt(managerId) ||
+//           project.assigned_to === parseInt(managerId) ||
+//           project.owner_id === parseInt(managerId)
+//       );
+
+//       const managerTasks = allTasks.filter(
+//         (task) =>
+//           task.assigned_to === parseInt(managerId) ||
+//           task.project_manager_id === parseInt(managerId) ||
+//           task.manager_id === parseInt(managerId) ||
+//           task.owner_id === parseInt(managerId) ||
+//           managerProjects.some((p) => p.id === task.project_id)
+//       );
+
+//       const managerTenders = allTenders.filter(
+//         (tender) =>
+//           tender.project_manager_id === parseInt(managerId) ||
+//           tender.manager_id === parseInt(managerId) ||
+//           tender.assigned_to === parseInt(managerId) ||
+//           tender.owner_id === parseInt(managerId)
+//       );
+
+//       const managerEvents = allEvents.filter(
+//         (event) =>
+//           event.project_manager_id === parseInt(managerId) ||
+//           event.manager_id === parseInt(managerId) ||
+//           event.assigned_to === parseInt(managerId) ||
+//           event.owner_id === parseInt(managerId) ||
+//           managerProjects.some((p) => p.id === event.project_id)
+//       );
+
+//       const managerNotifications = allNotifications.filter(
+//         (notification) =>
+//           notification.user_id === parseInt(managerId) ||
+//           notification.recipient_id === parseInt(managerId)
+//       );
+
+//       // Enhanced manager data with real information
+//       const enhancedManager = {
+//         id: manager.id,
+//         name: manager.name || "Unknown Manager",
+//         email: manager.email || "no-email@example.com",
+//         phone: manager.phone || "+254 700 000 000",
+//         position: manager.position || manager.role || "Project Manager",
+//         department: manager.department || "Construction Operations",
+//         joinDate: manager.join_date || manager.created_at || "2022-01-01",
+//         avatar: manager.avatar || (manager.name ? manager.name.split(" ").map((n) => n[0]).join("").toUpperCase() : "U"),
+//         status: manager.status || "active",
+//         lastLogin: manager.last_login || "Never",
+//         skills: manager.skills || ["Project Management", "Team Leadership", "Budget Management", "Quality Control"],
+//         certifications: manager.certifications || ["PMP", "Construction Management", "Safety Certification"],
+//         bio: manager.bio || manager.description || "",
+//         location: manager.location || "Head Office",
+//         employeeId: manager.employee_id || manager.id,
+//         experience: manager.experience_years || Math.floor(Math.random() * 10) + 3,
+//         languages: manager.languages || ["English", "Swahili"],
+//         education: manager.education || "Bachelor in Construction Management",
+//         efficiency: manager.efficiency || 92,
+//         salary: manager.salary || 120000,
+//         bonus: manager.bonus || 25000,
+//         workHours: manager.work_hours || 40,
+//         overtimeHours: manager.overtime_hours || 5,
+//       };
+
+//       // Calculate comprehensive statistics
+//       const now = new Date();
+//       const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+//       const statistics = {
+//         // Project Statistics
+//         totalProjects: managerProjects.length,
+//         activeProjects: managerProjects.filter((p) => ["active", "in_progress"].includes(p.status)).length,
+//         completedProjects: managerProjects.filter((p) => p.status === "completed").length,
+//         planningProjects: managerProjects.filter((p) => p.status === "planning").length,
+//         onHoldProjects: managerProjects.filter((p) => p.status === "on_hold").length,
+//         delayedProjects: managerProjects.filter((p) => p.endDate && new Date(p.endDate) < now && p.status !== "completed").length,
+        
+//         // Financial Statistics
+//         totalBudget: managerProjects.reduce((sum, p) => sum + (parseFloat(p.budget) || 0), 0),
+//         totalSpent: managerProjects.reduce((sum, p) => sum + (parseFloat(p.spent || p.budget_spent) || 0), 0),
+//         totalRemaining: managerProjects.reduce((sum, p) => sum + (parseFloat(p.remaining) || parseFloat(p.budget) - parseFloat(p.spent || p.budget_spent || 0)), 0),
+//         avgBudgetUtilization: managerProjects.length > 0 ? managerProjects.reduce((sum, p) => sum + (((parseFloat(p.spent || p.budget_spent || 0) / parseFloat(p.budget || 1)) * 100) || 0), 0) / managerProjects.length : 0,
+//         totalRevenue: managerProjects.reduce((sum, p) => sum + (parseFloat(p.budget) * (parseFloat(p.profit_margin || 15) / 100)), 0),
+//         avgProfitMargin: managerProjects.length > 0 ? managerProjects.reduce((sum, p) => sum + (parseFloat(p.profit_margin) || 15), 0) / managerProjects.length : 15,
+//         avgROI: managerProjects.length > 0 ? managerProjects.reduce((sum, p) => sum + (parseFloat(p.roi) || 18), 0) / managerProjects.length : 18,
+
+//         // Task Statistics
+//         totalTasks: managerTasks.length,
+//         completedTasks: managerTasks.filter((t) => t.status === "completed").length,
+//         pendingTasks: managerTasks.filter((t) => t.status === "pending").length,
+//         inProgressTasks: managerTasks.filter((t) => t.status === "in_progress").length,
+//         overdueTasks: managerTasks.filter((t) => new Date(t.due_date || t.deadline) < now && t.status !== "completed").length,
+//         avgTaskCompletion: managerTasks.length > 0 ? (managerTasks.filter((t) => t.status === "completed").length / managerTasks.length) * 100 : 0,
+//         totalEstimatedHours: managerTasks.reduce((sum, t) => sum + (parseFloat(t.estimated_hours || t.estimated_time) || 0), 0),
+//         totalActualHours: managerTasks.reduce((sum, t) => sum + (parseFloat(t.actual_hours || t.actual_time) || 0), 0),
+//         avgHourlyEfficiency: managerTasks.length > 0 ? managerTasks.reduce((sum, t) => {
+//           const estimated = parseFloat(t.estimated_hours || t.estimated_time) || 1;
+//           const actual = parseFloat(t.actual_hours || t.actual_time) || 1;
+//           return sum + ((estimated / actual) * 100);
+//         }, 0) / managerTasks.length : 100,
+
+//         // Tender Statistics
+//         totalTenders: managerTenders.length,
+//         wonTenders: managerTenders.filter((t) => t.status === "won").length,
+//         lostTenders: managerTenders.filter((t) => t.status === "lost").length,
+//         submittedTenders: managerTenders.filter((t) => t.status === "submitted").length,
+//         totalTenderValue: managerTenders.reduce((sum, t) => sum + (parseFloat(t.budget || t.budget_estimate) || 0), 0),
+//         wonTenderValue: managerTenders.filter(t => t.status === "won").reduce((sum, t) => sum + (parseFloat(t.budget || t.budget_estimate) || 0), 0),
+//         winRate: managerTenders.length > 0 ? (managerTenders.filter(t => t.status === "won").length / managerTenders.filter(t => ["won", "lost"].includes(t.status)).length) * 100 : 0,
+
+//         // Performance Metrics
+//         teamMembersManaged: managerProjects.reduce((sum, p) => sum + (parseInt(p.team_size) || 5), 0),
+//         clientSatisfactionAvg: managerProjects.length > 0 ? managerProjects.reduce((sum, p) => sum + (parseFloat(p.client_satisfaction) || 85), 0) / managerProjects.length : 85,
+//         qualityScoreAvg: managerProjects.length > 0 ? managerProjects.reduce((sum, p) => sum + (parseFloat(p.quality_score) || 85), 0) / managerProjects.length : 85,
+//         teamSatisfactionAvg: managerProjects.length > 0 ? managerProjects.reduce((sum, p) => sum + (parseFloat(p.team_satisfaction) || 80), 0) / managerProjects.length : 80,
+//         safetyScoreAvg: managerProjects.length > 0 ? managerProjects.reduce((sum, p) => sum + (parseFloat(p.safety_score) || 90), 0) / managerProjects.length : 90,
+//         sustainabilityScoreAvg: managerProjects.length > 0 ? managerProjects.reduce((sum, p) => sum + (parseFloat(p.sustainability_score) || 75), 0) / managerProjects.length : 75,
+//         innovationIndexAvg: managerProjects.length > 0 ? managerProjects.reduce((sum, p) => sum + (parseFloat(p.innovation_index) || 70), 0) / managerProjects.length : 70,
+//         workloadScore: Math.min(100, managerProjects.length * 12.5),
+//         efficiencyScore: enhancedManager.efficiency || 88,
+//         performanceScore: Math.round(((managerTasks.filter((t) => t.status === "completed").length / Math.max(1, managerTasks.length)) * 100 + (managerProjects.filter((p) => p.status === "completed").length / Math.max(1, managerProjects.length)) * 100 + (enhancedManager.efficiency || 88)) / 3),
+
+//         // Event Statistics
+//         totalEvents: managerEvents.length,
+//         upcomingEvents: managerEvents.filter((e) => new Date(e.date || e.start_date) > now).length,
+//         completedEvents: managerEvents.filter((e) => e.status === "completed").length,
+//       };
+
+//       // Generate performance data from real data
+//       const performanceData = {
+//         weeklyHours: Array.from({ length: 12 }, (_, i) => {
+//           const weekDate = new Date(now.getTime() - (11 - i) * 7 * 24 * 60 * 60 * 1000);
+//           return {
+//             week: `Week ${i + 1}`,
+//             date: weekDate.toISOString().split('T')[0],
+//             planned: enhancedManager.workHours || 40,
+//             actual: (enhancedManager.workHours || 40) + (Math.random() * 10 - 5),
+//             efficiency: statistics.efficiencyScore + (Math.random() * 10 - 5),
+//             overtime: enhancedManager.overtimeHours || Math.floor(Math.random() * 8),
+//             productivity: 75 + Math.floor(Math.random() * 25),
+//           };
+//         }),
+
+//         projectProgress: managerProjects.slice(0, 12).map((p) => ({
+//           name: p.title || p.name || "Untitled",
+//           progress: Math.max(0, Math.min(100, parseFloat(p.progress_percentage || p.progress || 0))),
+//           budget: (parseFloat(p.budget || 0)) / 1000000,
+//           status: p.status || "active",
+//           risk: p.risk_level || "medium",
+//         })),
+
+//         monthlyTasks: Array.from({ length: 12 }, (_, i) => {
+//           const monthDate = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+//           const monthTasks = managerTasks.filter((t) => {
+//             const taskDate = new Date(t.due_date || t.deadline || t.created_at);
+//             return taskDate.getMonth() === monthDate.getMonth() && taskDate.getFullYear() === monthDate.getFullYear();
+//           });
+
+//           return {
+//             month: monthDate.toLocaleDateString("en-US", { month: "short" }),
+//             completed: monthTasks.filter((t) => t.status === "completed").length,
+//             assigned: monthTasks.length,
+//             efficiency: monthTasks.length > 0 ? Math.round((monthTasks.filter((t) => t.status === "completed").length / monthTasks.length) * 100) : 0,
+//           };
+//         }),
+
+//         budgetAnalysis: managerProjects.slice(0, 8).map((p) => ({
+//           name: (p.title || p.name || "Untitled").substring(0, 12),
+//           budgeted: (parseFloat(p.budget || 0)) / 1000000,
+//           spent: (parseFloat(p.spent || p.budget_spent || 0)) / 1000000,
+//           remaining: (parseFloat(p.budget || 0) - parseFloat(p.spent || p.budget_spent || 0)) / 1000000,
+//           variance: parseFloat(p.budget_variance || 0),
+//         })),
+
+//         riskAssessment: [
+//           { risk: "Budget Overrun", probability: Math.max(0, 50 - statistics.avgBudgetUtilization/2), impact: 80, mitigation: 70 },
+//           { risk: "Schedule Delay", probability: (statistics.delayedProjects / Math.max(1, statistics.totalProjects)) * 100, impact: 60, mitigation: 85 },
+//           { risk: "Quality Issues", probability: Math.max(0, 100 - statistics.qualityScoreAvg), impact: 90, mitigation: 90 },
+//           { risk: "Resource Shortage", probability: Math.min(100, statistics.workloadScore), impact: 70, mitigation: 60 },
+//           { risk: "Client Changes", probability: Math.max(0, 100 - statistics.clientSatisfactionAvg), impact: 50, mitigation: 75 },
+//           { risk: "Weather Delays", probability: 30, impact: 40, mitigation: 50 },
+//         ],
+
+//         clientMetrics: managerProjects.slice(0, 6).map((p) => ({
+//           client: p.client || p.client_name || "Unknown Client",
+//           satisfaction: parseFloat(p.client_satisfaction || 85),
+//           communication: parseFloat(p.communication_score || 85),
+//           delivery: parseFloat(p.delivery_score || 85),
+//         })),
+//       };
+
+//       // Generate analytics
+//       const analytics = {
+//         performanceMetrics: {
+//           productivity: Math.round(statistics.avgTaskCompletion),
+//           efficiency: Math.round(statistics.efficiencyScore),
+//           quality: Math.round(statistics.qualityScoreAvg),
+//           clientSatisfaction: Math.round(statistics.clientSatisfactionAvg),
+//           teamSatisfaction: Math.round(statistics.teamSatisfactionAvg),
+//           safety: Math.round(statistics.safetyScoreAvg),
+//           sustainability: Math.round(statistics.sustainabilityScoreAvg),
+//           innovation: Math.round(statistics.innovationIndexAvg),
+//           financialHealth: Math.round(statistics.avgROI),
+//           riskManagement: Math.round(100 - (statistics.delayedProjects / Math.max(1, statistics.totalProjects)) * 100),
+//         },
+
+//         trends: {
+//           projectCompletion: statistics.completedProjects > 0 ? "up" : "stable",
+//           budgetUtilization: statistics.avgBudgetUtilization > 95 ? "up" : "stable",
+//           taskEfficiency: statistics.avgHourlyEfficiency > 95 ? "up" : "stable",
+//           clientSatisfaction: statistics.clientSatisfactionAvg > 85 ? "up" : "stable",
+//           teamProductivity: statistics.avgTaskCompletion > 80 ? "up" : "stable",
+//           revenue: statistics.totalRevenue > 0 ? "up" : "stable",
+//           profitability: statistics.avgProfitMargin > 15 ? "up" : "stable",
+//           riskLevel: statistics.delayedProjects < statistics.totalProjects * 0.2 ? "down" : "up",
+//           innovation: statistics.innovationIndexAvg > 70 ? "up" : "stable",
+//           sustainability: statistics.sustainabilityScoreAvg > 75 ? "up" : "stable",
+//         },
+
+//         comparisons: {
+//           vsCompanyAverage: {
+//             projects: `+${Math.floor(Math.random() * 20 + 10)}%`,
+//             efficiency: `+${Math.floor(Math.random() * 15 + 5)}%`,
+//             budget: `+${Math.floor(Math.random() * 10 + 2)}%`,
+//             quality: `+${Math.floor(Math.random() * 18 + 8)}%`,
+//             revenue: `+${Math.floor(Math.random() * 25 + 5)}%`,
+//             satisfaction: `+${Math.floor(Math.random() * 12 + 3)}%`,
+//           },
+//           vsPrevQuarter: {
+//             completion: `+${Math.floor(Math.random() * 25 + 15)}%`,
+//             efficiency: `+${Math.floor(Math.random() * 12 + 3)}%`,
+//             satisfaction: `+${Math.floor(Math.random() * 15 + 5)}%`,
+//             productivity: `+${Math.floor(Math.random() * 20 + 10)}%`,
+//             revenue: `+${Math.floor(Math.random() * 18 + 7)}%`,
+//             team: `+${Math.floor(Math.random() * 10 + 2)}%`,
+//           },
+//         },
+//       };
+
+//       // Set all processed data
+//       setData({
+//         manager: enhancedManager,
+//         projects: managerProjects,
+//         tasks: managerTasks,
+//         tenders: managerTenders,
+//         events: managerEvents,
+//         teamMembers: allTeamMembers,
+//         supervisors: allSupervisors,
+//         siteManagers: allSiteManagers,
+//         notifications: managerNotifications,
+//         statistics,
+//         analytics,
+//         performanceData,
+//         advancedMetrics: {
+//           kpis: {
+//             overallScore: Math.round((statistics.performanceScore + statistics.efficiencyScore + statistics.qualityScoreAvg) / 3),
+//             financialHealth: Math.round(statistics.avgROI),
+//             operationalExcellence: Math.round(statistics.avgTaskCompletion),
+//             clientSuccess: Math.round(statistics.clientSatisfactionAvg),
+//             teamEngagement: Math.round(statistics.teamSatisfactionAvg),
+//             riskScore: Math.round(100 - (statistics.delayedProjects / Math.max(1, statistics.totalProjects)) * 100),
+//           },
+//         },
+//       });
+
+//       setLastUpdated(new Date());
+//       console.log("✅ Project manager data loaded successfully:", {
+//         manager: enhancedManager.name,
+//         projects: managerProjects.length,
+//         tasks: managerTasks.length,
+//         tenders: managerTenders.length,
+//         events: managerEvents.length,
+//       });
+//     } catch (err) {
+//       console.error("❌ Failed to fetch manager data:", err);
+//       setError(err.message || "Failed to load manager data");
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, [managerId]);
+
+//   useEffect(() => {
+//     if (managerId) {
+//       fetchManagerData();
+//     }
+//   }, [fetchManagerData, managerId]);
+
+//   return { data, loading, error, lastUpdated, refetch: fetchManagerData };
+// };
+
+// // Enhanced Manager Profile Header
+// const ManagerProfileHeader = ({ manager, statistics, theme }) => {
+//   const getBusyStatus = (workload) => {
+//     if (workload >= 90) return { status: "Extremely Busy", color: "text-red-700", bgColor: "bg-red-100", dotColor: "bg-red-600" };
+//     if (workload >= 75) return { status: "Very Busy", color: "text-red-600", bgColor: "bg-red-100", dotColor: "bg-red-500" };
+//     if (workload >= 60) return { status: "Busy", color: "text-orange-600", bgColor: "bg-orange-100", dotColor: "bg-orange-500" };
+//     if (workload >= 40) return { status: "Moderate", color: "text-yellow-600", bgColor: "bg-yellow-100", dotColor: "bg-yellow-500" };
+//     return { status: "Available", color: "text-green-600", bgColor: "bg-green-100", dotColor: "bg-green-500" };
+//   };
+
+//   const busyInfo = getBusyStatus(statistics.workloadScore);
+
+//   return (
+//     <DetailCard gradient className="mb-8" shadow="2xl">
+//       <div className="flex items-start justify-between mb-8">
+//         <div className="flex items-center space-x-8">
+//           <div className="relative">
+//             <div className="w-36 h-36 rounded-3xl bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center text-white font-bold text-5xl shadow-2xl ring-4 ring-white">
+//               {manager.avatar}
+//             </div>
+//             <div className={`absolute -top-2 -right-2 w-10 h-10 ${busyInfo.dotColor} rounded-full border-4 border-white animate-pulse flex items-center justify-center shadow-lg`}>
+//               <Activity className="w-5 h-5 text-white" />
+//             </div>
+//           </div>
+
+//           <div className="flex-1">
+//             <div className="flex items-center space-x-4 mb-3">
+//               <h1 className={`text-5xl font-bold ${theme.colors.text}`}>
+//                 {manager.name}
+//               </h1>
+//               <div className={`px-4 py-2 rounded-full text-sm font-semibold ${busyInfo.bgColor} ${busyInfo.color}`}>
+//                 {busyInfo.status}
+//               </div>
+//             </div>
+
+//             <p className={`text-2xl ${theme.colors.textSecondary} mb-4 font-medium`}>
+//               {manager.position} • {manager.department}
+//             </p>
+
+//             <div className="grid grid-cols-2 gap-6 text-lg mb-6">
+//               <div className="flex items-center space-x-3">
+//                 <div className="p-2 rounded-lg bg-blue-100">
+//                   <Mail className="h-5 w-5 text-blue-600" />
+//                 </div>
+//                 <div>
+//                   <div className="text-sm text-gray-500">Email</div>
+//                   <div className={`font-medium ${theme.colors.text}`}>{manager.email}</div>
+//                 </div>
+//               </div>
+
+//               <div className="flex items-center space-x-3">
+//                 <div className="p-2 rounded-lg bg-green-100">
+//                   <Phone className="h-5 w-5 text-green-600" />
+//                 </div>
+//                 <div>
+//                   <div className="text-sm text-gray-500">Phone</div>
+//                   <div className={`font-medium ${theme.colors.text}`}>{manager.phone}</div>
+//                 </div>
+//               </div>
+
+//               <div className="flex items-center space-x-3">
+//                 <div className="p-2 rounded-lg bg-purple-100">
+//                   <Briefcase className="h-5 w-5 text-purple-600" />
+//                 </div>
+//                 <div>
+//                   <div className="text-sm text-gray-500">Employee ID</div>
+//                   <div className={`font-medium ${theme.colors.text}`}>{manager.employeeId}</div>
+//                 </div>
+//               </div>
+
+//               <div className="flex items-center space-x-3">
+//                 <div className="p-2 rounded-lg bg-orange-100">
+//                   <MapPin className="h-5 w-5 text-orange-600" />
+//                 </div>
+//                 <div>
+//                   <div className="text-sm text-gray-500">Location</div>
+//                   <div className={`font-medium ${theme.colors.text}`}>{manager.location}</div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="grid grid-cols-2 gap-4">
+//           <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border-2 border-blue-200 shadow-lg">
+//             <div className="text-4xl font-bold text-blue-600 mb-2">{statistics.activeProjects}</div>
+//             <div className="text-sm font-medium text-blue-700">Active Projects</div>
+//           </div>
+
+//           <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border-2 border-green-200 shadow-lg">
+//             <div className="text-4xl font-bold text-green-600 mb-2">{Math.round(statistics.efficiencyScore)}%</div>
+//             <div className="text-sm font-medium text-green-700">Efficiency</div>
+//           </div>
+
+//           <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border-2 border-purple-200 shadow-lg">
+//             <div className="text-4xl font-bold text-purple-600 mb-2">{statistics.teamMembersManaged}</div>
+//             <div className="text-sm font-medium text-purple-700">Team Size</div>
+//           </div>
+
+//           <div className="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl border-2 border-orange-200 shadow-lg">
+//             <div className="text-4xl font-bold text-orange-600 mb-2">${(statistics.totalBudget / 1000000).toFixed(1)}M</div>
+//             <div className="text-sm font-medium text-orange-700">Budget</div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8 border-t border-gray-200">
+//         <div>
+//           <h3 className={`text-xl font-bold ${theme.colors.text} mb-4 flex items-center space-x-2`}>
+//             <Zap className="h-5 w-5 text-yellow-500" />
+//             <span>Core Skills</span>
+//           </h3>
+//           <div className="flex flex-wrap gap-2">
+//             {manager.skills.slice(0, 6).map((skill, index) => (
+//               <span
+//                 key={index}
+//                 className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-xl text-sm font-medium border border-blue-300"
+//               >
+//                 {skill}
+//               </span>
+//             ))}
+//           </div>
+//         </div>
+
+//         <div>
+//           <h3 className={`text-xl font-bold ${theme.colors.text} mb-4 flex items-center space-x-2`}>
+//             <Award className="h-5 w-5 text-green-500" />
+//             <span>Certifications</span>
+//           </h3>
+//           <div className="space-y-2">
+//             {manager.certifications.slice(0, 4).map((cert, index) => (
+//               <div
+//                 key={index}
+//                 className="flex items-center px-4 py-2 bg-gradient-to-r from-green-100 to-green-200 text-green-800 rounded-xl text-sm font-medium border border-green-300"
+//               >
+//                 <Award className="h-4 w-4 mr-2" />
+//                 {cert}
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//         <div>
+//           <h3 className={`text-xl font-bold ${theme.colors.text} mb-4 flex items-center space-x-2`}>
+//             <BookOpen className="h-5 w-5 text-purple-500" />
+//             <span>Background</span>
+//           </h3>
+//           <div className="space-y-3">
+//             <div>
+//               <div className="text-sm text-gray-500 mb-1">Experience</div>
+//               <div className="text-sm font-medium text-gray-700">{manager.experience} years</div>
+//             </div>
+//             <div>
+//               <div className="text-sm text-gray-500 mb-1">Education</div>
+//               <div className="text-sm font-medium text-gray-700">{manager.education}</div>
+//             </div>
+//             <div>
+//               <div className="text-sm text-gray-500 mb-1">Languages</div>
+//               <div className="text-sm font-medium text-gray-700">{manager.languages.join(", ")}</div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </DetailCard>
+//   );
+// };
+
+// // Performance Statistics Component
+// const PerformanceStats = ({ statistics, analytics, theme }) => {
+//   const stats = [
+//     {
+//       title: "Total Projects",
+//       value: statistics.totalProjects,
+//       subValue: `${statistics.activeProjects} active`,
+//       change: analytics.comparisons?.vsPrevQuarter?.completion || "+18%",
+//       trend: "up",
+//       icon: Building2,
+//       textColor: "text-blue-600",
+//       bgColor: "bg-blue-50",
+//     },
+//     {
+//       title: "Revenue Generated",
+//       value: `${(statistics.totalRevenue / 1000000).toFixed(1)}M`,
+//       subValue: `${Math.round(statistics.avgProfitMargin)}% profit margin`,
+//       change: analytics.comparisons?.vsPrevQuarter?.revenue || "+25%",
+//       trend: "up",
+//       icon: DollarSign,
+//       textColor: "text-green-600",
+//       bgColor: "bg-green-50",
+//     },
+//     {
+//       title: "Task Efficiency",
+//       value: `${statistics.completedTasks}/${statistics.totalTasks}`,
+//       subValue: `${Math.round(statistics.avgHourlyEfficiency)}% efficiency`,
+//       change: analytics.comparisons?.vsPrevQuarter?.efficiency || "+8%",
+//       trend: "up",
+//       icon: CheckSquare,
+//       textColor: "text-purple-600",
+//       bgColor: "bg-purple-50",
+//     },
+//     {
+//       title: "Client Success",
+//       value: `${Math.round(statistics.clientSatisfactionAvg)}%`,
+//       subValue: `${statistics.wonTenders}/${statistics.totalTenders} tenders won`,
+//       change: analytics.comparisons?.vsPrevQuarter?.satisfaction || "+12%",
+//       trend: "up",
+//       icon: Star,
+//       textColor: "text-orange-600",
+//       bgColor: "bg-orange-50",
+//     },
+//     {
+//       title: "Team Performance",
+//       value: `${Math.round(statistics.teamSatisfactionAvg)}%`,
+//       subValue: `${statistics.teamMembersManaged} members`,
+//       change: analytics.comparisons?.vsPrevQuarter?.team || "+6%",
+//       trend: "up",
+//       icon: Users,
+//       textColor: "text-indigo-600",
+//       bgColor: "bg-indigo-50",
+//     },
+//     {
+//       title: "Safety & Quality",
+//       value: `${Math.round(statistics.safetyScoreAvg)}%`,
+//       subValue: `${Math.round(statistics.qualityScoreAvg)}% quality`,
+//       change: "+5%",
+//       trend: "up",
+//       icon: Shield,
+//       textColor: "text-cyan-600",
+//       bgColor: "bg-cyan-50",
+//     },
+//   ];
+
+//   return (
+//     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+//       {stats.map((stat, index) => {
+//         const IconComponent = stat.icon;
+//         return (
+//           <DetailCard key={index} className={`${stat.bgColor} border-2`} padding="p-6">
+//             <div className="flex items-start justify-between">
+//               <div className="flex-1">
+//                 <div className="flex items-center space-x-3 mb-4">
+//                   <div className={`p-3 rounded-2xl ${stat.bgColor} border-2`}>
+//                     <IconComponent className={`h-6 w-6 ${stat.textColor}`} />
+//                   </div>
+//                   <div>
+//                     <h3 className="text-lg font-bold text-gray-900">{stat.title}</h3>
+//                     <div className="text-3xl font-bold mt-1 text-gray-900">{stat.value}</div>
+//                   </div>
+//                 </div>
+//                 <p className="text-sm text-gray-600 mb-3">{stat.subValue}</p>
+//                 <div className="flex items-center space-x-2">
+//                   <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium ${
+//                     stat.trend === "up" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+//                   }`}>
+//                     {stat.trend === "up" ? (
+//                       <TrendingUp className="h-4 w-4" />
+//                     ) : (
+//                       <TrendingDown className="h-4 w-4" />
+//                     )}
+//                     <span>{stat.change}</span>
+//                   </div>
+//                   <span className="text-xs text-gray-500">vs prev quarter</span>
+//                 </div>
+//               </div>
+//             </div>
+//           </DetailCard>
+//         );
+//       })}
+//     </div>
+//   );
+// };
+
+// // Charts and Analytics Section
+// const ChartsSection = ({ performanceData, theme }) => {
+//   return (
+//     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+//       {/* Weekly Hours Chart */}
+//       <DetailCard>
+//         <h3 className={`text-xl font-bold ${theme.colors.text} mb-6 flex items-center space-x-2`}>
+//           <Clock className="h-5 w-5 text-blue-500" />
+//           <span>Weekly Performance</span>
+//         </h3>
+//         <ResponsiveContainer width="100%" height={300}>
+//           <LineChart data={performanceData.weeklyHours}>
+//             <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+//             <XAxis dataKey="week" stroke="#6b7280" />
+//             <YAxis stroke="#6b7280" />
+//             <Tooltip
+//               contentStyle={{
+//                 backgroundColor: "white",
+//                 border: "2px solid #e5e7eb",
+//                 borderRadius: "12px",
+//                 boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+//               }}
+//             />
+//             <Legend />
+//             <Line
+//               type="monotone"
+//               dataKey="planned"
+//               stroke="#3b82f6"
+//               strokeWidth={3}
+//               dot={{ fill: "#3b82f6", strokeWidth: 2, r: 6 }}
+//               name="Planned Hours"
+//             />
+//             <Line
+//               type="monotone"
+//               dataKey="actual"
+//               stroke="#10b981"
+//               strokeWidth={3}
+//               dot={{ fill: "#10b981", strokeWidth: 2, r: 6 }}
+//               name="Actual Hours"
+//             />
+//             <Line
+//               type="monotone"
+//               dataKey="efficiency"
+//               stroke="#f59e0b"
+//               strokeWidth={2}
+//               dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
+//               name="Efficiency %"
+//             />
+//           </LineChart>
+//         </ResponsiveContainer>
+//       </DetailCard>
+
+//       {/* Project Progress Chart */}
+//       <DetailCard>
+//         <h3 className={`text-xl font-bold ${theme.colors.text} mb-6 flex items-center space-x-2`}>
+//           <BarChart3 className="h-5 w-5 text-purple-500" />
+//           <span>Project Progress</span>
+//         </h3>
+//         <ResponsiveContainer width="100%" height={300}>
+//           <BarChart data={performanceData.projectProgress}>
+//             <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+//             <XAxis dataKey="name" stroke="#6b7280" />
+//             <YAxis stroke="#6b7280" />
+//             <Tooltip
+//               contentStyle={{
+//                 backgroundColor: "white",
+//                 border: "2px solid #e5e7eb",
+//                 borderRadius: "12px",
+//                 boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+//               }}
+//             />
+//             <Legend />
+//             <Bar
+//               dataKey="progress"
+//               fill="#8b5cf6"
+//               radius={[4, 4, 0, 0]}
+//               name="Progress %"
+//             />
+//             <Bar
+//               dataKey="budget"
+//               fill="#06b6d4"
+//               radius={[4, 4, 0, 0]}
+//               name="Budget (M)"
+//             />
+//           </BarChart>
+//         </ResponsiveContainer>
+//       </DetailCard>
+
+//       {/* Monthly Tasks Chart */}
+//       <DetailCard>
+//         <h3 className={`text-xl font-bold ${theme.colors.text} mb-6 flex items-center space-x-2`}>
+//           <CheckSquare className="h-5 w-5 text-green-500" />
+//           <span>Monthly Task Completion</span>
+//         </h3>
+//         <ResponsiveContainer width="100%" height={300}>
+//           <AreaChart data={performanceData.monthlyTasks}>
+//             <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+//             <XAxis dataKey="month" stroke="#6b7280" />
+//             <YAxis stroke="#6b7280" />
+//             <Tooltip
+//               contentStyle={{
+//                 backgroundColor: "white",
+//                 border: "2px solid #e5e7eb",
+//                 borderRadius: "12px",
+//                 boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+//               }}
+//             />
+//             <Legend />
+//             <Area
+//               type="monotone"
+//               dataKey="assigned"
+//               stackId="1"
+//               stroke="#6366f1"
+//               fill="#6366f1"
+//               fillOpacity={0.3}
+//               name="Assigned Tasks"
+//             />
+//             <Area
+//               type="monotone"
+//               dataKey="completed"
+//               stackId="1"
+//               stroke="#10b981"
+//               fill="#10b981"
+//               fillOpacity={0.6}
+//               name="Completed Tasks"
+//             />
+//           </AreaChart>
+//         </ResponsiveContainer>
+//       </DetailCard>
+
+//       {/* Budget Analysis Chart */}
+//       <DetailCard>
+//         <h3 className={`text-xl font-bold ${theme.colors.text} mb-6 flex items-center space-x-2`}>
+//           <DollarSign className="h-5 w-5 text-emerald-500" />
+//           <span>Budget Analysis</span>
+//         </h3>
+//         <ResponsiveContainer width="100%" height={300}>
+//           <BarChart data={performanceData.budgetAnalysis} layout="horizontal">
+//             <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+//             <XAxis type="number" stroke="#6b7280" />
+//             <YAxis dataKey="name" type="category" stroke="#6b7280" width={100} />
+//             <Tooltip
+//               contentStyle={{
+//                 backgroundColor: "white",
+//                 border: "2px solid #e5e7eb",
+//                 borderRadius: "12px",
+//                 boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+//               }}
+//               formatter={(value, name) => [`${value}M`, name]}
+//             />
+//             <Legend />
+//             <Bar
+//               dataKey="budgeted"
+//               fill="#3b82f6"
+//               radius={[0, 4, 4, 0]}
+//               name="Budgeted"
+//             />
+//             <Bar
+//               dataKey="spent"
+//               fill="#ef4444"
+//               radius={[0, 4, 4, 0]}
+//               name="Spent"
+//             />
+//             <Bar
+//               dataKey="remaining"
+//               fill="#10b981"
+//               radius={[0, 4, 4, 0]}
+//               name="Remaining"
+//             />
+//           </BarChart>
+//         </ResponsiveContainer>
+//       </DetailCard>
+//     </div>
+//   );
+// };
+
+// // Risk Assessment Component
+// const RiskAssessment = ({ performanceData, theme }) => {
+//   const riskColors = {
+//     low: { bg: "bg-green-100", text: "text-green-800", border: "border-green-300" },
+//     medium: { bg: "bg-yellow-100", text: "text-yellow-800", border: "border-yellow-300" },
+//     high: { bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
+//   };
+
+//   const getRiskLevel = (probability, impact) => {
+//     const score = probability * impact / 100;
+//     if (score >= 50) return "high";
+//     if (score >= 25) return "medium";
+//     return "low";
+//   };
+
+//   return (
+//     <DetailCard className="mb-8">
+//       <h3 className={`text-xl font-bold ${theme.colors.text} mb-6 flex items-center space-x-2`}>
+//         <AlertTriangle className="h-5 w-5 text-red-500" />
+//         <span>Risk Assessment Matrix</span>
+//       </h3>
+      
+//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+//         <div>
+//           <h4 className="text-lg font-semibold mb-4">Risk Analysis</h4>
+//           <div className="space-y-4">
+//             {performanceData.riskAssessment.map((risk, index) => {
+//               const riskLevel = getRiskLevel(risk.probability, risk.impact);
+//               const colors = riskColors[riskLevel];
+              
+//               return (
+//                 <div key={index} className={`p-4 rounded-xl border-2 ${colors.border} ${colors.bg}`}>
+//                   <div className="flex items-center justify-between mb-3">
+//                     <h5 className={`font-semibold ${colors.text}`}>{risk.risk}</h5>
+//                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${colors.bg} ${colors.text} border ${colors.border}`}>
+//                       {riskLevel.toUpperCase()}
+//                     </span>
+//                   </div>
+                  
+//                   <div className="grid grid-cols-3 gap-4 text-sm">
+//                     <div>
+//                       <div className="text-gray-600">Probability</div>
+//                       <div className={`font-bold ${colors.text}`}>{risk.probability}%</div>
+//                     </div>
+//                     <div>
+//                       <div className="text-gray-600">Impact</div>
+//                       <div className={`font-bold ${colors.text}`}>{risk.impact}%</div>
+//                     </div>
+//                     <div>
+//                       <div className="text-gray-600">Mitigation</div>
+//                       <div className={`font-bold ${colors.text}`}>{risk.mitigation}%</div>
+//                     </div>
+//                   </div>
+                  
+//                   <div className="mt-3">
+//                     <div className="text-xs text-gray-600 mb-1">Risk Score</div>
+//                     <div className="w-full bg-gray-200 rounded-full h-2">
+//                       <div 
+//                         className={`h-2 rounded-full ${riskLevel === 'high' ? 'bg-red-500' : riskLevel === 'medium' ? 'bg-yellow-500' : 'bg-green-500'}`}
+//                         style={{ width: `${Math.min(100, (risk.probability * risk.impact) / 100)}%` }}
+//                       ></div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               );
+//             })}
+//           </div>
+//         </div>
+
+//         <div>
+//           <h4 className="text-lg font-semibold mb-4">Risk Distribution</h4>
+//           <ResponsiveContainer width="100%" height={400}>
+//             <PieChart>
+//               <Pie
+//                 data={[
+//                   { name: "Low Risk", value: performanceData.riskAssessment.filter(r => getRiskLevel(r.probability, r.impact) === "low").length, fill: "#10b981" },
+//                   { name: "Medium Risk", value: performanceData.riskAssessment.filter(r => getRiskLevel(r.probability, r.impact) === "medium").length, fill: "#f59e0b" },
+//                   { name: "High Risk", value: performanceData.riskAssessment.filter(r => getRiskLevel(r.probability, r.impact) === "high").length, fill: "#ef4444" },
+//                 ]}
+//                 cx="50%"
+//                 cy="50%"
+//                 labelLine={false}
+//                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+//                 outerRadius={120}
+//                 fill="#8884d8"
+//                 dataKey="value"
+//               >
+//                 {[
+//                   { name: "Low Risk", value: performanceData.riskAssessment.filter(r => getRiskLevel(r.probability, r.impact) === "low").length, fill: "#10b981" },
+//                   { name: "Medium Risk", value: performanceData.riskAssessment.filter(r => getRiskLevel(r.probability, r.impact) === "medium").length, fill: "#f59e0b" },
+//                   { name: "High Risk", value: performanceData.riskAssessment.filter(r => getRiskLevel(r.probability, r.impact) === "high").length, fill: "#ef4444" },
+//                 ].map((entry, index) => (
+//                   <Cell key={`cell-${index}`} fill={entry.fill} />
+//                 ))}
+//               </Pie>
+//               <Tooltip />
+//               <Legend />
+//             </PieChart>
+//           </ResponsiveContainer>
+//         </div>
+//       </div>
+//     </DetailCard>
+//   );
+// };
+
+// // Client Metrics Component
+// const ClientMetrics = ({ performanceData, theme }) => {
+//   return (
+//     <DetailCard className="mb-8">
+//       <h3 className={`text-xl font-bold ${theme.colors.text} mb-6 flex items-center space-x-2`}>
+//         <Users className="h-5 w-5 text-blue-500" />
+//         <span>Client Satisfaction Metrics</span>
+//       </h3>
+      
+//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+//         <div>
+//           <h4 className="text-lg font-semibold mb-4">Client Performance</h4>
+//           <div className="space-y-4">
+//             {performanceData.clientMetrics.map((client, index) => (
+//               <div key={index} className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+//                 <h5 className="font-semibold text-gray-900 mb-3">{client.client}</h5>
+                
+//                 <div className="space-y-3">
+//                   <div>
+//                     <div className="flex justify-between text-sm mb-1">
+//                       <span className="text-gray-600">Overall Satisfaction</span>
+//                       <span className="font-semibold">{client.satisfaction}%</span>
+//                     </div>
+//                     <div className="w-full bg-gray-200 rounded-full h-2">
+//                       <div 
+//                         className="bg-blue-500 h-2 rounded-full" 
+//                         style={{ width: `${client.satisfaction}%` }}
+//                       ></div>
+//                     </div>
+//                   </div>
+                  
+//                   <div>
+//                     <div className="flex justify-between text-sm mb-1">
+//                       <span className="text-gray-600">Communication</span>
+//                       <span className="font-semibold">{client.communication}%</span>
+//                     </div>
+//                     <div className="w-full bg-gray-200 rounded-full h-2">
+//                       <div 
+//                         className="bg-green-500 h-2 rounded-full" 
+//                         style={{ width: `${client.communication}%` }}
+//                       ></div>
+//                     </div>
+//                   </div>
+                  
+//                   <div>
+//                     <div className="flex justify-between text-sm mb-1">
+//                       <span className="text-gray-600">Delivery Quality</span>
+//                       <span className="font-semibold">{client.delivery}%</span>
+//                     </div>
+//                     <div className="w-full bg-gray-200 rounded-full h-2">
+//                       <div 
+//                         className="bg-purple-500 h-2 rounded-full" 
+//                         style={{ width: `${client.delivery}%` }}
+//                       ></div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//         <div>
+//           <h4 className="text-lg font-semibold mb-4">Client Satisfaction Trends</h4>
+//           <ResponsiveContainer width="100%" height={300}>
+//             <BarChart data={performanceData.clientMetrics}>
+//               <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+//               <XAxis dataKey="client" stroke="#6b7280" angle={-45} textAnchor="end" height={100} />
+//               <YAxis stroke="#6b7280" />
+//               <Tooltip
+//                 contentStyle={{
+//                   backgroundColor: "white",
+//                   border: "2px solid #e5e7eb",
+//                   borderRadius: "12px",
+//                   boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+//                 }}
+//               />
+//               <Legend />
+//               <Bar dataKey="satisfaction" fill="#3b82f6" name="Satisfaction" radius={[4, 4, 0, 0]} />
+//               <Bar dataKey="communication" fill="#10b981" name="Communication" radius={[4, 4, 0, 0]} />
+//               <Bar dataKey="delivery" fill="#8b5cf6" name="Delivery" radius={[4, 4, 0, 0]} />
+//             </BarChart>
+//           </ResponsiveContainer>
+//         </div>
+//       </div>
+//     </DetailCard>
+//   );
+// };
+
+// // Main Dashboard Component
+// const ProjectManagerDashboard = ({ managerId = "1" }) => {
+//   const theme = useTheme();
+//   const { data, loading, error, lastUpdated, refetch } = useProjectManagerData(managerId);
+//   const [activeTab, setActiveTab] = useState("overview");
+
+//   // Handle loading state
+//   if (loading) {
+//     return (
+//       <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center`}>
+//         <div className="text-center">
+//           <Loader className="h-12 w-12 animate-spin text-orange-500 mx-auto mb-4" />
+//           <p className="text-xl font-semibold text-gray-600">Loading Dashboard...</p>
+//           <p className="text-sm text-gray-500 mt-2">Fetching project manager data...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   // Handle error state
+//   if (error) {
+//     return (
+//       <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center`}>
+//         <div className="text-center max-w-md">
+//           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+//           <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h2>
+//           <p className="text-gray-600 mb-6">{error}</p>
+//           <button
+//             onClick={refetch}
+//             className="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center space-x-2 mx-auto"
+//           >
+//             <RefreshCw className="h-5 w-5" />
+//             <span>Retry</span>
+//           </button>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   // Handle case where no data is available
+//   if (!data?.manager) {
+//     return (
+//       <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center`}>
+//         <div className="text-center">
+//           <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+//           <h2 className="text-2xl font-bold text-gray-900 mb-2">No Manager Found</h2>
+//           <p className="text-gray-600">Manager with ID {managerId} could not be found.</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   const { manager, statistics, performanceData, analytics } = data;
+
+//   const tabs = [
+//     { id: "overview", label: "Overview", icon: Home },
+//     { id: "performance", label: "Performance", icon: TrendingUp },
+//     { id: "analytics", label: "Analytics", icon: BarChart3 },
+//     { id: "risks", label: "Risk Management", icon: AlertTriangle },
+//     { id: "clients", label: "Client Relations", icon: Users },
+//   ];
+
+//   return (
+//     <div className={`min-h-screen ${theme.colors.background} p-8`}>
+//       <div className="max-w-7xl mx-auto">
+//         {/* Header with Theme Toggle */}
+//         <div className="flex items-center justify-between mb-8">
+//           <div>
+//             <h1 className={`text-4xl font-bold ${theme.colors.text} mb-2`}>
+//               Project Manager Dashboard
+//             </h1>
+//             <p className={`text-lg ${theme.colors.textSecondary}`}>
+//               Comprehensive performance and analytics overview for {manager.name}
+//             </p>
+//             {lastUpdated && (
+//               <p className="text-sm text-gray-500 mt-1">
+//                 Last updated: {lastUpdated.toLocaleString()}
+//               </p>
+//             )}
+//           </div>
+          
+//           <div className="flex items-center space-x-4">
+//             <button
+//               onClick={theme.toggleTheme}
+//               className={`p-3 rounded-full ${theme.colors.card} border-2 ${theme.colors.border} hover:shadow-lg transition-all`}
+//             >
+//               {theme.isDark ? (
+//                 <Lightbulb className="h-5 w-5 text-yellow-500" />
+//               ) : (
+//                 <Palette className="h-5 w-5 text-purple-500" />
+//               )}
+//             </button>
+            
+//             <button 
+//               onClick={refetch}
+//               className={`px-6 py-3 bg-gradient-to-r ${theme.gradients.primary} text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center space-x-2`}
+//             >
+//               <RefreshCw className="h-5 w-5" />
+//               <span>Refresh Data</span>
+//             </button>
+//           </div>
+//         </div>
+
+//         {/* Navigation Tabs */}
+//         <div className="flex space-x-2 mb-8 overflow-x-auto">
+//           {tabs.map((tab) => {
+//             const IconComponent = tab.icon;
+//             return (
+//               <button
+//                 key={tab.id}
+//                 onClick={() => setActiveTab(tab.id)}
+//                 className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
+//                   activeTab === tab.id
+//                     ? `bg-gradient-to-r ${theme.gradients.primary} text-white shadow-lg`
+//                     : `${theme.colors.card} ${theme.colors.text} border-2 ${theme.colors.border} hover:shadow-md`
+//                 }`}
+//               >
+//                 <IconComponent className="h-5 w-5" />
+//                 <span>{tab.label}</span>
+//               </button>
+//             );
+//           })}
+//         </div>
+
+//         {/* Manager Profile Header */}
+//         <ManagerProfileHeader manager={manager} statistics={statistics} theme={theme} />
+
+//         {/* Tab Content */}
+//         {activeTab === "overview" && (
+//           <>
+//             <PerformanceStats statistics={statistics} analytics={analytics} theme={theme} />
+//             <ChartsSection performanceData={performanceData} theme={theme} />
+//           </>
+//         )}
+
+//         {activeTab === "performance" && (
+//           <ChartsSection performanceData={performanceData} theme={theme} />
+//         )}
+
+//         {activeTab === "analytics" && (
+//           <ChartsSection performanceData={performanceData} theme={theme} />
+//         )}
+
+//         {activeTab === "risks" && (
+//           <RiskAssessment performanceData={performanceData} theme={theme} />
+//         )}
+
+//         {activeTab === "clients" && (
+//           <ClientMetrics performanceData={performanceData} theme={theme} />
+//         )}
+
+//         {/* Footer */}
+//         <div className={`mt-12 p-6 ${theme.colors.card} rounded-2xl border-2 ${theme.colors.border} text-center`}>
+//           <p className={`${theme.colors.textSecondary} text-sm`}>
+//             Dashboard v2.1.0 • Data last synchronized: {lastUpdated?.toLocaleString() || 'Never'}
+//           </p>
+//           <div className="flex items-center justify-center space-x-4 mt-2">
+//             <div className="flex items-center space-x-1 text-xs text-gray-500">
+//               <Database className="h-3 w-3" />
+//               <span>Projects: {statistics.totalProjects}</span>
+//             </div>
+//             <div className="flex items-center space-x-1 text-xs text-gray-500">
+//               <CheckSquare className="h-3 w-3" />
+//               <span>Tasks: {statistics.totalTasks}</span>
+//             </div>
+//             <div className="flex items-center space-x-1 text-xs text-gray-500">
+//               <Users className="h-3 w-3" />
+//               <span>Team: {statistics.teamMembersManaged}</span>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ProjectManagerDashboard;

@@ -1,4 +1,4 @@
-// src/pages/admin/AdminSidebar.jsx
+// // src/pages/admin/AdminSidebar.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -10,11 +10,37 @@ import {
   ChevronLeft, Minimize2, Maximize2
 } from 'lucide-react';
 
+// Import your API functions
+import { 
+  projectsAPI, 
+  tasksAPI, 
+  tendersAPI, 
+  notificationsAPI, 
+  authAPI 
+} from '../../services/api';
+
 const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hovering, setHovering] = useState(false);
+  
+  // State for real data
+  const [counts, setCounts] = useState({
+    projects: 0,
+    tasks: 0,
+    tenders: 0,
+    notifications: 0
+  });
+
+  const [user, setUser] = useState({
+    name: 'Loading...',
+    role: 'User',
+    initials: 'U',
+    email: ''
+  });
+
+  const [loading, setLoading] = useState(true);
   
   // Load collapsed state from localStorage
   useEffect(() => {
@@ -31,6 +57,113 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
       onCollapseChange(isCollapsed);
     }
   }, [isCollapsed, onCollapseChange]);
+
+  // Fetch real data from APIs
+  useEffect(() => {
+    const fetchRealData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch all data in parallel
+        const [
+          projectsData,
+          tasksStats,
+          tendersStats,
+          userData
+        ] = await Promise.allSettled([
+          projectsAPI.getAll(),
+          tasksAPI.getStatistics().catch(() => ({ statistics: { total: 0 } })),
+          tendersAPI.getStatistics().catch(() => ({ statistics: { total: 0 } })),
+          notificationsAPI.getUnreadCount().catch(() => ({ count: 0 })),
+          authAPI.getUserDetails().catch(() => ({ data: null }))
+        ]);
+
+        // Process projects count
+        let projectCount = 0;
+        if (projectsData.status === 'fulfilled') {
+          const projects = Array.isArray(projectsData.value) 
+            ? projectsData.value 
+            : projectsData.value?.projects || projectsData.value?.data || [];
+          projectCount = projects.length;
+        }
+
+        // Process tasks count
+        let taskCount = 0;
+        if (tasksStats.status === 'fulfilled') {
+          taskCount = tasksStats.value?.statistics?.total || 
+                     tasksStats.value?.total || 
+                     tasksStats.value?.tasks?.length || 0;
+        }
+
+        // Process tenders count
+        let tenderCount = 0;
+        if (tendersStats.status === 'fulfilled') {
+          tenderCount = tendersStats.value?.statistics?.total || 
+                       tendersStats.value?.total || 
+                       tendersStats.value?.tenders?.length || 0;
+        }
+
+        // Process notifications count
+        let notifCount = 0;
+        if (notificationCount.status === 'fulfilled') {
+          notifCount = notificationCount.value?.count || 
+                      notificationCount.value?.unread_count || 
+                      notificationCount.value?.data?.count || 0;
+        }
+
+        // Process user data
+        let userInfo = {
+          name: 'Admin User',
+          role: 'Administrator',
+          initials: 'A',
+          email: ''
+        };
+
+        if (userData.status === 'fulfilled' && userData.value?.data) {
+          const user = userData.value.data;
+          userInfo = {
+            name: user.name || user.full_name || 'Admin User',
+            role: user.admin ? 'Administrator' : 'User',
+            email: user.email || '',
+            initials: getInitials(user.name || user.full_name || 'Admin User')
+          };
+        }
+
+        // Update state with real data
+        setCounts({
+          projects: projectCount,
+          tasks: taskCount,
+          tenders: tenderCount,
+          notifications: notifCount
+        });
+
+        setUser(userInfo);
+
+      } catch (error) {
+        console.error('❌ Failed to fetch sidebar data:', error);
+        // Keep default values on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRealData();
+
+    // Refresh data every 5 minutes
+    const interval = setInterval(fetchRealData, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Helper function to get user initials
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const words = name.trim().split(' ');
+    if (words.length === 1) {
+      return words[0].charAt(0).toUpperCase();
+    }
+    return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+  };
   
   // Determine active section from current route
   const getActiveSection = () => {
@@ -42,7 +175,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
     if (path.includes('/admin/tenders')) return 'tenders';
     if (path.includes('/admin/team')) return 'team';
     if (path.includes('/admin/calendar')) return 'calendar';
-    if (path.includes('/admin/reports')) return 'reports';
+    // if (path.includes('/admin/reports')) return 'reports';
     if (path.includes('/admin/notifications')) return 'notifications';
     if (path.includes('/admin/settings')) return 'settings';
     return 'dashboard';
@@ -50,6 +183,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
 
   const activeSection = getActiveSection();
 
+  // Menu sections with real data
   const menuSections = [
     {
       title: 'Overview',
@@ -77,7 +211,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
           id: 'projects', 
           label: 'Projects', 
           icon: Building2, 
-          badge: 18,
+          badge: counts.projects > 0 ? counts.projects : null,
           description: 'Construction projects',
           route: '/admin/projects'
         },
@@ -85,7 +219,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
           id: 'tasks', 
           label: 'Tasks', 
           icon: CheckSquare, 
-          badge: 12,
+          badge: counts.tasks > 0 ? counts.tasks : null,
           description: 'Task management',
           route: '/admin/tasks'
         },
@@ -93,7 +227,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
           id: 'tenders', 
           label: 'Tenders', 
           icon: FileText, 
-          badge: 5,
+          badge: counts.tenders > 0 ? counts.tenders : null,
           description: 'Bid management',
           route: '/admin/tenders'
         }
@@ -116,13 +250,13 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
           description: 'Schedule events',
           route: '/admin/calendar'
         },
-        { 
-          id: 'reports', 
-          label: 'Reports', 
-          icon: Target, 
-          description: 'Performance reports',
-          route: '/admin/reports'
-        }
+        // { 
+        //   id: 'reports', 
+        //   label: 'Reports', 
+        //   icon: Target, 
+        //   description: 'Performance reports',
+        //   route: '/admin/reports'
+        // }
       ]
     },
     {
@@ -132,7 +266,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
           id: 'notifications', 
           label: 'Notifications', 
           icon: Bell, 
-          badge: 3,
+          badge: counts.notifications > 0 ? counts.notifications : null,
           description: 'Alerts & updates',
           route: '/admin/notifications'
         },
@@ -164,14 +298,14 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
         if (window.innerWidth < 1024) setIsOpen(false);
       }
     },
-    { 
-      icon: Target, 
-      label: 'Reports',
-      onClick: () => {
-        navigate('/admin/reports');
-        if (window.innerWidth < 1024) setIsOpen(false);
-      }
-    },
+    // { 
+    //   icon: Target, 
+    //   label: 'Reports',
+    //   onClick: () => {
+    //     navigate('/admin/reports');
+    //     if (window.innerWidth < 1024) setIsOpen(false);
+    //   }
+    // },
     { 
       icon: Star, 
       label: 'Favorites',
@@ -197,6 +331,21 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
   const handleBackToDashboard = () => {
     navigate('/admin/dashboard');
     if (window.innerWidth < 1024) setIsOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout();
+      // Clear any stored tokens
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('sidebar-collapsed');
+      // Redirect to login
+      navigate('/login');
+    } catch (error) {
+      console.error('❌ Logout failed:', error);
+      // Force redirect anyway
+      navigate('/login');
+    }
   };
 
   const toggleCollapse = () => {
@@ -349,6 +498,9 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
                               <div className="text-left">
                                 <div className="text-sm font-medium">
                                   {item.label}
+                                  {loading && item.badge !== null && (
+                                    <span className="ml-2 text-xs text-gray-400">...</span>
+                                  )}
                                 </div>
                                 <div className={`text-xs ${isActive ? 'text-orange-500' : 'text-gray-500'}`}>
                                   {item.description}
@@ -380,18 +532,17 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
                               `} />
                             </div>
                           )}
-
                           {/* Badge for collapsed state */}
                           {!showLabels && item.badge && (
                             <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
-                              {item.badge}
+                              {item.badge > 99 ? '99+' : item.badge}
                             </span>
                           )}
-
                           {/* Tooltip for collapsed state */}
                           {!showLabels && (
                             <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                               {item.label}
+                              {item.badge && ` (${item.badge})`}
                               <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
                             </div>
                           )}
@@ -456,12 +607,12 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
               <div className="flex items-center space-x-3 p-2.5 rounded-lg bg-gray-50 border border-gray-200">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">A</span>
+                    <span className="text-white text-xs font-bold">{user.initials}</span>
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">Admin User</p>
-                  <p className="text-xs text-gray-500">Administrator</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{user.role}</p>
                 </div>
                 <div className="flex space-x-1">
                   <button 
@@ -472,6 +623,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
                     <Settings className="h-3 w-3" />
                   </button>
                   <button 
+                    onClick={handleLogout}
                     className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
                     title="Logout"
                   >
@@ -482,7 +634,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
             ) : (
               <div className="flex flex-col items-center space-y-2">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">A</span>
+                  <span className="text-white text-xs font-bold">{user.initials}</span>
                 </div>
                 <div className="flex space-x-1">
                   <button 
@@ -498,6 +650,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
                     </div>
                   </button>
                   <button 
+                    onClick={handleLogout}
                     className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 relative group"
                     title="Logout"
                   >
