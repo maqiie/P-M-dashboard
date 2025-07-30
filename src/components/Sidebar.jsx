@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getUserDetails, logout } from '../services/api';
+import { 
+  getUserDetails, 
+  logout,
+  projectsAPI,
+  tasksAPI,
+  eventsAPI,
+  tendersAPI,
+  teamMembersAPI,
+  notificationsAPI,
+  calendarAPI
+} from '../services/api';
 import { 
   Building2, 
   LayoutDashboard, 
@@ -29,7 +39,8 @@ import {
   CheckSquare,
   List,
   Timer,
-  Flag
+  Flag,
+  RefreshCw
 } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
@@ -41,11 +52,33 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
   const [userError, setUserError] = useState(null);
-  const [projectStats, setProjectStats] = useState({});
+  
+  // Stats state
+  const [stats, setStats] = useState({
+    activeProjects: 0,
+    completedProjects: 0,
+    activeTasks: 0,
+    completedTasks: 0,
+    overdueTasks: 0,
+    tasksDueToday: 0,
+    myTasks: 0,
+    upcomingEvents: 0,
+    activeTenders: 0,
+    draftTenders: 0,
+    teamMembers: 0,
+    pendingNotifications: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   // Fetch user data and stats on component mount
   useEffect(() => {
     fetchUserData();
+    fetchStats();
+    
+    // Refresh stats every 5 minutes
+    const interval = setInterval(fetchStats, 300000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchUserData = async () => {
@@ -59,18 +92,6 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       if (response && (response.data || response.user || response)) {
         const userData = response.data || response.user || response;
         setUser(userData);
-        
-        // TODO: Add statistics endpoint to your API service
-        setProjectStats({
-          active_projects: 4,
-          upcoming_events: 3,
-          active_tenders: 2,
-          pending_notifications: 5,
-          total_team_members: 24,
-          active_tasks: 12,
-          overdue_tasks: 3,
-          tasks_due_today: 5
-        });
       } else {
         throw new Error('Invalid user data received');
       }
@@ -85,6 +106,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
         return;
       }
       
+      // Fallback user data
       setUser({
         id: 'temp_user',
         name: 'Guest User',
@@ -95,6 +117,147 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       });
     } finally {
       setUserLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      setStatsLoading(true);
+      
+      // Fetch all stats in parallel with error handling for each
+      const [
+        projectsRes,
+        tasksRes,
+        eventsRes,
+        tendersRes,
+        teamRes,
+        notificationsRes,
+        calendarRes
+      ] = await Promise.allSettled([
+        projectsAPI.getAll().catch(err => {
+          console.warn('Projects API failed:', err.message);
+          return { projects: [] };
+        }),
+        tasksAPI.getAll().catch(err => {
+          console.warn('Tasks API failed:', err.message);
+          return { tasks: [] };
+        }),
+        eventsAPI.getUpcoming(10).catch(err => {
+          console.warn('Events API failed:', err.message);
+          return { events: [] };
+        }),
+        tendersAPI.getAll().catch(err => {
+          console.warn('Tenders API failed:', err.message);
+          return { tenders: [] };
+        }),
+        teamMembersAPI.getAll().catch(err => {
+          console.warn('Team API failed:', err.message);
+          return { team_members: [] };
+        }),
+        notificationsAPI.getAll().catch(err => {
+          console.warn('Notifications API failed:', err.message);
+          return [];
+        }),
+        calendarAPI.getTodayEvents().catch(err => {
+          console.warn('Calendar API failed:', err.message);
+          return [];
+        })
+      ]);
+
+      // Process results with safe fallbacks
+      const projects = projectsRes.status === 'fulfilled' ? 
+        (Array.isArray(projectsRes.value?.projects) ? projectsRes.value.projects : 
+         Array.isArray(projectsRes.value) ? projectsRes.value : []) : [];
+
+      const tasks = tasksRes.status === 'fulfilled' ? 
+        (Array.isArray(tasksRes.value?.tasks) ? tasksRes.value.tasks : 
+         Array.isArray(tasksRes.value) ? tasksRes.value : []) : [];
+
+      const events = eventsRes.status === 'fulfilled' ? 
+        (Array.isArray(eventsRes.value?.events) ? eventsRes.value.events : 
+         Array.isArray(eventsRes.value) ? eventsRes.value : []) : [];
+
+      const tenders = tendersRes.status === 'fulfilled' ? 
+        (Array.isArray(tendersRes.value?.tenders) ? tendersRes.value.tenders : 
+         Array.isArray(tendersRes.value) ? tendersRes.value : []) : [];
+
+      const teamMembers = teamRes.status === 'fulfilled' ? 
+        (Array.isArray(teamRes.value?.team_members) ? teamRes.value.team_members : 
+         Array.isArray(teamRes.value) ? teamRes.value : []) : [];
+
+      const notifications = notificationsRes.status === 'fulfilled' ? 
+        (Array.isArray(notificationsRes.value) ? notificationsRes.value : []) : [];
+
+      const todayEvents = calendarRes.status === 'fulfilled' ? 
+        (Array.isArray(calendarRes.value) ? calendarRes.value : []) : [];
+
+      // Calculate stats safely
+      const currentUserId = user?.id;
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+
+      const calculatedStats = {
+        // Projects
+        activeProjects: projects.filter(p => 
+          p.status === 'active' || p.status === 'in_progress'
+        ).length,
+        completedProjects: projects.filter(p => 
+          p.status === 'completed'
+        ).length,
+
+        // Tasks
+        activeTasks: tasks.filter(t => 
+          t.status === 'pending' || t.status === 'in_progress' || t.status === 'active'
+        ).length,
+        completedTasks: tasks.filter(t => 
+          t.status === 'completed'
+        ).length,
+        overdueTasks: tasks.filter(t => {
+          if (t.status === 'completed') return false;
+          const dueDate = t.due_date || t.deadline;
+          if (!dueDate) return false;
+          return new Date(dueDate) < today;
+        }).length,
+        tasksDueToday: tasks.filter(t => {
+          if (t.status === 'completed') return false;
+          const dueDate = t.due_date || t.deadline;
+          if (!dueDate) return false;
+          return new Date(dueDate).toISOString().split('T')[0] === todayStr;
+        }).length,
+        myTasks: currentUserId ? tasks.filter(t => 
+          (t.assigned_to === currentUserId || t.assignee_id === currentUserId) &&
+          (t.status !== 'completed')
+        ).length : 0,
+
+        // Events & Calendar
+        upcomingEvents: events.length + todayEvents.length,
+
+        // Tenders
+        activeTenders: tenders.filter(t => 
+          t.status === 'active' || t.status === 'open'
+        ).length,
+        draftTenders: tenders.filter(t => 
+          t.status === 'draft'
+        ).length,
+
+        // Team
+        teamMembers: teamMembers.length,
+
+        // Notifications
+        pendingNotifications: notifications.filter(n => 
+          !n.read && !n.is_read
+        ).length
+      };
+
+      setStats(calculatedStats);
+      setLastUpdated(new Date());
+      
+      console.log('✅ Stats updated:', calculatedStats);
+      
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -114,7 +277,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
     }
   };
 
-  // Determine active item based on current route - UPDATED FOR TASKS
+  // Determine active item based on current route
   const getActiveItem = (pathname) => {
     if (pathname === '/user/dashboard' || pathname === '/user' || pathname === '/dashboard') return 'dashboard';
     if (pathname === '/user/projects') return 'projects';
@@ -141,12 +304,12 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
     if (pathname === '/user/reports/team') return 'team-reports';
     if (pathname === '/user/notifications') return 'notifications';
     if (pathname === '/user/settings') return 'settings';
-    return 'dashboard'; // default
+    return 'dashboard';
   };
 
   const activeItem = getActiveItem(location.pathname);
 
-  // Auto-expand parent menus based on current route - UPDATED FOR TASKS
+  // Auto-expand parent menus based on current route
   useEffect(() => {
     const pathname = location.pathname;
     const newExpanded = [...expandedItems];
@@ -198,7 +361,12 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       .toUpperCase();
   };
 
-  // UPDATED MENU ITEMS WITH TASKS
+  // Helper function to get badge count safely
+  const getBadgeCount = (count) => {
+    return count > 0 ? String(count) : null;
+  };
+
+  // DYNAMIC MENU ITEMS WITH REAL API DATA
   const menuItems = [
     {
       id: 'dashboard',
@@ -212,12 +380,23 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       title: 'Projects',
       icon: FolderOpen,
       href: '/user/projects',
-      badge: projectStats.active_projects ? String(projectStats.active_projects) : null,
+      badge: getBadgeCount(stats.activeProjects),
       hasSubmenu: true,
       submenu: [
-        { id: 'active-projects', title: 'Active Projects', icon: Target, href: '/user/projects/active' },
-        { id: 'completed-projects', title: 'Completed', icon: CheckCircle, href: '/user/projects/completed' },
-        { id: 'project-templates', title: 'Templates', icon: FileText, href: '/user/projects/templates' }
+        { 
+          id: 'active-projects', 
+          title: 'Active Projects', 
+          icon: Target, 
+          href: '/user/projects/active',
+          badge: getBadgeCount(stats.activeProjects)
+        },
+        { 
+          id: 'completed-projects', 
+          title: 'Completed', 
+          icon: CheckCircle, 
+          href: '/user/projects/completed',
+          badge: getBadgeCount(stats.completedProjects)
+        },
       ]
     },
     {
@@ -225,7 +404,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       title: 'Tasks',
       icon: CheckSquare,
       href: '/user/tasks',
-      badge: projectStats.active_tasks ? String(projectStats.active_tasks) : null,
+      badge: getBadgeCount(stats.activeTasks),
       hasSubmenu: true,
       submenu: [
         { 
@@ -233,27 +412,29 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
           title: 'Active Tasks', 
           icon: List, 
           href: '/user/tasks/active',
-          badge: projectStats.active_tasks ? String(projectStats.active_tasks) : null
+          badge: getBadgeCount(stats.activeTasks)
         },
         { 
           id: 'my-tasks', 
           title: 'My Tasks', 
           icon: User, 
-          href: '/user/tasks/my-tasks' 
+          href: '/user/tasks/my-tasks',
+          badge: getBadgeCount(stats.myTasks)
         },
         { 
           id: 'overdue-tasks', 
           title: 'Overdue', 
           icon: AlertTriangle, 
           href: '/user/tasks/overdue',
-          badge: projectStats.overdue_tasks ? String(projectStats.overdue_tasks) : null,
+          badge: getBadgeCount(stats.overdueTasks),
           badgeColor: 'red'
         },
         { 
           id: 'completed-tasks', 
           title: 'Completed', 
           icon: CheckCircle, 
-          href: '/user/tasks/completed' 
+          href: '/user/tasks/completed',
+          badge: getBadgeCount(stats.completedTasks)
         }
       ]
     },
@@ -262,18 +443,18 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       title: 'Calendar',
       icon: Calendar,
       href: '/user/calendar',
-      badge: projectStats.upcoming_events ? String(projectStats.upcoming_events) : null
+      badge: getBadgeCount(stats.upcomingEvents)
     },
     {
       id: 'team',
       title: 'Team',
       icon: Users,
       href: '/user/team',
+      badge: getBadgeCount(stats.teamMembers),
       hasSubmenu: true,
       submenu: [
         { id: 'team-overview', title: 'Overview', icon: Users, href: '/user/team/overview' },
         { id: 'team-performance', title: 'Performance', icon: BarChart3, href: '/user/team/performance' },
-        { id: 'team-schedule', title: 'Schedule', icon: Clock, href: '/user/team/schedule' }
       ]
     },
     {
@@ -281,20 +462,26 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       title: 'Tenders',
       icon: Briefcase,
       href: '/user/tenders',
-      badge: projectStats.active_tenders ? String(projectStats.active_tenders) : null,
+      badge: getBadgeCount(stats.activeTenders),
       hasSubmenu: true,
       submenu: [
-        { id: 'active-tenders', title: 'Active', icon: Clock, href: '/user/tenders/active' },
-        { id: 'draft-tenders', title: 'Drafts', icon: FileText, href: '/user/tenders/drafts' },
+        { 
+          id: 'active-tenders', 
+          title: 'Active', 
+          icon: Clock, 
+          href: '/user/tenders/active',
+          badge: getBadgeCount(stats.activeTenders)
+        },
+        { 
+          id: 'draft-tenders', 
+          title: 'Drafts', 
+          icon: FileText, 
+          href: '/user/tenders/drafts',
+          badge: getBadgeCount(stats.draftTenders)
+        },
         { id: 'tender-history', title: 'History', icon: BarChart3, href: '/user/tenders/history' }
       ]
     },
-    // {
-    //   id: 'locations',
-    //   title: 'Locations',
-    //   icon: MapPin,
-    //   href: '/user/locations'
-    // },
     {
       id: 'reports',
       title: 'Reports',
@@ -309,14 +496,14 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
     }
   ];
 
-  // UPDATED BOTTOM ITEMS WITH /user/ PREFIX
+  // BOTTOM ITEMS WITH REAL DATA
   const bottomItems = [
     {
       id: 'notifications',
       title: 'Notifications',
       icon: Bell,
       href: '/user/notifications',
-      badge: projectStats.pending_notifications ? String(projectStats.pending_notifications) : null
+      badge: getBadgeCount(stats.pendingNotifications)
     },
     {
       id: 'settings',
@@ -332,7 +519,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
     const Icon = item.icon;
 
     const handleClick = () => {
-      console.log('Navigating to:', item.href); // Debug log
+      console.log('Navigating to:', item.href);
       
       if (item.hasSubmenu) {
         toggleExpanded(item.id);
@@ -420,7 +607,6 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
     );
   };
 
-  // UPDATED NEW TASK HANDLER
   const handleNewTask = () => {
     navigate('/user/tasks');
   };
@@ -458,7 +644,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
         ${isCollapsed ? '-translate-x-full lg:translate-x-0' : 'translate-x-0'}
       `}>
         
-        {/* Header - UPDATED NAVIGATION */}
+        {/* Header */}
         <div className="p-3 lg:p-4 border-b border-gray-100/80">
           <div className="flex items-center justify-between">
             {!isCollapsed && (
@@ -538,11 +724,22 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
                 }}
               />
             </div>
+
+            {/* Refresh Stats Button */}
+            <button 
+              onClick={fetchStats}
+              disabled={statsLoading}
+              className="w-full mt-2 flex items-center justify-center px-3 py-2 bg-gray-50 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-100 transition-all duration-200 text-sm touch-manipulation"
+              title="Refresh Statistics"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${statsLoading ? 'animate-spin' : ''}`} />
+              {statsLoading ? 'Updating...' : 'Refresh Stats'}
+            </button>
           </div>
         )}
 
-        {/* Task Summary (when not collapsed) */}
-        {!isCollapsed && projectStats.active_tasks && (
+        {/* Task Summary - Now Dynamic */}
+        {!isCollapsed && (stats.activeTasks > 0 || stats.tasksDueToday > 0 || stats.overdueTasks > 0) && (
           <div className="px-3 lg:px-4 pb-3 lg:pb-4">
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
@@ -551,14 +748,25 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="text-center">
-                  <div className="font-bold text-blue-600">{projectStats.tasks_due_today || 5}</div>
-                  <div className="text-gray-600">Due Today</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-bold text-red-600">{projectStats.overdue_tasks || 3}</div>
+                  <div className="font-bold text-blue-600">{stats.tasksDueToday}</div>
                   <div className="text-gray-600">Overdue</div>
                 </div>
               </div>
+              {lastUpdated && (
+                <div className="text-center mt-2 text-xs text-gray-500">
+                  Updated: {lastUpdated.toLocaleTimeString()}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Stats Loading Indicator */}
+        {statsLoading && !isCollapsed && (
+          <div className="px-3 lg:px-4 pb-3">
+            <div className="flex items-center justify-center space-x-2 p-2 bg-blue-50 rounded-lg">
+              <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />
+              <span className="text-sm text-blue-700">Updating statistics...</span>
             </div>
           </div>
         )}
@@ -581,7 +789,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
           </nav>
         </div>
 
-        {/* User Profile Section - UPDATED NAVIGATION */}
+        {/* User Profile Section */}
         {!isCollapsed && user && (
           <div className="border-t border-gray-100/80 p-3 lg:p-4">
             <div 
@@ -621,6 +829,24 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
+
+            {/* Quick Stats Summary (when expanded) */}
+            {!statsLoading && (
+              <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                <div className="text-center p-2 bg-blue-50 rounded-lg">
+                  <div className="font-bold text-blue-600">{stats.activeProjects}</div>
+                  <div className="text-gray-600">Projects</div>
+                </div>
+                <div className="text-center p-2 bg-green-50 rounded-lg">
+                  <div className="font-bold text-green-600">{stats.activeTasks}</div>
+                  <div className="text-gray-600">Tasks</div>
+                </div>
+                <div className="text-center p-2 bg-purple-50 rounded-lg">
+                  <div className="font-bold text-purple-600">{stats.teamMembers}</div>
+                  <div className="text-gray-600">Team</div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

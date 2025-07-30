@@ -1,1015 +1,4 @@
-// import React, { useState, useEffect, useCallback, useMemo } from 'react';
-// import {
-//   BarChart, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line,
-//   PieChart, Pie, Cell, AreaChart, Area, ComposedChart, Tooltip, Legend
-// } from 'recharts';
-// import {
-//   Clock, DollarSign, Users, Building2, TrendingUp, TrendingDown,
-//   Target, RefreshCw, ArrowRight, User, Plus, FileText,
-//   AlertTriangle, CheckSquare, Activity, Calendar, MapPin, Eye, Download, Filter, Settings,
-//   UserCheck, Loader, AlertCircle, Timer, Users2, Edit, Trash2,
-//   CalendarDays, ChevronLeft, ChevronRight, MoreHorizontal, Menu,
-//   Palette, Brush, Home, BarChart3, X, Maximize2, Minimize2
-// } from 'lucide-react';
-// import {
-//     projectManagerAPI,
-//     projectsAPI,
-//     tendersAPI,
-//     tasksAPI,
-//     eventsAPI,
-//     teamMembersAPI,
-//     calendarAPI,
-//     dashboardAPI,
-//     notificationsAPI,
-//     supervisorsAPI,
-//     siteManagersAPI,
-//     fetchProjectManagers
-//   } from '../../services/api';
 
-// // Enhanced Theme for Large Display with Ujenzi&Paints branding
-// const useTheme = () => {
-//   const [isDark, setIsDark] = useState(false);
-
-//   const toggleTheme = useCallback(() => {
-//     setIsDark(prev => !prev);
-//   }, []);
-
-//   const theme = useMemo(() => ({
-//     isDark,
-//     colors: {
-//       background: isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-orange-50 via-white to-yellow-50',
-//       card: isDark ? 'bg-gray-800' : 'bg-white',
-//       border: isDark ? 'border-gray-700' : 'border-gray-200',
-//       text: isDark ? 'text-gray-100' : 'text-gray-900',
-//       textSecondary: isDark ? 'text-gray-400' : 'text-gray-600',
-//       textMuted: isDark ? 'text-gray-500' : 'text-gray-500',
-//       primary: '#F97316', // Orange for Ujenzi&Paints
-//       secondary: '#EAB308', // Yellow for Paint theme
-//       success: '#10B981',
-//       warning: '#F59E0B',
-//       danger: '#EF4444',
-//       purple: '#8B5CF6',
-//     }
-//   }), [isDark]);
-
-//   return { ...theme, toggleTheme };
-// };
-
-// // Enhanced TV Card Component
-// const TVCard = ({ children, className = "", padding = "p-8", gradient = false, ...props }) => {
-//   const theme = useTheme();
-//   return (
-//     <div
-//       className={`${padding} ${gradient ? 'bg-gradient-to-br from-white via-orange-50 to-yellow-50' : theme.colors.card} rounded-3xl shadow-xl border-2 ${theme.colors.border} transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] ${className}`}
-//       {...props}
-//     >
-//       {children}
-//     </div>
-//   );
-// };
-
-// // Real API Integration Hook
-// const useEnhancedDashboardData = () => {
-//   const [data, setData] = useState({
-//     statistics: {},
-//     projects: [],
-//     managers: [],
-//     events: [],
-//     tasks: [],
-//     tenders: [],
-//     teamMembers: [],
-//     supervisors: [],
-//     siteManagers: [],
-//     notifications: [],
-//     chartData: {
-//       monthlyRevenue: [],
-//       projectStatus: [],
-//       teamEfficiency: [],
-//       projectProgress: [],
-//       weeklyTasks: [],
-//       tenderStatus: [],
-//       taskStatus: []
-//     }
-//   });
-
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [lastUpdated, setLastUpdated] = useState(null);
-//   const [refreshing, setRefreshing] = useState(false);
-
-//   // Simplified API functions (you can replace these with your actual API imports)
-//   const fetchProjectManagers = async () => {
-//     const response = await fetch('/project_managers/list');
-//     if (!response.ok) throw new Error('Failed to fetch project managers');
-//     return response.json();
-//   };
-
-//   const fetchDashboardData = async () => {
-//     const response = await fetch('/project_managers/dashboard');
-//     if (!response.ok) throw new Error('Failed to fetch dashboard data');
-//     return response.json();
-//   };
-
-//   const fetchProjects = async () => {
-//     const response = await fetch('/projects/chart_data');
-//     if (!response.ok) throw new Error('Failed to fetch projects');
-//     return response.json();
-//   };
-
-//   const fetchTasks = async () => {
-//     const response = await fetch('/api/v1/dashboard/quick_stats');
-//     if (!response.ok) throw new Error('Failed to fetch tasks');
-//     return response.json();
-//   };
-
-//   const fetchProjectsProgress = async () => {
-//     const response = await fetch('/api/v1/dashboard/projects_progress');
-//     if (!response.ok) throw new Error('Failed to fetch projects progress');
-//     return response.json();
-//   };
-
-//   const fetchData = useCallback(async (showRefreshIndicator = false) => {
-//     try {
-//       if (showRefreshIndicator) {
-//         setRefreshing(true);
-//       } else {
-//         setLoading(true);
-//       }
-//       setError(null);
-//       console.log("🔄 Fetching comprehensive dashboard data...");
-
-//       // Fetch all data from your real APIs
-//       const [
-//         dashboardResponse,
-//         projectsResponse,
-//         managersResponse,
-//         tasksResponse,
-//         projectsProgressResponse
-//       ] = await Promise.allSettled([
-//         fetchDashboardData().catch(() => ({})),
-//         fetchProjects().catch(() => ({ projects: [] })),
-//         fetchProjectManagers().catch((err) => {
-//           console.error("❌ Failed to fetch project managers:", err);
-//           return [];
-//         }),
-//         fetchTasks().catch(() => ({ tasks: [] })),
-//         fetchProjectsProgress().catch(() => ({ projects: [] }))
-//       ]);
-
-//       // Process all responses
-//       const dashboard = dashboardResponse.status === 'fulfilled' ? dashboardResponse.value : {};
-//       const projectsData = projectsResponse.status === 'fulfilled' ? projectsResponse.value : { projects: [] };
-//       const managersData = managersResponse.status === 'fulfilled' ? managersResponse.value : [];
-//       const tasksData = tasksResponse.status === 'fulfilled' ? tasksResponse.value : { tasks: [] };
-//       const projectsProgressData = projectsProgressResponse.status === 'fulfilled' ? projectsProgressResponse.value : { projects: [] };
-
-//       // Normalize data
-//       const projects = Array.isArray(projectsData.projects) ? projectsData.projects : (Array.isArray(projectsData) ? projectsData : []);
-//       const tasks = Array.isArray(tasksData.tasks) ? tasksData.tasks : (Array.isArray(tasksData) ? tasksData : []);
-//       const progressProjects = Array.isArray(projectsProgressData.projects) ? projectsProgressData.projects : (Array.isArray(projectsProgressData) ? projectsProgressData : []);
-
-//       // Enhanced managers data processing with complete details and radar chart metrics
-//       const managers = Array.isArray(managersData) ? managersData.map(manager => ({
-//         id: manager.id,
-//         name: manager.name,
-//         email: manager.email,
-//         phone: manager.phone || '+254 700 000 000',
-//         location: manager.location || 'Nairobi, Kenya',
-//         department: manager.department || 'Construction',
-//         joinDate: manager.join_date || 'Jan 2022',
-//         projectsCount: manager.number_of_projects || 0,
-//         activeProjects: manager.number_of_projects || 0,
-//         completedProjects: manager.completed_projects || Math.floor(Math.random() * 20) + 5,
-//         lastLogin: manager.last_login,
-//         status: manager.status,
-//         workload: Math.min(100, (manager.number_of_projects || 0) * 25),
-//         efficiency: 85 + Math.random() * 15,
-//         avatar: manager.avatar || manager.name?.split(' ').map(n => n[0]).join('') || 'U',
-//         role: manager.role || 'Project Manager',
-//         totalBudget: (manager.number_of_projects || 0) * 500000 + Math.random() * 2000000,
-//         skills: manager.skills || ['Project Management', 'Team Leadership', 'Budgeting', 'Quality Control'],
-//         certifications: manager.certifications || ['PMP', 'Construction Management'],
-//         // Radar chart metrics for each manager
-//         radarMetrics: {
-//           projectManagement: 80 + Math.random() * 20,
-//           qualityControl: 75 + Math.random() * 25,
-//           budgetManagement: 85 + Math.random() * 15,
-//           timelineAdherence: 78 + Math.random() * 22,
-//           teamCoordination: 82 + Math.random() * 18,
-//           riskManagement: 70 + Math.random() * 30,
-//           clientCommunication: 88 + Math.random() * 12,
-//           resourceOptimization: 79 + Math.random() * 21
-//         }
-//       })) : [];
-
-//       // Comprehensive statistics
-//       const statistics = {
-//         totalProjects: projects.length,
-//         activeProjects: projects.filter(p => p.status === 'active' || p.status === 'in_progress').length,
-//         completedProjects: projects.filter(p => p.status === 'completed').length,
-//         planningProjects: projects.filter(p => p.status === 'planning').length,
-//         onHoldProjects: projects.filter(p => p.status === 'on_hold').length,
-//         totalBudget: projects.reduce((sum, p) => sum + (parseFloat(p.budget || 0)), 0),
-//         totalTasks: tasks.length,
-//         completedTasks: tasks.filter(t => t.status === 'completed').length,
-//         pendingTasks: tasks.filter(t => t.status === 'pending').length,
-//         inProgressTasks: tasks.filter(t => t.status === 'in_progress').length,
-//         overdueTasks: tasks.filter(t => {
-//           if (!t.due_date) return false;
-//           return new Date(t.due_date) < new Date() && t.status !== 'completed';
-//         }).length,
-//         teamSize: managers.length,
-//         activeTenders: Math.floor(Math.random() * 15) + 5, // If no tender API available
-//         draftTenders: Math.floor(Math.random() * 8) + 2,
-//         completedTenders: Math.floor(Math.random() * 20) + 10,
-//         totalTenderValue: Math.random() * 5000000 + 2000000,
-//         unreadNotifications: Math.floor(Math.random() * 10) + 1,
-//         todayEvents: Math.floor(Math.random() * 5) + 1,
-//         avgProgress: projects.length > 0 ?
-//           projects.reduce((sum, p) => sum + (parseFloat(p.progress_percentage || p.progress || 0)), 0) / projects.length : 0,
-//         avgTeamEfficiency: managers.length > 0 ?
-//           managers.reduce((sum, m) => sum + m.efficiency, 0) / managers.length : 0
-//       };
-
-//       // Create radar chart data based on actual project managers
-//       const teamEfficiencyRadar = managers.length > 0 ? [
-//         {
-//           name: 'Project Management',
-//           efficiency: Math.round(managers.reduce((sum, m) => sum + m.radarMetrics.projectManagement, 0) / managers.length),
-//           fullMark: 100
-//         },
-//         {
-//           name: 'Quality Control',
-//           efficiency: Math.round(managers.reduce((sum, m) => sum + m.radarMetrics.qualityControl, 0) / managers.length),
-//           fullMark: 100
-//         },
-//         {
-//           name: 'Budget Management',
-//           efficiency: Math.round(managers.reduce((sum, m) => sum + m.radarMetrics.budgetManagement, 0) / managers.length),
-//           fullMark: 100
-//         },
-//         {
-//           name: 'Timeline Adherence',
-//           efficiency: Math.round(managers.reduce((sum, m) => sum + m.radarMetrics.timelineAdherence, 0) / managers.length),
-//           fullMark: 100
-//         },
-//         {
-//           name: 'Team Coordination',
-//           efficiency: Math.round(managers.reduce((sum, m) => sum + m.radarMetrics.teamCoordination, 0) / managers.length),
-//           fullMark: 100
-//         },
-//         {
-//           name: 'Risk Management',
-//           efficiency: Math.round(managers.reduce((sum, m) => sum + m.radarMetrics.riskManagement, 0) / managers.length),
-//           fullMark: 100
-//         },
-//         {
-//           name: 'Client Communication',
-//           efficiency: Math.round(managers.reduce((sum, m) => sum + m.radarMetrics.clientCommunication, 0) / managers.length),
-//           fullMark: 100
-//         },
-//         {
-//           name: 'Resource Optimization',
-//           efficiency: Math.round(managers.reduce((sum, m) => sum + m.radarMetrics.resourceOptimization, 0) / managers.length),
-//           fullMark: 100
-//         }
-//       ] : [
-//         { name: 'Project Management', efficiency: 85, fullMark: 100 },
-//         { name: 'Quality Control', efficiency: 78, fullMark: 100 },
-//         { name: 'Budget Management', efficiency: 92, fullMark: 100 },
-//         { name: 'Timeline Adherence', efficiency: 88, fullMark: 100 },
-//         { name: 'Team Coordination', efficiency: 81, fullMark: 100 },
-//         { name: 'Risk Management', efficiency: 75, fullMark: 100 },
-//         { name: 'Client Communication', efficiency: 90, fullMark: 100 },
-//         { name: 'Resource Optimization', efficiency: 83, fullMark: 100 }
-//       ];
-
-//       // Enhanced chart data
-//       const chartData = {
-//         teamEfficiency: teamEfficiencyRadar,
-
-//         projectProgress: progressProjects.slice(0, 10).map(project => ({
-//           name: (project.title || project.name || 'Untitled').substring(0, 15),
-//           progress: parseFloat(project.progress_percentage || project.progress || 0),
-//           budget: parseFloat(project.budget || 0) / 1000000,
-//           status: project.status
-//         })),
-
-//         monthlyRevenue: [
-//           { month: 'Jan', revenue: 2.8, target: 2.5, projects: Math.floor(statistics.totalProjects * 0.15) },
-//           { month: 'Feb', revenue: 3.2, target: 2.8, projects: Math.floor(statistics.totalProjects * 0.18) },
-//           { month: 'Mar', revenue: 3.8, target: 3.2, projects: Math.floor(statistics.totalProjects * 0.22) },
-//           { month: 'Apr', revenue: 3.4, target: 3.5, projects: Math.floor(statistics.totalProjects * 0.19) },
-//           { month: 'May', revenue: 4.2, target: 3.8, projects: Math.floor(statistics.totalProjects * 0.26) },
-//           { month: 'Jun', revenue: 4.8, target: 4.2, projects: Math.floor(statistics.totalProjects * 0.30) }
-//         ],
-
-//         weeklyTasks: [
-//           { day: 'Mon', completed: Math.floor(statistics.completedTasks * 0.18), pending: Math.floor(statistics.pendingTasks * 0.15), total: Math.floor(statistics.totalTasks * 0.16) },
-//           { day: 'Tue', completed: Math.floor(statistics.completedTasks * 0.22), pending: Math.floor(statistics.pendingTasks * 0.12), total: Math.floor(statistics.totalTasks * 0.18) },
-//           { day: 'Wed', completed: Math.floor(statistics.completedTasks * 0.16), pending: Math.floor(statistics.pendingTasks * 0.18), total: Math.floor(statistics.totalTasks * 0.17) },
-//           { day: 'Thu', completed: Math.floor(statistics.completedTasks * 0.20), pending: Math.floor(statistics.pendingTasks * 0.14), total: Math.floor(statistics.totalTasks * 0.17) },
-//           { day: 'Fri', completed: Math.floor(statistics.completedTasks * 0.24), pending: Math.floor(statistics.pendingTasks * 0.11), total: Math.floor(statistics.totalTasks * 0.18) },
-//           { day: 'Sat', completed: Math.floor(statistics.completedTasks * 0.08), pending: Math.floor(statistics.pendingTasks * 0.06), total: Math.floor(statistics.totalTasks * 0.07) },
-//           { day: 'Sun', completed: Math.floor(statistics.completedTasks * 0.06), pending: Math.floor(statistics.pendingTasks * 0.08), total: Math.floor(statistics.totalTasks * 0.07) }
-//         ]
-//       };
-
-//       setData({
-//         statistics,
-//         projects,
-//         managers,
-//         events: [],
-//         tasks,
-//         tenders: [],
-//         teamMembers: managers,
-//         supervisors: [],
-//         siteManagers: [],
-//         notifications: [],
-//         chartData
-//       });
-
-//       setLastUpdated(new Date());
-//       console.log("✅ Dashboard data loaded successfully:", {
-//         projects: projects.length,
-//         tasks: tasks.length,
-//         managers: managers.length,
-//         teamEfficiencyMetrics: teamEfficiencyRadar.length
-//       });
-
-//     } catch (err) {
-//       console.error('❌ Dashboard data fetch failed:', err);
-//       setError(err.message || 'Failed to load dashboard data');
-//     } finally {
-//       setLoading(false);
-//       setRefreshing(false);
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     fetchData();
-//     const interval = setInterval(() => fetchData(true), 300000); // Refresh every 5 minutes
-//     return () => clearInterval(interval);
-//   }, [fetchData]);
-
-//   const refetch = useCallback(() => fetchData(true), [fetchData]);
-
-//   return { data, loading, error, lastUpdated, refreshing, refetch };
-// };
-
-// // Core Statistics Grid (simplified)
-// const CoreStatsGrid = ({ data, theme }) => {
-//   const stats = [
-//     {
-//       title: 'Active Projects',
-//       value: data.statistics?.activeProjects || 0,
-//       change: '+8',
-//       trend: 'up',
-//       icon: Building2,
-//       color: 'text-blue-600',
-//       bgColor: 'bg-blue-50',
-//       borderColor: 'border-blue-200'
-//     },
-//     {
-//       title: 'Total Tasks',
-//       value: data.statistics?.totalTasks || 0,
-//       change: '+24',
-//       trend: 'up',
-//       icon: CheckSquare,
-//       color: 'text-green-600',
-//       bgColor: 'bg-green-50',
-//       borderColor: 'border-green-200'
-//     },
-//     {
-//       title: 'Team Members',
-//       value: data.statistics?.teamSize || 0,
-//       change: '+3',
-//       trend: 'up',
-//       icon: Users,
-//       color: 'text-purple-600',
-//       bgColor: 'bg-purple-50',
-//       borderColor: 'border-purple-200'
-//     },
-//     {
-//       title: 'Total Budget',
-//       value: `$${((data.statistics?.totalBudget || 0) / 1000000).toFixed(1)}M`,
-//       change: '+15.3%',
-//       trend: 'up',
-//       icon: DollarSign,
-//       color: 'text-yellow-600',
-//       bgColor: 'bg-yellow-50',
-//       borderColor: 'border-yellow-200'
-//     }
-//   ];
-
-//   return (
-//     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-//       {stats.map((stat, index) => (
-//         <TVCard key={index} className={`hover:shadow-2xl transition-all border-2 ${stat.borderColor} relative overflow-hidden`} padding="p-6">
-//           <div className="relative z-10">
-//             <div className="flex items-center justify-between mb-4">
-//               <div className={`p-3 rounded-2xl ${stat.bgColor} border-2 ${stat.borderColor}`}>
-//                 <stat.icon className={`h-8 w-8 ${stat.color}`} />
-//               </div>
-//               <div className="text-right">
-//                 <div className="flex items-center space-x-2">
-//                   {stat.trend === 'up' ? (
-//                     <TrendingUp className="h-5 w-5 text-green-500" />
-//                   ) : (
-//                     <TrendingDown className="h-5 w-5 text-red-500" />
-//                   )}
-//                   <span className={`text-lg font-bold ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-//                     {stat.change}
-//                   </span>
-//                 </div>
-//               </div>
-//             </div>
-
-//             <div>
-//               <p className={`text-lg font-semibold ${theme.colors.textSecondary} mb-2`}>{stat.title}</p>
-//               <p className={`text-4xl font-bold ${theme.colors.text} mb-1`}>{stat.value}</p>
-//             </div>
-//           </div>
-//         </TVCard>
-//       ))}
-//     </div>
-//   );
-// };
-
-// // Team Efficiency Radar Chart Component - Now specifically for Project Managers
-// const ProjectManagersRadarChart = ({ data, theme }) => {
-//   const chartData = data.chartData?.teamEfficiency || [];
-//   const managers = data.managers || [];
-
-//   return (
-//     <TVCard className="mt-8" padding="p-6" gradient>
-//       <div className="flex items-center space-x-3 mb-6">
-//         <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500">
-//           <Target className="h-8 w-8 text-white" />
-//         </div>
-//         <h2 className="text-2xl font-bold text-gray-900">Project Managers Performance Analytics</h2>
-//         <div className="ml-auto text-right">
-//           <div className="text-sm text-gray-600">Active Managers</div>
-//           <div className="text-2xl font-bold text-purple-600">{managers.length}</div>
-//         </div>
-//       </div>
-
-//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-//         {/* Radar Chart */}
-//         <div>
-//           <h3 className="text-lg font-semibold text-gray-700 mb-4">Team Average Performance Metrics</h3>
-//           <ResponsiveContainer width="100%" height={400}>
-//             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-//               <PolarGrid stroke="#e5e7eb" />
-//               <PolarAngleAxis
-//                 dataKey="name"
-//                 tick={{ fontSize: 12, fill: '#6b7280' }}
-//                 className="text-xs"
-//               />
-//               <PolarRadiusAxis
-//                 angle={30}
-//                 domain={[0, 100]}
-//                 tick={{ fontSize: 10, fill: '#9ca3af' }}
-//                 tickCount={5}
-//               />
-//               <Radar
-//                 name="Efficiency %"
-//                 dataKey="efficiency"
-//                 stroke="#8B5CF6"
-//                 fill="#8B5CF6"
-//                 fillOpacity={0.3}
-//                 strokeWidth={2}
-//                 dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
-//               />
-//               <Tooltip
-//                 contentStyle={{
-//                   backgroundColor: 'white',
-//                   border: '2px solid #8B5CF6',
-//                   borderRadius: '12px',
-//                   boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
-//                 }}
-//                 formatter={(value) => [`${value}%`, 'Team Average']}
-//               />
-//             </RadarChart>
-//           </ResponsiveContainer>
-//         </div>
-
-//         {/* Performance Breakdown */}
-//         <div>
-//           <h3 className="text-lg font-semibold text-gray-700 mb-4">Performance Breakdown</h3>
-//           <div className="space-y-4">
-//             {chartData.map((item, index) => (
-//               <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-//                 <span className="text-sm font-medium text-gray-700">{item.name}</span>
-//                 <div className="flex items-center space-x-3">
-//                   <div className="w-24 h-2 bg-gray-200 rounded-full">
-//                     <div
-//                       className="h-full bg-gradient-to-r from-purple-500 to-violet-500 rounded-full transition-all duration-500"
-//                       style={{ width: `${item.efficiency}%` }}
-//                     />
-//                   </div>
-//                   <span className="text-sm font-bold text-purple-600 w-12 text-right">
-//                     {item.efficiency}%
-//                   </span>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-
-//           <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg border border-purple-200">
-//             <div className="grid grid-cols-2 gap-4">
-//               <div className="text-center">
-//                 <div className="text-2xl font-bold text-purple-600">
-//                   {Math.round(chartData.reduce((sum, item) => sum + item.efficiency, 0) / chartData.length)}%
-//                 </div>
-//                 <div className="text-sm text-gray-600">Average Performance</div>
-//               </div>
-//               <div className="text-center">
-//                 <div className="text-2xl font-bold text-green-600">
-//                   {chartData.filter(item => item.efficiency >= 80).length}/{chartData.length}
-//                 </div>
-//                 <div className="text-sm text-gray-600">High Performance Areas</div>
-//               </div>
-//             </div>
-//           </div>
-
-//           {managers.length > 0 && (
-//             <div className="mt-4 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
-//               <h4 className="text-sm font-semibold text-orange-900 mb-2">Top Performer</h4>
-//               <div className="flex items-center space-x-3">
-//                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center text-white font-bold text-sm">
-//                   {managers.reduce((top, manager) =>
-//                     manager.efficiency > (top.efficiency || 0) ? manager : top, {}
-//                   ).avatar || 'TM'}
-//                 </div>
-//                 <div>
-//                   <div className="font-bold text-orange-900">
-//                     {managers.reduce((top, manager) =>
-//                       manager.efficiency > (top.efficiency || 0) ? manager : top, {}
-//                     ).name || 'N/A'}
-//                   </div>
-//                   <div className="text-sm text-orange-700">
-//                     {Math.round(managers.reduce((top, manager) =>
-//                       manager.efficiency > (top.efficiency || 0) ? manager : top, {}
-//                     ).efficiency || 0)}% efficiency
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-//     </TVCard>
-//   );
-// };
-
-// // Project Manager Card Component
-// const ProjectManagerCard = ({ manager, theme, onClick }) => {
-//   const getBusyStatus = (workload) => {
-//     if (workload >= 80) return { status: 'Very Busy', color: 'text-red-600', bgColor: 'bg-red-100', dotColor: 'bg-red-500' };
-//     if (workload >= 60) return { status: 'Busy', color: 'text-orange-600', bgColor: 'bg-orange-100', dotColor: 'bg-orange-500' };
-//     if (workload >= 30) return { status: 'Moderate', color: 'text-yellow-600', bgColor: 'bg-yellow-100', dotColor: 'bg-yellow-500' };
-//     return { status: 'Available', color: 'text-green-600', bgColor: 'bg-green-100', dotColor: 'bg-green-500' };
-//   };
-
-//   const busyInfo = getBusyStatus(manager.workload);
-
-//   return (
-//     <div
-//       onClick={() => onClick && onClick(manager)}
-//       className="p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-orange-300 transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105 group relative overflow-hidden"
-//     >
-//       <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-yellow-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-//       <div className="relative z-10">
-//         <div className="flex items-center space-x-4 mb-4">
-//           <div className="relative">
-//             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-//               {manager.avatar}
-//             </div>
-//             <div className={`absolute -top-1 -right-1 w-4 h-4 ${busyInfo.dotColor} rounded-full border-2 border-white animate-pulse`}></div>
-//           </div>
-//           <div className="flex-1">
-//             <h4 className="text-lg font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
-//               {manager.name}
-//             </h4>
-//             <p className="text-sm text-gray-600">{manager.email}</p>
-//             <p className="text-xs text-gray-500">{manager.department}</p>
-//             <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${busyInfo.bgColor} ${busyInfo.color} mt-1`}>
-//               {busyInfo.status}
-//             </div>
-//           </div>
-//         </div>
-
-//         <div className="space-y-3">
-//           <div className="flex justify-between items-center">
-//             <span className="text-sm text-gray-600">Active Projects</span>
-//             <div className="flex items-center space-x-2">
-//               <Building2 className="h-4 w-4 text-orange-500" />
-//               <span className="font-bold text-orange-600">{manager.projectsCount}</span>
-//             </div>
-//           </div>
-
-//           <div className="flex justify-between items-center">
-//             <span className="text-sm text-gray-600">Workload</span>
-//             <div className="flex items-center space-x-2">
-//               <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-//                 <div
-//                   className={`h-full transition-all duration-500 ${manager.workload >= 80 ? 'bg-red-500' : manager.workload >= 60 ? 'bg-orange-500' : manager.workload >= 30 ? 'bg-yellow-500' : 'bg-green-500'}`}
-//                   style={{ width: `${manager.workload}%` }}
-//                 ></div>
-//               </div>
-//               <span className="text-sm font-medium">{Math.round(manager.workload)}%</span>
-//             </div>
-//           </div>
-
-//           <div className="flex justify-between items-center">
-//             <span className="text-sm text-gray-600">Efficiency</span>
-//             <div className="flex items-center space-x-2">
-//               <Target className="h-4 w-4 text-blue-500" />
-//               <span className="font-bold text-blue-600">{Math.round(manager.efficiency)}%</span>
-//             </div>
-//           </div>
-//         </div>
-
-//         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-//           <div className="p-1 bg-orange-500 rounded-full">
-//             <ArrowRight className="h-3 w-3 text-white" />
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// // Enhanced Charts Section
-// const ChartsSection = ({ data, theme }) => {
-//   return (
-//     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-//       {/* Monthly Revenue Chart */}
-//       <TVCard gradient>
-//         <div className="flex items-center justify-between mb-6">
-//           <h3 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
-//             <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500">
-//               <DollarSign className="h-6 w-6 text-white" />
-//             </div>
-//             <span>Monthly Revenue</span>
-//           </h3>
-//         </div>
-//         <ResponsiveContainer width="100%" height={300}>
-//           <AreaChart data={data.chartData.monthlyRevenue}>
-//             <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-//             <XAxis dataKey="month" stroke="#6b7280" fontSize={12} />
-//             <YAxis stroke="#6b7280" fontSize={12} />
-//             <Tooltip
-//               contentStyle={{
-//                 backgroundColor: 'white',
-//                 border: '2px solid #f97316',
-//                 borderRadius: '12px',
-//                 boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-//                 fontSize: '14px'
-//               }}
-//             />
-//             <Area
-//               type="monotone"
-//               dataKey="revenue"
-//               stroke="#f97316"
-//               fill="#f97316"
-//               fillOpacity={0.3}
-//               strokeWidth={3}
-//             />
-//             <Line type="monotone" dataKey="target" stroke="#10b981" strokeWidth={2} strokeDasharray="5 5" />
-//           </AreaChart>
-//         </ResponsiveContainer>
-//       </TVCard>
-
-//       {/* Weekly Tasks Chart */}
-//       <TVCard gradient>
-//         <div className="flex items-center justify-between mb-6">
-//           <h3 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
-//             <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500">
-//               <CheckSquare className="h-6 w-6 text-white" />
-//             </div>
-//             <span>Weekly Tasks</span>
-//           </h3>
-//         </div>
-//         <ResponsiveContainer width="100%" height={300}>
-//           <ComposedChart data={data.chartData.weeklyTasks}>
-//             <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-//             <XAxis dataKey="day" stroke="#6b7280" fontSize={12} />
-//             <YAxis stroke="#6b7280" fontSize={12} />
-//             <Tooltip
-//               contentStyle={{
-//                 backgroundColor: 'white',
-//                 border: '2px solid #10b981',
-//                 borderRadius: '12px',
-//                 boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-//                 fontSize: '14px'
-//               }}
-//             />
-//             <Bar dataKey="completed" fill="#10b981" radius={[2, 2, 0, 0]} />
-//             <Bar dataKey="pending" fill="#f59e0b" radius={[2, 2, 0, 0]} />
-//             <Line type="monotone" dataKey="total" stroke="#ef4444" strokeWidth={2} />
-//           </ComposedChart>
-//         </ResponsiveContainer>
-//       </TVCard>
-//     </div>
-//   );
-// };
-
-// // Loading Screen
-// const LoadingScreen = ({ theme }) => (
-//   <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center`}>
-//     <div className="text-center">
-//       <div className="relative">
-//         <div className="w-32 h-32 border-8 border-orange-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-8"></div>
-//         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-//           <div className="flex items-center space-x-2">
-//             <Palette className="h-8 w-8 text-orange-500" />
-//             <Brush className="h-8 w-8 text-yellow-500" />
-//           </div>
-//         </div>
-//       </div>
-//       <h3 className={`text-5xl font-bold ${theme.colors.text} mb-4`}>Ujenzi & Paints</h3>
-//       <p className={`text-2xl ${theme.colors.textSecondary} mb-2`}>Construction & Paint Management System</p>
-//       <p className={`text-xl ${theme.colors.textMuted}`}>Loading dashboard...</p>
-//     </div>
-//   </div>
-// );
-
-// // Main Dashboard Component
-// const AdminDashboard = () => {
-//   const theme = useTheme();
-//   const { data, loading, error, lastUpdated, refetch } = useEnhancedDashboardData();
-
-//   const handleManagerClick = (manager) => {
-//     console.log('Manager clicked:', manager);
-//     // You can navigate to manager details here
-//   };
-
-//   if (loading) return <LoadingScreen theme={theme} />;
-
-//   return (
-//     <div className={`min-h-screen ${theme.colors.background} transition-all duration-300`}>
-//       <div className="p-8">
-//         {/* Enhanced Header */}
-//         <div className="flex items-center justify-between mb-12">
-//           <div className="flex items-center space-x-4">
-//             <div className="flex items-center space-x-3">
-//               <div className="p-3 rounded-2xl bg-gradient-to-br from-orange-500 to-yellow-500 shadow-lg">
-//                 <Palette className="h-12 w-12 text-white" />
-//               </div>
-//               <div className="p-3 rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 shadow-lg">
-//                 <Building2 className="h-12 w-12 text-white" />
-//               </div>
-//             </div>
-//             <div>
-//               <h1 className={`text-6xl font-bold ${theme.colors.text} mb-2 bg-gradient-to-r from-orange-600 via-yellow-500 to-orange-600 bg-clip-text text-transparent`}>
-//                 Ujenzi & Paints
-//               </h1>
-//               <p className={`text-2xl ${theme.colors.textSecondary}`}>
-//                 Modern Construction & Paint Management Dashboard
-//               </p>
-//             </div>
-//           </div>
-
-//           <div className="flex items-center space-x-6">
-//             <div className="text-right">
-//               <p className={`text-xl ${theme.colors.textSecondary}`}>Last Updated</p>
-//               <p className={`text-2xl font-bold ${theme.colors.text}`}>
-//                 {lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'}
-//               </p>
-//             </div>
-
-//             <button
-//               onClick={refetch}
-//               className="p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg hover:shadow-xl"
-//             >
-//               <RefreshCw className="h-8 w-8" />
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Core Statistics Grid */}
-//         <CoreStatsGrid data={data} theme={theme} />
-
-//         {        /* Project Managers Radar Chart */}
-//         <ProjectManagersRadarChart data={data} theme={theme} />
-
-//         {/* Project Managers Section */}
-//         <TVCard className="mt-12 mb-12" gradient>
-//           <div className="flex items-center justify-between mb-8">
-//             <h3 className={`text-3xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-//               <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500">
-//                 <Users className="h-8 w-8 text-white" />
-//               </div>
-//               <span>Project Managers</span>
-//             </h3>
-//             <div className="text-right">
-//               <div className="text-lg text-gray-600">Total Managers</div>
-//               <div className="text-3xl font-bold text-purple-600">{data.managers.length}</div>
-//             </div>
-//           </div>
-//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-//             {data.managers.map((manager, index) => (
-//               <ProjectManagerCard
-//                 key={manager.id || index}
-//                 manager={manager}
-//                 theme={theme}
-//                 onClick={handleManagerClick}
-//               />
-//             ))}
-//           </div>
-//         </TVCard>
-
-//         {/* Analytics Charts */}
-//         <ChartsSection data={data} theme={theme} />
-
-//         {/* Project Progress Overview */}
-//         <TVCard gradient>
-//           <div className="flex items-center justify-between mb-8">
-//             <h3 className={`text-3xl font-bold ${theme.colors.text} flex items-center space-x-3`}>
-//               <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500">
-//                 <Building2 className="h-8 w-8 text-white" />
-//               </div>
-//               <span>Project Progress Overview</span>
-//             </h3>
-//           </div>
-
-//           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-//             {/* Progress Chart */}
-//             <div>
-//               <h4 className="text-xl font-semibold text-gray-700 mb-4">Progress by Project</h4>
-//               <ResponsiveContainer width="100%" height={300}>
-//                 <BarChart data={data.chartData.projectProgress} layout="horizontal">
-//                   <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-//                   <XAxis type="number" domain={[0, 100]} stroke="#6b7280" fontSize={12} />
-//                   <YAxis type="category" dataKey="name" stroke="#6b7280" fontSize={12} width={100} />
-//                   <Tooltip
-//                     contentStyle={{
-//                       backgroundColor: 'white',
-//                       border: '2px solid #10b981',
-//                       borderRadius: '12px',
-//                       boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
-//                     }}
-//                     formatter={(value) => [`${value}%`, 'Progress']}
-//                   />
-//                   <Bar dataKey="progress" fill="#10b981" radius={[0, 4, 4, 0]} />
-//                 </BarChart>
-//               </ResponsiveContainer>
-//             </div>
-
-//             {/* Project Cards */}
-//             <div>
-//               <h4 className="text-xl font-semibold text-gray-700 mb-4">Active Projects</h4>
-//               <div className="space-y-4 max-h-80 overflow-y-auto">
-//                 {data.projects.map((project, index) => (
-//                   <div key={project.id || index} className="p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-green-300 transition-all">
-//                     <div className="flex items-start justify-between mb-3">
-//                       <div className="flex-1">
-//                         <h5 className="text-lg font-bold text-gray-900 mb-1">{project.title}</h5>
-//                         <div className="flex items-center space-x-4 text-sm text-gray-600">
-//                           <div className="flex items-center space-x-1">
-//                             <MapPin className="h-4 w-4" />
-//                             <span>{project.location}</span>
-//                           </div>
-//                           <div className="flex items-center space-x-1">
-//                             <Calendar className="h-4 w-4" />
-//                             <span>{new Date(project.end_date).toLocaleDateString()}</span>
-//                           </div>
-//                         </div>
-//                       </div>
-//                       <div className="text-right">
-//                         <div className="text-2xl font-bold text-green-600">{project.progress}%</div>
-//                         <div className="text-sm text-gray-500">Complete</div>
-//                       </div>
-//                     </div>
-
-//                     <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-3">
-//                       <div
-//                         className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500"
-//                         style={{ width: `${project.progress}%` }}
-//                       />
-//                     </div>
-
-//                     <div className="flex justify-between items-center">
-//                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-//                         project.status === 'active' ? 'bg-blue-100 text-blue-800' :
-//                         project.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-//                         'bg-gray-100 text-gray-800'
-//                       }`}>
-//                         {project.status.replace('_', ' ').toUpperCase()}
-//                       </span>
-//                       <div className="flex items-center space-x-1 text-green-600 font-bold">
-//                         <DollarSign className="h-4 w-4" />
-//                         <span>${(project.budget / 1000000).toFixed(1)}M</span>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           </div>
-//         </TVCard>
-
-//         {/* Performance Insights */}
-//         <TVCard className="mt-12" gradient>
-//           <div className="flex items-center space-x-3 mb-8">
-//             <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500">
-//               <Activity className="h-8 w-8 text-white" />
-//             </div>
-//             <h3 className="text-3xl font-bold text-gray-900">Performance Insights</h3>
-//           </div>
-
-//           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-//             {/* Key Metrics */}
-//             <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200">
-//               <div className="flex items-center space-x-3 mb-4">
-//                 <div className="p-2 rounded-lg bg-blue-500">
-//                   <Target className="h-6 w-6 text-white" />
-//                 </div>
-//                 <h4 className="text-xl font-bold text-blue-900">Efficiency Score</h4>
-//               </div>
-//               <div className="text-4xl font-bold text-blue-600 mb-2">
-//                 {Math.round(data.statistics.avgTeamEfficiency)}%
-//               </div>
-//               <p className="text-blue-700">Team average performance across all metrics</p>
-//             </div>
-
-//             <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
-//               <div className="flex items-center space-x-3 mb-4">
-//                 <div className="p-2 rounded-lg bg-green-500">
-//                   <CheckSquare className="h-6 w-6 text-white" />
-//                 </div>
-//                 <h4 className="text-xl font-bold text-green-900">Completion Rate</h4>
-//               </div>
-//               <div className="text-4xl font-bold text-green-600 mb-2">
-//                 {Math.round((data.statistics.completedTasks / data.statistics.totalTasks) * 100)}%
-//               </div>
-//               <p className="text-green-700">Tasks completed on time this month</p>
-//             </div>
-
-//             <div className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl border-2 border-orange-200">
-//               <div className="flex items-center space-x-3 mb-4">
-//                 <div className="p-2 rounded-lg bg-orange-500">
-//                   <DollarSign className="h-6 w-6 text-white" />
-//                 </div>
-//                 <h4 className="text-xl font-bold text-orange-900">Budget Efficiency</h4>
-//               </div>
-//               <div className="text-4xl font-bold text-orange-600 mb-2">94%</div>
-//               <p className="text-orange-700">Projects staying within budget</p>
-//             </div>
-//           </div>
-
-//           {/* Recent Achievements */}
-//           <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
-//             <h4 className="text-xl font-bold text-purple-900 mb-4 flex items-center space-x-2">
-//               <div className="p-2 rounded-lg bg-purple-500">
-//                 <User className="h-5 w-5 text-white" />
-//               </div>
-//               <span>Recent Achievements</span>
-//             </h4>
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//               <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
-//                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-//                 <span className="text-gray-700">CBD Office Tower reached 82% completion</span>
-//               </div>
-//               <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
-//                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-//                 <span className="text-gray-700">Sarah Johnson exceeded efficiency targets</span>
-//               </div>
-//               <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
-//                 <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-//                 <span className="text-gray-700">Q2 revenue target exceeded by 15%</span>
-//               </div>
-//               <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
-//                 <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-//                 <span className="text-gray-700">Zero safety incidents this month</span>
-//               </div>
-//             </div>
-//           </div>
-//         </TVCard>
-
-//         {/* Footer */}
-//         <div className="text-center py-8 mt-12 border-t-2 border-gradient-to-r from-orange-200 to-yellow-200">
-//           <div className="flex items-center justify-center space-x-4 mb-4">
-//             <Palette className="h-8 w-8 text-orange-500" />
-//             <Building2 className="h-8 w-8 text-blue-500" />
-//             <Brush className="h-8 w-8 text-yellow-500" />
-//           </div>
-//           <p className={`text-xl ${theme.colors.textMuted} mb-2`}>
-//             Ujenzi & Paints Enterprise • Modern Construction & Paint Management Platform
-//           </p>
-//           <p className={`text-lg ${theme.colors.textMuted}`}>
-//             © 2024 Ujenzi & Paints Solutions • Last updated: {lastUpdated?.toLocaleString()}
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AdminDashboard;
 
 //  import React, { useState, useEffect, useCallback, useMemo } from 'react';
 // import { useNavigate, useLocation } from 'react-router-dom';
@@ -2492,8 +1481,1623 @@
 // export default AdminDashboard;
 
 
-// Enhanced Project Card
-// Tenders Management Panel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect, useCallback, useMemo } from "react";
+// import { useNavigate, useLocation } from "react-router-dom";
+// import {
+//   BarChart,
+//   Bar,
+//   XAxis,
+//   YAxis,
+//   CartesianGrid,
+//   ResponsiveContainer,
+//   LineChart,
+//   Line,
+//   PieChart,
+//   Pie,
+//   Cell,
+//   AreaChart,
+//   Area,
+//   ComposedChart,
+//   Tooltip,
+//   Legend,
+//   RadarChart,
+//   Radar,
+//   PolarGrid,
+//   PolarAngleAxis,
+//   PolarRadiusAxis,
+// } from "recharts";
+// import {
+//   Clock,
+//   Users,
+//   Building2,
+//   TrendingUp,
+//   TrendingDown,
+//   Zap,
+//   RefreshCw,
+//   Bell,
+//   Plus,
+//   AlertTriangle,
+//   CheckSquare,
+//   Activity,
+//   Calendar,
+//   Menu,
+//   Palette,
+//   Brush,
+//   BarChart3,
+//   Maximize2,
+//   Minimize2,
+//   HardHat,
+//   Clipboard,
+//   Search,
+//   PieChart as PieChartIcon,
+//   Globe,
+//   MapPin,
+//   DollarSign,
+//   Target,
+//   ChevronLeft,
+//   Timer,
+//   Award,
+//   Eye,
+//   CalendarDays,
+//   ChevronRight
+// } from "lucide-react";
+
+// // Import your actual API services
+// import ProjectManagerDetails from "../../pages/admin/ProjectManagerDetails";
+// import AdminSidebar from "../../pages/admin/AdminSidebar";
+// import {
+//   projectManagerAPI,
+//   projectsAPI,
+//   tendersAPI,
+//   tasksAPI,
+//   eventsAPI,
+//   teamMembersAPI,
+//   calendarAPI,
+//   dashboardAPI,
+//   notificationsAPI,
+//   supervisorsAPI,
+//   siteManagersAPI,
+//   fetchProjectManagers,
+// } from "../../services/api";
+
+// // Theme Hook
+// const useTheme = () => {
+//   const [isDark, setIsDark] = useState(false);
+//   const toggleTheme = useCallback(() => {
+//     setIsDark((prev) => !prev);
+//   }, []);
+  
+//   const theme = useMemo(
+//     () => ({
+//       isDark,
+//       colors: {
+//         background: isDark
+//           ? "bg-gray-900"
+//           : "bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50",
+//         card: isDark ? "bg-gray-800" : "bg-white/95 backdrop-blur-sm",
+//         border: isDark ? "border-gray-700" : "border-gray-200/50",
+//         text: isDark ? "text-gray-100" : "text-gray-900",
+//         textSecondary: isDark ? "text-gray-400" : "text-gray-600",
+//         textMuted: isDark ? "text-gray-500" : "text-gray-500",
+//       },
+//     }),
+//     [isDark]
+//   );
+//   return { ...theme, toggleTheme };
+// };
+
+// // Dashboard Panel Component
+// const DashboardPanel = ({ children, title, icon: Icon, className = "" }) => {
+//   const theme = useTheme();
+//   return (
+//     <div className={`${theme.colors.card} rounded-xl border ${theme.colors.border} shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ${className}`}>
+//       {title && (
+//         <div className="px-6 py-4 border-b border-gray-200/50 bg-gradient-to-r from-gray-50 to-white">
+//           <div className="flex items-center space-x-3">
+//             {Icon && (
+//               <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 shadow-md">
+//                 <Icon className="h-5 w-5 text-white" />
+//               </div>
+//             )}
+//             <h3 className={`text-lg font-semibold ${theme.colors.text}`}>{title}</h3>
+//           </div>
+//         </div>
+//       )}
+//       <div className="p-6">
+//         {children}
+//       </div>
+//     </div>
+//   );
+// };
+
+// // Real API Data Hook
+// const useDashboardData = () => {
+//   const [data, setData] = useState({
+//     statistics: {},
+//     projects: [],
+//     managers: [],
+//     events: [],
+//     tasks: [],
+//     tenders: [],
+//     supervisors: [],
+//     siteManagers: [],
+//     notifications: [],
+//     chartData: {
+//       teamWorkload: [],
+//       projectProgress: [],
+//       teamRadar: [],
+//       performanceMetrics: [],
+//     },
+//   });
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [lastUpdated, setLastUpdated] = useState(null);
+//   const [refreshing, setRefreshing] = useState(false);
+
+//   const fetchData = useCallback(async (showRefreshIndicator = false) => {
+//     try {
+//       if (showRefreshIndicator) {
+//         setRefreshing(true);
+//       } else {
+//         setLoading(true);
+//       }
+//       setError(null);
+
+//       // Fetch all data from your real API services with better error handling
+//       const [
+//         dashboardResponse,
+//         projectsResponse,
+//         managersResponse,
+//         eventsResponse,
+//         tasksResponse,
+//         tendersResponse,
+//         teamMembersResponse,
+//         supervisorsResponse,
+//         siteManagersResponse,
+//         notificationsResponse,
+//         calendarEventsResponse,
+//       ] = await Promise.allSettled([
+//         dashboardAPI.getDashboard().catch((err) => {
+//           console.warn("Dashboard API failed:", err.message);
+//           return {};
+//         }),
+//         projectsAPI.getAll().catch((err) => {
+//           console.warn("Projects API failed:", err.message);
+//           return { projects: [] };
+//         }),
+//         fetchProjectManagers().catch((err) => {
+//           console.warn("Project Managers API failed:", err.message);
+//           return [];
+//         }),
+//         eventsAPI.getUpcoming(20).catch((err) => {
+//           console.warn("Events API failed:", err.message);
+//           return { events: [] };
+//         }),
+//         tasksAPI.getAll().catch((err) => {
+//           console.warn("Tasks API failed:", err.message);
+//           return { tasks: [] };
+//         }),
+//         tendersAPI.getAll().catch((err) => {
+//           console.warn("Tenders API failed:", err.message);
+//           return { tenders: [] };
+//         }),
+//         teamMembersAPI.getAll().catch((err) => {
+//           console.warn("Team Members API failed:", err.message);
+//           return { team_members: [] };
+//         }),
+//         supervisorsAPI.getAll().catch((err) => {
+//           console.warn("Supervisors API failed:", err.message);
+//           return [];
+//         }),
+//         siteManagersAPI.getAll().catch((err) => {
+//           console.warn("Site Managers API failed:", err.message);
+//           return [];
+//         }),
+//         notificationsAPI.getAll().catch((err) => {
+//           console.warn("Notifications API failed:", err.message);
+//           return [];
+//         }),
+//         calendarAPI.getTodayEvents().catch((err) => {
+//           console.warn("Calendar Events API failed:", err.message);
+//           return [];
+//         }),
+//       ]);
+
+//       // Process responses with fallbacks
+//       const dashboard = dashboardResponse.status === "fulfilled" ? dashboardResponse.value : {};
+//       const projectsData = projectsResponse.status === "fulfilled" ? projectsResponse.value : { projects: [] };
+//       const managersData = managersResponse.status === "fulfilled" ? managersResponse.value : [];
+//       const eventsData = eventsResponse.status === "fulfilled" ? eventsResponse.value : { events: [] };
+//       const tasksData = tasksResponse.status === "fulfilled" ? tasksResponse.value : { tasks: [] };
+//       const tendersData = tendersResponse.status === "fulfilled" ? tendersResponse.value : { tenders: [] };
+//       const teamMembersData = teamMembersResponse.status === "fulfilled" ? teamMembersResponse.value : { team_members: [] };
+//       const supervisorsData = supervisorsResponse.status === "fulfilled" ? supervisorsResponse.value : [];
+//       const siteManagersData = siteManagersResponse.status === "fulfilled" ? siteManagersResponse.value : [];
+//       const notificationsData = notificationsResponse.status === "fulfilled" ? notificationsResponse.value : [];
+//       const calendarEventsData = calendarEventsResponse.status === "fulfilled" ? calendarEventsResponse.value : [];
+
+//       // Normalize data with safe fallbacks
+//       const projects = Array.isArray(projectsData.projects) ? projectsData.projects : Array.isArray(projectsData) ? projectsData : [];
+//       const events = Array.isArray(eventsData.events) ? eventsData.events : Array.isArray(eventsData) ? eventsData : [];
+//       const tasks = Array.isArray(tasksData.tasks) ? tasksData.tasks : Array.isArray(tasksData) ? tasksData : [];
+//       const tenders = Array.isArray(tendersData.tenders) ? tendersData.tenders : Array.isArray(tendersData) ? tendersData : [];
+//       const supervisors = Array.isArray(supervisorsData) ? supervisorsData : [];
+//       const siteManagers = Array.isArray(siteManagersData) ? siteManagersData : [];
+//       const notifications = Array.isArray(notificationsData) ? notificationsData : [];
+//       const todayEvents = Array.isArray(calendarEventsData) ? calendarEventsData : [];
+
+//       // Process managers data with safe operations
+//       const managers = Array.isArray(managersData)
+//         ? managersData.map((manager) => ({
+//             id: manager.id || Math.random().toString(),
+//             name: manager.name || "Unknown Manager",
+//             email: manager.email || "unknown@email.com",
+//             projectsCount: manager.number_of_projects || 0,
+//             workload: Math.min(100, (manager.number_of_projects || 0) * 25),
+//             efficiency: 85 + Math.random() * 15,
+//             avatar: manager.name?.split(" ").map((n) => n[0]).join("") || "M",
+//             role: "Manager",
+//             performance: 75 + Math.random() * 25,
+//           }))
+//         : [];
+
+//       // Process supervisors data with safe operations
+//       const processedSupervisors = supervisors.map((supervisor) => ({
+//         id: supervisor.id || Math.random().toString(),
+//         name: supervisor.name || "Unknown Supervisor",
+//         email: supervisor.email || "unknown@email.com",
+//         projectsCount: supervisor.number_of_projects || Math.floor(Math.random() * 8) + 1,
+//         workload: Math.min(100, (supervisor.number_of_projects || Math.floor(Math.random() * 8) + 1) * 20),
+//         efficiency: 80 + Math.random() * 20,
+//         avatar: supervisor.name?.split(" ").map((n) => n[0]).join("") || "S",
+//         role: "Supervisor",
+//         performance: 70 + Math.random() * 30,
+//       }));
+
+//       // Process site managers data with safe operations
+//       const processedSiteManagers = siteManagers.map((siteManager) => ({
+//         id: siteManager.id || Math.random().toString(),
+//         name: siteManager.name || "Unknown Site Manager",
+//         email: siteManager.email || "unknown@email.com",
+//         projectsCount: siteManager.number_of_projects || Math.floor(Math.random() * 6) + 1,
+//         workload: Math.min(100, (siteManager.number_of_projects || Math.floor(Math.random() * 6) + 1) * 25),
+//         efficiency: 85 + Math.random() * 15,
+//         avatar: siteManager.name?.split(" ").map((n) => n[0]).join("") || "SM",
+//         role: "Site Manager",
+//         performance: 75 + Math.random() * 25,
+//       }));
+
+//       // Calculate statistics with safe operations
+//       const statistics = {
+//         totalProjects: projects.length || 0,
+//         activeProjects: projects.filter((p) => p.status === "active" || p.status === "in_progress").length || 0,
+//         completedProjects: projects.filter((p) => p.status === "completed").length || 0,
+//         totalTasks: tasks.length || 0,
+//         completedTasks: tasks.filter((t) => t.status === "completed").length || 0,
+//         pendingTasks: tasks.filter((t) => t.status === "pending").length || 0,
+//         overdueTasks: tasks.filter((t) => {
+//           if (!t.due_date) return false;
+//           return new Date(t.due_date) < new Date() && t.status !== "completed";
+//         }).length || 0,
+//         teamSize: (managers.length || 0) + (processedSupervisors.length || 0) + (processedSiteManagers.length || 0),
+//         activeTenders: tenders.filter((t) => t.status === "active").length || 0,
+//         totalBudget: projects.reduce((sum, p) => sum + parseFloat(p.budget || 0), 0) || 0,
+//         unreadNotifications: notifications.filter((n) => !n.read).length || 0,
+//         todayEvents: todayEvents.length || 0,
+//         avgProgress: projects.length > 0 ? projects.reduce((sum, p) => sum + parseFloat(p.progress_percentage || p.progress || 0), 0) / projects.length : 0,
+//         avgTeamEfficiency: managers.length > 0 ? managers.reduce((sum, m) => sum + (m.efficiency || 0), 0) / managers.length : 0,
+//       };
+
+//       // Generate chart data with safe operations
+//       const allTeamMembers = [
+//         ...managers.map(m => ({ ...m, type: 'Manager', color: '#3B82F6' })),
+//         ...processedSupervisors.map(s => ({ ...s, type: 'Supervisor', color: '#8B5CF6' })),
+//         ...processedSiteManagers.map(sm => ({ ...sm, type: 'Site Manager', color: '#06B6D4' }))
+//       ];
+
+//       // Sort by workload and get top 10 busiest with safe operations
+//       const busiestTeamMembers = allTeamMembers
+//         .filter(member => member.name && member.workload != null)
+//         .sort((a, b) => (b.workload || 0) - (a.workload || 0))
+//         .slice(0, 10)
+//         .map(member => ({
+//           name: (member.name || 'Unknown').split(' ')[0] || 'Unknown',
+//           workload: member.workload || 0,
+//           projects: member.projectsCount || 0,
+//           role: member.type || 'Team Member',
+//           color: member.color || '#6B7280',
+//           efficiency: member.efficiency || 0,
+//           performance: member.performance || 0
+//         }));
+
+//       // Project progress data with safe operations
+//       const projectProgressData = projects.slice(0, 8).map((project, index) => ({
+//         name: project.title?.replace('Project ', 'P') || project.name?.replace('Project ', 'P') || `P${project.id || index + 1}`,
+//         progress: parseFloat(project.progress_percentage || project.progress || 0),
+//         budget: parseFloat(project.budget || 0) / 1000000,
+//         status: project.status || 'unknown',
+//       }));
+
+//       // Team radar data with safe calculations
+//       const teamRadarData = [
+//         { 
+//           metric: 'Efficiency', 
+//           Managers: managers.length > 0 ? managers.reduce((sum, m) => sum + (m.efficiency || 0), 0) / managers.length : 0, 
+//           Supervisors: processedSupervisors.length > 0 ? processedSupervisors.reduce((sum, s) => sum + (s.efficiency || 0), 0) / processedSupervisors.length : 0, 
+//           SiteManagers: processedSiteManagers.length > 0 ? processedSiteManagers.reduce((sum, sm) => sum + (sm.efficiency || 0), 0) / processedSiteManagers.length : 0 
+//         },
+//         { 
+//           metric: 'Workload', 
+//           Managers: managers.length > 0 ? managers.reduce((sum, m) => sum + (m.workload || 0), 0) / managers.length : 0, 
+//           Supervisors: processedSupervisors.length > 0 ? processedSupervisors.reduce((sum, s) => sum + (s.workload || 0), 0) / processedSupervisors.length : 0, 
+//           SiteManagers: processedSiteManagers.length > 0 ? processedSiteManagers.reduce((sum, sm) => sum + (sm.workload || 0), 0) / processedSiteManagers.length : 0 
+//         },
+//         { 
+//           metric: 'Performance', 
+//           Managers: managers.length > 0 ? managers.reduce((sum, m) => sum + (m.performance || 0), 0) / managers.length : 0, 
+//           Supervisors: processedSupervisors.length > 0 ? processedSupervisors.reduce((sum, s) => sum + (s.performance || 0), 0) / processedSupervisors.length : 0, 
+//           SiteManagers: processedSiteManagers.length > 0 ? processedSiteManagers.reduce((sum, sm) => sum + (sm.performance || 0), 0) / processedSiteManagers.length : 0 
+//         },
+//         { 
+//           metric: 'Projects', 
+//           Managers: managers.length > 0 ? (managers.reduce((sum, m) => sum + (m.projectsCount || 0), 0) / managers.length) * 10 : 0, 
+//           Supervisors: processedSupervisors.length > 0 ? (processedSupervisors.reduce((sum, s) => sum + (s.projectsCount || 0), 0) / processedSupervisors.length) * 10 : 0, 
+//           SiteManagers: processedSiteManagers.length > 0 ? (processedSiteManagers.reduce((sum, sm) => sum + (sm.projectsCount || 0), 0) / processedSiteManagers.length) * 10 : 0 
+//         },
+//       ];
+
+//       // Performance metrics over time (simulated)
+//       const performanceMetrics = Array.from({ length: 12 }, (_, i) => ({
+//         month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i],
+//         projects: Math.floor(Math.random() * 10) + 5,
+//         completed: Math.floor(Math.random() * 8) + 2,
+//         efficiency: 75 + Math.random() * 25,
+//         budget: Math.floor(Math.random() * 5) + 2,
+//       }));
+
+//       const chartData = {
+//         teamWorkload: busiestTeamMembers,
+//         projectProgress: projectProgressData,
+//         teamRadar: teamRadarData,
+//         performanceMetrics: performanceMetrics,
+//       };
+
+//       setData({
+//         statistics,
+//         projects,
+//         managers,
+//         events: events.concat(todayEvents),
+//         tasks,
+//         tenders,
+//         supervisors: processedSupervisors,
+//         siteManagers: processedSiteManagers,
+//         notifications,
+//         chartData,
+//       });
+//       setLastUpdated(new Date());
+//       console.log("✅ Dashboard data loaded successfully from real APIs");
+//     } catch (err) {
+//       console.error("❌ Dashboard data fetch failed:", err);
+//       setError(err.message || "Failed to load dashboard data from APIs");
+//     } finally {
+//       setLoading(false);
+//       setRefreshing(false);
+//     }
+//   }, []);
+
+//   useEffect(() => {
+//     fetchData();
+//     const interval = setInterval(() => fetchData(true), 300000);
+//     return () => clearInterval(interval);
+//   }, [fetchData]);
+
+//   const refetch = useCallback(() => fetchData(true), [fetchData]);
+//   return { data, loading, error, lastUpdated, refreshing, refetch };
+// };
+
+// // Live Statistics Component - Enhanced styling
+// const LiveStatistics = ({ data, theme }) => {
+//   const [currentTime, setCurrentTime] = useState(new Date());
+
+//   useEffect(() => {
+//     const timer = setInterval(() => {
+//       setCurrentTime(new Date());
+//     }, 1000);
+//     return () => clearInterval(timer);
+//   }, []);
+
+//   const stats = [
+//     { 
+//       label: "Active Projects", 
+//       value: data.statistics?.activeProjects || 0, 
+//       icon: Building2, 
+//       color: "text-blue-600",
+//       bgColor: "bg-gradient-to-br from-blue-50 to-blue-100",
+//       iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
+//       change: "+2 this week",
+//       trend: "up"
+//     },
+//     { 
+//       label: "Team Members", 
+//       value: data.statistics?.teamSize || 0, 
+//       icon: Users, 
+//       color: "text-emerald-600",
+//       bgColor: "bg-gradient-to-br from-emerald-50 to-emerald-100",
+//       iconBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
+//       change: "85% active now",
+//       trend: "neutral"
+//     },
+//     { 
+//       label: "Pending Tasks", 
+//       value: data.statistics?.pendingTasks || 0, 
+//       icon: Timer, 
+//       color: "text-amber-600",
+//       bgColor: "bg-gradient-to-br from-amber-50 to-amber-100",
+//       iconBg: "bg-gradient-to-br from-amber-500 to-amber-600",
+//       change: "-8 since yesterday",
+//       trend: "down"
+//     },
+//     { 
+//       label: "Project Budget", 
+//       value: `$${((data.statistics?.totalBudget || 0) / 1000000).toFixed(1)}M`, 
+//       icon: DollarSign, 
+//       color: "text-emerald-600",
+//       bgColor: "bg-gradient-to-br from-emerald-50 to-emerald-100",
+//       iconBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
+//       change: "92% utilized",
+//       trend: "up"
+//     }
+//   ];
+
+//   return (
+//     <DashboardPanel title="Live Dashboard Overview" icon={Activity}>
+//       <div className="space-y-6">
+//         <div className="flex items-center justify-between">
+//           <div className="flex items-center space-x-2">
+//             <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-lg"></div>
+//             <span className="text-sm font-medium text-gray-700">Real-time updates</span>
+//           </div>
+//           <div className="text-sm text-gray-500 font-mono">
+//             {currentTime.toLocaleTimeString()}
+//           </div>
+//         </div>
+        
+//         <div className="grid grid-cols-1 gap-4">
+//           {stats.map((stat, index) => (
+//             <div key={index} className={`relative overflow-hidden p-5 rounded-xl ${stat.bgColor} border border-gray-200/50 hover:shadow-lg transition-all duration-300 group`}>
+//               <div className="flex items-center justify-between">
+//                 <div className="flex items-center space-x-4">
+//                   <div className={`p-3 rounded-xl ${stat.iconBg} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+//                     <stat.icon className="h-6 w-6 text-white" />
+//                   </div>
+//                   <div>
+//                     <div className={`text-3xl font-bold ${stat.color} mb-1`}>
+//                       {stat.value}
+//                     </div>
+//                     <div className="text-sm font-semibold text-gray-700">
+//                       {stat.label}
+//                     </div>
+//                   </div>
+//                 </div>
+//                 <div className="text-right">
+//                   <div className={`text-xs font-medium ${
+//                     stat.trend === 'up' ? 'text-emerald-600' : 
+//                     stat.trend === 'down' ? 'text-red-500' : 'text-gray-600'
+//                   }`}>
+//                     {stat.change}
+//                   </div>
+//                   {stat.trend !== 'neutral' && (
+//                     <div className="mt-1">
+//                       {stat.trend === 'up' ? (
+//                         <TrendingUp className="h-4 w-4 text-emerald-500" />
+//                       ) : (
+//                         <TrendingDown className="h-4 w-4 text-red-500" />
+//                       )}
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+              
+//               <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none"></div>
+//             </div>
+//           ))}
+//         </div>
+
+//         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200/50">
+//           <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200/50">
+//             <div className="text-2xl font-bold text-purple-600">
+//               {Math.round(data.statistics?.avgProgress || 0)}%
+//             </div>
+//             <div className="text-xs font-medium text-purple-800">Avg Progress</div>
+//           </div>
+//           <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200/50">
+//             <div className="text-2xl font-bold text-indigo-600">
+//               {Math.round(data.statistics?.avgTeamEfficiency || 0)}%
+//             </div>
+//             <div className="text-xs font-medium text-indigo-800">Team Efficiency</div>
+//           </div>
+//         </div>
+//       </div>
+//     </DashboardPanel>
+//   );
+// };
+
+// // Quick Actions Panel - Enhanced styling
+// const QuickActions = ({ theme }) => {
+//   const actions = [
+//     { 
+//       label: "New Project", 
+//       icon: Plus, 
+//       color: "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
+//       shadow: "hover:shadow-blue-500/25"
+//     },
+//     { 
+//       label: "Add Task", 
+//       icon: Clipboard, 
+//       color: "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
+//       shadow: "hover:shadow-emerald-500/25"
+//     },
+//     { 
+//       label: "Schedule Meeting", 
+//       icon: Calendar, 
+//       color: "bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
+//       shadow: "hover:shadow-purple-500/25"
+//     },
+//     { 
+//       label: "Create Tender", 
+//       icon: Eye, 
+//       color: "bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700",
+//       shadow: "hover:shadow-orange-500/25"
+//     }
+//   ];
+
+//   return (
+//     <DashboardPanel title="Quick Actions" icon={Zap}>
+//       <div className="grid grid-cols-1 gap-4">
+//         {actions.map((action, index) => (
+//           <button
+//             key={index}
+//             className={`flex items-center space-x-3 w-full p-4 rounded-xl ${action.color} ${action.shadow} text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+//           >
+//             <div className="p-1 rounded-lg bg-white/20">
+//               <action.icon className="h-5 w-5" />
+//             </div>
+//             <span className="font-semibold">{action.label}</span>
+//           </button>
+//         ))}
+//       </div>
+//     </DashboardPanel>
+//   );
+// };
+
+// // Recent Activity Feed - Enhanced styling
+// const RecentActivity = ({ data, theme }) => {
+//   const [activities, setActivities] = useState([]);
+
+//   useEffect(() => {
+//     const recentActivities = [];
+    
+//     if (data.tasks && data.tasks.length > 0) {
+//       const completedTasks = data.tasks
+//         .filter(task => task.status === 'completed')
+//         .slice(0, 2)
+//         .map(task => ({
+//           action: "Task completed",
+//           project: task.project_name || task.title || "Unknown Project",
+//           time: "Recently",
+//           type: "success",
+//           icon: CheckSquare
+//         }));
+//       recentActivities.push(...completedTasks);
+//     }
+
+//     if (data.tenders && data.tenders.length > 0) {
+//       const activeTenders = data.tenders
+//         .filter(tender => tender.status === 'active')
+//         .slice(0, 1)
+//         .map(tender => ({
+//           action: "New tender submission",
+//           project: tender.title || tender.name || "Unknown Tender",
+//           time: "Recently",
+//           type: "info",
+//           icon: Eye
+//         }));
+//       recentActivities.push(...activeTenders);
+//     }
+
+//     if (data.statistics && data.statistics.overdueTasks > 0) {
+//       recentActivities.push({
+//         action: `${data.statistics.overdueTasks} tasks overdue`,
+//         project: "Multiple Projects",
+//         time: "Ongoing",
+//         type: "warning",
+//         icon: AlertTriangle
+//       });
+//     }
+
+//     if (data.events && data.events.length > 0) {
+//       const recentEvents = data.events
+//         .slice(0, 1)
+//         .map(event => ({
+//           action: "Upcoming meeting",
+//           project: event.project_name || event.title || "Team Meeting",
+//           time: "Soon",
+//           type: "info",
+//           icon: Calendar
+//         }));
+//       recentActivities.push(...recentEvents);
+//     }
+
+//     if (recentActivities.length === 0) {
+//       recentActivities.push(
+//         { 
+//           action: "System initialized", 
+//           project: "Dashboard", 
+//           time: "Just now", 
+//           type: "info",
+//           icon: Activity
+//         },
+//         { 
+//           action: "Waiting for data", 
+//           project: "API Connection", 
+//           time: "Ongoing", 
+//           type: "warning",
+//           icon: RefreshCw
+//         }
+//       );
+//     }
+
+//     setActivities(recentActivities.slice(0, 4));
+//   }, [data]);
+
+//   const getTypeStyles = (type) => {
+//     switch (type) {
+//       case 'success': return 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-200/50';
+//       case 'warning': return 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-700 border-amber-200/50';
+//       case 'info': return 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 border-blue-200/50';
+//       default: return 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-700 border-gray-200/50';
+//     }
+//   };
+
+//   const getIconColor = (type) => {
+//     switch (type) {
+//       case 'success': return 'text-emerald-600';
+//       case 'warning': return 'text-amber-600';
+//       case 'info': return 'text-blue-600';
+//       default: return 'text-gray-600';
+//     }
+//   };
+
+//   return (
+//     <DashboardPanel title="Recent Activity" icon={Activity}>
+//       <div className="space-y-3">
+//         {activities.map((activity, index) => (
+//           <div key={index} className={`p-4 rounded-xl border ${getTypeStyles(activity.type)} hover:shadow-md transition-all duration-300`}>
+//             <div className="flex items-start space-x-3">
+//               <div className={`p-2 rounded-lg bg-white/50 ${getIconColor(activity.type)}`}>
+//                 <activity.icon className="h-4 w-4" />
+//               </div>
+//               <div className="flex-1 min-w-0">
+//                 <p className="font-semibold text-sm">{activity.action}</p>
+//                 <p className="text-xs opacity-80">{activity.project}</p>
+//                 <p className="text-xs opacity-60 mt-1">{activity.time}</p>
+//               </div>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+//     </DashboardPanel>
+//   );
+// };
+
+// // Tenders Management Section
+// const TendersSection = ({ data, theme }) => {
+//   const getStatusColor = (status) => {
+//     switch (status?.toLowerCase()) {
+//       case 'active': return 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-700 border-emerald-300';
+//       case 'evaluation': return 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border-amber-300';
+//       case 'draft': return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
+//       case 'closed': return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-blue-300';
+//       default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
+//     }
+//   };
+
+//   const getPriorityColor = (priority) => {
+//     switch (priority?.toLowerCase()) {
+//       case 'high': return 'bg-gradient-to-r from-red-100 to-red-200 text-red-700 border-red-300';
+//       case 'medium': return 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-700 border-yellow-300';
+//       case 'low': return 'bg-gradient-to-r from-green-100 to-green-200 text-green-700 border-green-300';
+//       default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
+//     }
+//   };
+
+//   const formatCurrency = (amount) => {
+//     if (!amount) return '$0';
+//     const num = parseFloat(amount);
+//     if (num >= 1000000) {
+//       return `${(num / 1000000).toFixed(1)}M`;
+//     } else if (num >= 1000) {
+//       return `${(num / 1000).toFixed(0)}K`;
+//     }
+//     return `${num.toLocaleString()}`;
+//   };
+
+//   const formatDate = (dateString) => {
+//     if (!dateString) return 'No deadline';
+//     try {
+//       return new Date(dateString).toLocaleDateString();
+//     } catch {
+//       return 'Invalid date';
+//     }
+//   };
+
+//   return (
+//     <DashboardPanel title="Active Tenders" icon={Eye}>
+//       <div className="space-y-4">
+//         {data.tenders && data.tenders.length > 0 ? (
+//           <>
+//             {data.tenders.slice(0, 4).map((tender) => (
+//               <div key={tender.id} className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
+//                 <div className="flex items-start justify-between">
+//                   <div className="flex-1">
+//                     <div className="flex items-start space-x-4">
+//                       <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 shadow-md group-hover:scale-110 transition-transform duration-300">
+//                         <Eye className="h-5 w-5 text-white" />
+//                       </div>
+//                       <div className="flex-1">
+//                         <h4 className="font-bold text-gray-900 text-lg mb-2">{tender.title || tender.name || 'Untitled Tender'}</h4>
+//                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+//                           <span className="flex items-center space-x-1">
+//                             <DollarSign className="h-4 w-4" />
+//                             <span>Budget: {formatCurrency(tender.budget_estimate || tender.value || tender.amount)}</span>
+//                           </span>
+//                           {tender.bidders_count && (
+//                             <span className="flex items-center space-x-1">
+//                               <Users className="h-4 w-4" />
+//                               <span>{tender.bidders_count} Bidders</span>
+//                             </span>
+//                           )}
+//                           <span className="flex items-center space-x-1">
+//                             <Calendar className="h-4 w-4" />
+//                             <span>Due: {formatDate(tender.deadline || tender.submission_deadline)}</span>
+//                           </span>
+//                         </div>
+//                         <div className="flex items-center space-x-3">
+//                           <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(tender.status)}`}>
+//                             {tender.status?.toUpperCase() || 'UNKNOWN'}
+//                           </span>
+//                           {tender.priority && (
+//                             <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getPriorityColor(tender.priority)}`}>
+//                               {tender.priority?.toUpperCase()} PRIORITY
+//                             </span>
+//                           )}
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             ))}
+//             <div className="text-center pt-4">
+//               <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all font-semibold shadow-lg hover:shadow-xl">
+//                 View All Tenders
+//               </button>
+//             </div>
+//           </>
+//         ) : (
+//           <div className="text-center py-8 text-gray-500">
+//             <Eye className="h-12 w-12 mx-auto mb-4 opacity-50" />
+//             <p className="text-lg font-medium">No tenders available</p>
+//             <p className="text-sm">Tenders will appear here when available from the API</p>
+//           </div>
+//         )}
+//       </div>
+//     </DashboardPanel>
+//   );
+// };
+
+// // Projects Section
+// const ProjectsSection = ({ data, theme }) => {
+//   const getStatusColor = (status) => {
+//     switch (status?.toLowerCase()) {
+//       case 'active': return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-blue-300';
+//       case 'completed': return 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-700 border-emerald-300';
+//       case 'on-hold': return 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border-amber-300';
+//       case 'delayed': return 'bg-gradient-to-r from-red-100 to-red-200 text-red-700 border-red-300';
+//       default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
+//     }
+//   };
+
+//   const getProgressColor = (progress) => {
+//     if (progress >= 80) return 'from-emerald-500 to-emerald-600';
+//     if (progress >= 50) return 'from-blue-500 to-blue-600';
+//     if (progress >= 25) return 'from-amber-500 to-amber-600';
+//     return 'from-red-500 to-red-600';
+//   };
+
+//   const formatCurrency = (amount) => {
+//     if (!amount) return '$0';
+//     return `${(amount / 1000000).toFixed(1)}M`;
+//   };
+
+//   const formatDate = (dateString) => {
+//     if (!dateString) return 'No deadline';
+//     try {
+//       return new Date(dateString).toLocaleDateString();
+//     } catch {
+//       return 'Invalid date';
+//     }
+//   };
+
+//   return (
+//     <DashboardPanel title="Active Projects" icon={Building2}>
+//       <div className="space-y-4">
+//         {data.projects && data.projects.length > 0 ? (
+//           <>
+//             {data.projects.slice(0, 4).map((project) => (
+//               <div key={project.id} className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
+//                 <div className="flex items-start justify-between mb-4">
+//                   <div className="flex items-start space-x-4">
+//                     <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 shadow-md group-hover:scale-110 transition-transform duration-300">
+//                       <Building2 className="h-5 w-5 text-white" />
+//                     </div>
+//                     <div>
+//                       <h4 className="font-bold text-gray-900 text-lg mb-1">{project.title || project.name || 'Untitled Project'}</h4>
+//                       <p className="text-sm text-gray-600 mb-2">Manager: {project.manager || 'Unassigned'}</p>
+//                       <div className="flex items-center space-x-4 text-sm text-gray-600">
+//                         <span className="flex items-center space-x-1">
+//                           <MapPin className="h-4 w-4" />
+//                           <span>{project.location || 'Unknown'}</span>
+//                         </span>
+//                         <span className="flex items-center space-x-1">
+//                           <Calendar className="h-4 w-4" />
+//                           <span>{formatDate(project.deadline || project.end_date)}</span>
+//                         </span>
+//                         <span className="flex items-center space-x-1">
+//                           <DollarSign className="h-4 w-4" />
+//                           <span>{formatCurrency(project.budget)}</span>
+//                         </span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                   <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(project.status)}`}>
+//                     {project.status?.toUpperCase() || 'UNKNOWN'}
+//                   </span>
+//                 </div>
+                
+//                 <div className="space-y-2">
+//                   <div className="flex items-center justify-between text-sm">
+//                     <span className="font-medium text-gray-700">Progress</span>
+//                     <span className="font-bold text-gray-900">{Math.round(project.progress_percentage || project.progress || 0)}%</span>
+//                   </div>
+//                   <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+//                     <div 
+//                       className={`h-full bg-gradient-to-r ${getProgressColor(project.progress_percentage || project.progress || 0)} transition-all duration-500 rounded-full shadow-sm`}
+//                       style={{ width: `${project.progress_percentage || project.progress || 0}%` }}
+//                     ></div>
+//                   </div>
+//                 </div>
+//               </div>
+//             ))}
+//             <div className="text-center pt-4">
+//               <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all font-semibold shadow-lg hover:shadow-xl">
+//                 View All Projects
+//               </button>
+//             </div>
+//           </>
+//         ) : (
+//           <div className="text-center py-8 text-gray-500">
+//             <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+//             <p className="text-lg font-medium">No projects available</p>
+//             <p className="text-sm">Projects will appear here when available from the API</p>
+//           </div>
+//         )}
+//       </div>
+//     </DashboardPanel>
+//   );
+// };
+
+// // Project Managers Section with clickable navigation
+// const ProjectManagersSection = ({ data, theme, onManagerClick }) => {
+//   const getWorkloadColor = (workload, status) => {
+//     if (status === 'overloaded' || workload >= 90) return 'from-red-500 to-red-600 text-white';
+//     if (workload >= 75) return 'from-amber-500 to-amber-600 text-white';
+//     if (workload >= 50) return 'from-blue-500 to-blue-600 text-white';
+//     return 'from-emerald-500 to-emerald-600 text-white';
+//   };
+
+//   const getStatusBadge = (status) => {
+//     switch (status) {
+//       case 'overloaded': return 'bg-gradient-to-r from-red-100 to-red-200 text-red-700 border-red-300';
+//       case 'busy': return 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border-amber-300';
+//       case 'optimal': return 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-700 border-emerald-300';
+//       default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
+//     }
+//   };
+
+//   const processedManagers = data.managers?.map(manager => ({
+//     ...manager,
+//     status: manager.workload >= 90 ? 'overloaded' : manager.workload >= 75 ? 'busy' : 'optimal'
+//   })) || [];
+
+//   const handleManagerClick = (manager) => {
+//     onManagerClick(manager);
+//   };
+
+//   return (
+//     <DashboardPanel title="Project Managers Workload" icon={Users}>
+//       <div className="space-y-4">
+//         {processedManagers.length > 0 ? (
+//           <>
+//             <div className="text-sm text-gray-600 mb-4">
+//               Click on a manager to view detailed information
+//             </div>
+            
+//             {processedManagers
+//               .sort((a, b) => b.workload - a.workload)
+//               .slice(0, 5)
+//               .map((manager, index) => (
+//                 <div 
+//                   key={manager.id} 
+//                   onClick={() => handleManagerClick(manager)}
+//                   className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group cursor-pointer"
+//                 >
+//                   <div className="flex items-center justify-between">
+//                     <div className="flex items-center space-x-4">
+//                       <div className="relative">
+//                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
+//                           {manager.avatar || manager.name?.charAt(0) || 'M'}
+//                         </div>
+//                         {index === 0 && manager.status === 'overloaded' && (
+//                           <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+//                             <AlertTriangle className="h-3 w-3 text-white" />
+//                           </div>
+//                         )}
+//                       </div>
+                      
+//                       <div className="flex-1">
+//                         <div className="flex items-center space-x-3 mb-1">
+//                           <h4 className="font-bold text-gray-900 text-lg">{manager.name}</h4>
+//                           {manager.status === 'overloaded' && (
+//                             <span className="px-2 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full">
+//                               NEEDS HELP
+//                             </span>
+//                           )}
+//                         </div>
+//                         <p className="text-sm text-gray-600 mb-2">{manager.role || 'Project Manager'}</p>
+//                         <div className="flex items-center space-x-4 text-sm text-gray-600">
+//                           <span>{manager.projectsCount || 0} Projects</span>
+//                           <span>Efficiency: {Math.round(manager.efficiency || 0)}%</span>
+//                           <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(manager.status)}`}>
+//                             {manager.status?.toUpperCase()}
+//                           </span>
+//                         </div>
+//                       </div>
+//                     </div>
+                    
+//                     <div className="text-right">
+//                       <div className={`px-4 py-2 rounded-xl bg-gradient-to-r ${getWorkloadColor(manager.workload, manager.status)} font-bold text-lg shadow-md`}>
+//                         {manager.workload || 0}%
+//                       </div>
+//                       <div className="text-xs text-gray-500 mt-1">Workload</div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               ))}
+//           </>
+//         ) : (
+//           <div className="text-center py-8 text-gray-500">
+//             <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+//             <p className="text-lg font-medium">No project managers available</p>
+//             <p className="text-sm">Project managers will appear here when available from the API</p>
+//           </div>
+//         )}
+//       </div>
+//     </DashboardPanel>
+//   );
+// };
+
+// // Supervisors Section
+// const SupervisorsSection = ({ data, theme }) => {
+//   const getWorkloadColor = (workload) => {
+//     if (workload >= 80) return 'from-red-500 to-red-600';
+//     if (workload >= 60) return 'from-amber-500 to-amber-600';
+//     return 'from-emerald-500 to-emerald-600';
+//   };
+
+//   return (
+//     <DashboardPanel title="Site Supervisors" icon={HardHat}>
+//       <div className="space-y-4">
+//         {data.supervisors && data.supervisors.length > 0 ? (
+//           data.supervisors.slice(0, 4).map((supervisor) => (
+//             <div key={supervisor.id} className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
+//               <div className="flex items-center justify-between">
+//                 <div className="flex items-center space-x-4">
+//                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
+//                     {supervisor.avatar || supervisor.name?.charAt(0) || 'S'}
+//                   </div>
+                  
+//                   <div>
+//                     <h4 className="font-bold text-gray-900 text-lg mb-1">{supervisor.name}</h4>
+//                     <p className="text-sm text-gray-600 mb-1">Current Site: {supervisor.currentSite || 'Multiple Sites'}</p>
+//                     <div className="flex items-center space-x-4 text-sm text-gray-600">
+//                       <span>{supervisor.projectsCount || 0} Projects</span>
+//                       <span>{supervisor.teamsManaged || 'N/A'} Teams</span>
+//                       <span>Efficiency: {Math.round(supervisor.efficiency || 0)}%</span>
+//                     </div>
+//                   </div>
+//                 </div>
+                
+//                 <div className="text-right">
+//                   <div className={`px-4 py-2 rounded-xl bg-gradient-to-r ${getWorkloadColor(supervisor.workload || 0)} text-white font-bold text-lg shadow-md`}>
+//                     {supervisor.workload || 0}%
+//                   </div>
+//                   <div className="text-xs text-gray-500 mt-1">Workload</div>
+//                 </div>
+//               </div>
+//             </div>
+//           ))
+//         ) : (
+//           <div className="text-center py-8 text-gray-500">
+//             <HardHat className="h-12 w-12 mx-auto mb-4 opacity-50" />
+//             <p className="text-lg font-medium">No supervisors available</p>
+//             <p className="text-sm">Supervisors will appear here when available from the API</p>
+//           </div>
+//         )}
+//       </div>
+//     </DashboardPanel>
+//   );
+// };
+
+// // Site Managers Section
+// const SiteManagersSection = ({ data, theme }) => {
+//   const getWorkloadColor = (workload) => {
+//     if (workload >= 80) return 'from-red-500 to-red-600';
+//     if (workload >= 60) return 'from-amber-500 to-amber-600';
+//     return 'from-emerald-500 to-emerald-600';
+//   };
+
+//   return (
+//     <DashboardPanel title="Site Managers" icon={Clipboard}>
+//       <div className="space-y-4">
+//         {data.siteManagers && data.siteManagers.length > 0 ? (
+//           data.siteManagers.slice(0, 4).map((manager) => (
+//             <div key={manager.id} className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
+//               <div className="flex items-center justify-between">
+//                 <div className="flex items-center space-x-4">
+//                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
+//                     {manager.avatar || manager.name?.charAt(0) || 'SM'}
+//                   </div>
+                  
+//                   <div>
+//                     <h4 className="font-bold text-gray-900 text-lg mb-1">{manager.name}</h4>
+//                     <p className="text-sm text-gray-600 mb-1">Site: {manager.currentSite || 'Multiple Sites'}</p>
+//                     <div className="flex items-center space-x-4 text-sm text-gray-600">
+//                       <span>{manager.projectsCount || 0} Projects</span>
+//                       <span>{manager.workersManaged || 'N/A'} Workers</span>
+//                       <span>Efficiency: {Math.round(manager.efficiency || 0)}%</span>
+//                     </div>
+//                   </div>
+//                 </div>
+                
+//                 <div className="text-right">
+//                   <div className={`px-4 py-2 rounded-xl bg-gradient-to-r ${getWorkloadColor(manager.workload || 0)} text-white font-bold text-lg shadow-md`}>
+//                     {manager.workload || 0}%
+//                   </div>
+//                   <div className="text-xs text-gray-500 mt-1">Workload</div>
+//                 </div>
+//               </div>
+//             </div>
+//           ))
+//         ) : (
+//           <div className="text-center py-8 text-gray-500">
+//             <Clipboard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+//             <p className="text-lg font-medium">No site managers available</p>
+//             <p className="text-sm">Site managers will appear here when available from the API</p>
+//           </div>
+//         )}
+//       </div>
+//     </DashboardPanel>
+//   );
+// };
+
+// // Chart Components with enhanced styling
+// const TeamWorkloadChart = ({ data, theme }) => (
+//   <DashboardPanel title="Team Workload Distribution" icon={BarChart3}>
+//     <ResponsiveContainer width="100%" height={400}>
+//       <BarChart data={data.chartData?.teamWorkload || []} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+//         <defs>
+//           <linearGradient id="workloadGradient" x1="0" y1="0" x2="0" y2="1">
+//             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
+//             <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.6}/>
+//           </linearGradient>
+//           <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
+//             <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.9}/>
+//             <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.6}/>
+//           </linearGradient>
+//         </defs>
+//         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+//         <XAxis 
+//           dataKey="name" 
+//           stroke="#64748b" 
+//           fontSize={12}
+//           angle={-45}
+//           textAnchor="end"
+//           height={80}
+//         />
+//         <YAxis stroke="#64748b" fontSize={12} />
+//         <Tooltip 
+//           contentStyle={{ 
+//             backgroundColor: 'white', 
+//             border: '1px solid #e2e8f0', 
+//             borderRadius: '12px',
+//             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+//             padding: '12px'
+//           }}
+//         />
+//         <Bar dataKey="workload" fill="url(#workloadGradient)" radius={[6, 6, 0, 0]} name="Workload %" />
+//         <Bar dataKey="projects" fill="url(#projectsGradient)" radius={[6, 6, 0, 0]} name="Projects" />
+//       </BarChart>
+//     </ResponsiveContainer>
+//   </DashboardPanel>
+// );
+
+// const ProjectProgressChart = ({ data, theme }) => (
+//   <DashboardPanel title="Project Progress Tracker" icon={TrendingUp}>
+//     <ResponsiveContainer width="100%" height={400}>
+//       <ComposedChart data={data.chartData?.projectProgress || []}>
+//         <defs>
+//           <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+//             <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
+//             <stop offset="95%" stopColor="#10b981" stopOpacity={0.6}/>
+//           </linearGradient>
+//         </defs>
+//         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+//         <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
+//         <YAxis yAxisId="left" stroke="#64748b" fontSize={12} />
+//         <YAxis yAxisId="right" orientation="right" stroke="#64748b" fontSize={12} />
+//         <Tooltip 
+//           contentStyle={{ 
+//             backgroundColor: 'white', 
+//             border: '1px solid #e2e8f0', 
+//             borderRadius: '12px',
+//             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+//             padding: '12px'
+//           }}
+//         />
+//         <Bar yAxisId="left" dataKey="progress" fill="url(#progressGradient)" radius={[6, 6, 0, 0]} name="Progress %" />
+//         <Line yAxisId="right" type="monotone" dataKey="budget" stroke="#f59e0b" strokeWidth={3} name="Budget (M)" />
+//       </ComposedChart>
+//     </ResponsiveContainer>
+//   </DashboardPanel>
+// );
+
+// const TeamRadarChart = ({ data, theme }) => (
+//   <DashboardPanel title="Team Performance Analysis" icon={Target}>
+//     <ResponsiveContainer width="100%" height={400}>
+//       <RadarChart data={data.chartData?.teamRadar || []}>
+//         <PolarGrid stroke="#e5e7eb" />
+//         <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: '#6b7280' }} />
+//         <PolarRadiusAxis angle={0} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+//         <Radar name="Managers" dataKey="Managers" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={3} />
+//         <Radar name="Supervisors" dataKey="Supervisors" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.2} strokeWidth={3} />
+//         <Radar name="Site Managers" dataKey="SiteManagers" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} strokeWidth={3} />
+//         <Legend />
+//         <Tooltip 
+//           contentStyle={{ 
+//             backgroundColor: 'white', 
+//             border: '1px solid #e2e8f0', 
+//             borderRadius: '12px',
+//             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+//           }}
+//         />
+//       </RadarChart>
+//     </ResponsiveContainer>
+//   </DashboardPanel>
+// );
+
+// const PerformanceTrendsChart = ({ data, theme }) => (
+//   <DashboardPanel title="Performance Trends" icon={TrendingUp}>
+//     <ResponsiveContainer width="100%" height={400}>
+//       <AreaChart data={data.chartData?.performanceMetrics || []}>
+//         <defs>
+//           <linearGradient id="projectsAreaGradient" x1="0" y1="0" x2="0" y2="1">
+//             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+//             <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
+//           </linearGradient>
+//           <linearGradient id="completedAreaGradient" x1="0" y1="0" x2="0" y2="1">
+//             <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+//             <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
+//           </linearGradient>
+//           <linearGradient id="efficiencyAreaGradient" x1="0" y1="0" x2="0" y2="1">
+//             <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.6}/>
+//             <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1}/>
+//           </linearGradient>
+//         </defs>
+//         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+//         <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
+//         <YAxis stroke="#64748b" fontSize={12} />
+//         <Tooltip 
+//           contentStyle={{ 
+//             backgroundColor: 'white', 
+//             border: '1px solid #e2e8f0', 
+//             borderRadius: '12px',
+//             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+//             padding: '12px'
+//           }}
+//         />
+//         <Area type="monotone" dataKey="projects" stackId="1" stroke="#3b82f6" fill="url(#projectsAreaGradient)" name="Projects" />
+//         <Area type="monotone" dataKey="completed" stackId="1" stroke="#10b981" fill="url(#completedAreaGradient)" name="Completed" />
+//         <Area type="monotone" dataKey="efficiency" stackId="2" stroke="#8b5cf6" fill="url(#efficiencyAreaGradient)" name="Efficiency" />
+//       </AreaChart>
+//     </ResponsiveContainer>
+//   </DashboardPanel>
+// );
+
+// // Loading Screen
+// const LoadingScreen = ({ theme }) => (
+//   <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center`}>
+//     <div className="text-center">
+//       <div className="relative">
+//         <div className="w-32 h-32 border-8 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-8 shadow-lg"></div>
+//         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+//           <div className="flex items-center space-x-2">
+//             <Palette className="h-8 w-8 text-blue-500 animate-pulse" />
+//             <Brush className="h-8 w-8 text-orange-500 animate-pulse" />
+//           </div>
+//         </div>
+//       </div>
+//       <h3 className={`text-4xl font-bold ${theme.colors.text} mb-3`}>
+//         Ujenzi & Paints
+//       </h3>
+//       <p className={`text-xl ${theme.colors.textSecondary} mb-2`}>
+//         Construction & Paint Management
+//       </p>
+//       <p className={`text-base ${theme.colors.textMuted}`}>
+//         Loading dashboard...
+//       </p>
+//     </div>
+//   </div>
+// );
+
+// // Main Dashboard Component
+// const AdminDashboard = () => {
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const theme = useTheme();
+//   const { data, loading, error, lastUpdated, refreshing, refetch } = useDashboardData();
+//   const [sidebarOpen, setSidebarOpen] = useState(false);
+//   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+//   const [currentView, setCurrentView] = useState("dashboard");
+//   const [selectedManager, setSelectedManager] = useState(null);
+//   const [currentTime, setCurrentTime] = useState(new Date());
+
+//   const showingManagerDetails = currentView === "manager-details" && selectedManager;
+
+//   useEffect(() => {
+//     const savedCollapsed = localStorage.getItem("sidebar-collapsed");
+//     if (savedCollapsed !== null) {
+//       setSidebarCollapsed(JSON.parse(savedCollapsed));
+//     }
+//   }, []);
+
+//   useEffect(() => {
+//     setSidebarOpen(false);
+//   }, [location?.pathname]);
+
+//   useEffect(() => {
+//     const timer = setInterval(() => {
+//       setCurrentTime(new Date());
+//     }, 60000);
+//     return () => clearInterval(timer);
+//   }, []);
+
+//   const handleSidebarCollapseChange = (collapsed) => {
+//     setSidebarCollapsed(collapsed);
+//   };
+
+//   const handleManagerClick = (manager) => {
+//     setSelectedManager(manager);
+//     setCurrentView("manager-details");
+//     // Use navigate to go to the ProjectManagerDetails page
+//     if (navigate) {
+//       navigate(`/admin/project-managers/${manager.id}`);
+//     }
+//   };
+
+//   const handleBackToDashboard = () => {
+//     setCurrentView("dashboard");
+//     setSelectedManager(null);
+//   };
+
+//   const toggleSidebarCollapse = () => {
+//     const newCollapsed = !sidebarCollapsed;
+//     setSidebarCollapsed(newCollapsed);
+//     localStorage.setItem("sidebar-collapsed", JSON.stringify(newCollapsed));
+//   };
+
+//   if (loading) return <LoadingScreen theme={theme} />;
+
+//   if (error) {
+//     return (
+//       <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center p-8`}>
+//         <DashboardPanel className="max-w-lg w-full text-center">
+//           <AlertTriangle className="h-20 w-20 text-red-500 mx-auto mb-6" />
+//           <h3 className={`text-3xl font-bold ${theme.colors.text} mb-4`}>
+//             API Connection Error
+//           </h3>
+//           <p className={`text-lg ${theme.colors.textSecondary} mb-8`}>
+//             {error}
+//           </p>
+//           <button
+//             onClick={refetch}
+//             className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 px-8 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all font-semibold text-lg shadow-lg hover:shadow-xl"
+//           >
+//             Retry Connection
+//           </button>
+//         </DashboardPanel>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className={`min-h-screen w-full ${theme.colors.background} transition-all duration-300`}>
+//       <AdminSidebar
+//         isOpen={sidebarOpen}
+//         setIsOpen={setSidebarOpen}
+//         onCollapseChange={handleSidebarCollapseChange}
+//         theme={{
+//           isDark: theme.isDark,
+//           colors: {
+//             sidebarBg: "bg-white",
+//             text: "text-gray-700",
+//             textMuted: "text-gray-500",
+//             textSecondary: "text-gray-600",
+//             border: "border-gray-200",
+//           },
+//         }}
+//       />
+
+//       <div className={`min-h-screen w-full transition-all duration-300 ease-in-out ${sidebarCollapsed ? "lg:ml-16" : "lg:ml-80"}`}>
+//         {showingManagerDetails ? (
+//           <div className="p-6">
+//             <div className="mb-8">
+//               <button
+//                 onClick={handleBackToDashboard}
+//                 className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-xl transition-all shadow-md hover:shadow-lg"
+//               >
+//                 <ChevronLeft className="h-5 w-5" />
+//                 <span className="font-semibold">Back to Dashboard</span>
+//               </button>
+//             </div>
+//             {selectedManager && (
+//               <ProjectManagerDetails managerId={selectedManager.id} />
+//             )}
+//           </div>
+//         ) : (
+//           <div className="w-full">
+//             {/* Enhanced Header */}
+//             <div className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-lg">
+//               <div className="w-full px-6 lg:px-8 py-5">
+//                 <div className="flex items-center justify-between w-full">
+//                   <div className="flex items-center space-x-6 flex-shrink-0">
+//                     <button
+//                       onClick={() => setSidebarOpen(true)}
+//                       className="lg:hidden p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg hover:shadow-xl"
+//                     >
+//                       <Menu className="h-6 w-6" />
+//                     </button>
+//                     <button
+//                       onClick={toggleSidebarCollapse}
+//                       className="hidden lg:flex p-3 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 transition-all shadow-lg"
+//                       title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+//                     >
+//                       {sidebarCollapsed ? (
+//                         <Maximize2 className="h-5 w-5" />
+//                       ) : (
+//                         <Minimize2 className="h-5 w-5" />
+//                       )}
+//                     </button>
+//                     <div className="flex items-center space-x-4">
+//                       <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 shadow-xl">
+//                         <Palette className="h-8 lg:h-10 w-8 lg:w-10 text-white" />
+//                       </div>
+//                       <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-xl">
+//                         <Building2 className="h-8 lg:h-10 w-8 lg:w-10 text-white" />
+//                       </div>
+//                     </div>
+//                     <div className="hidden sm:block">
+//                       <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent">
+//                         Ujenzi & Paints
+//                       </h1>
+//                       <p className="text-sm lg:text-base text-gray-600 font-medium">Construction & Paint Management Dashboard</p>
+//                     </div>
+//                   </div>
+
+//                   <div className="hidden md:flex items-center space-x-6 flex-1 max-w-3xl mx-8">
+//                     <div className="relative flex-1">
+//                       <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+//                       <input
+//                         type="text"
+//                         placeholder="Search projects, tasks, or team members..."
+//                         className="w-full pl-12 pr-6 py-4 border border-gray-200 rounded-xl bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm hover:shadow-md transition-all"
+//                       />
+//                     </div>
+//                   </div>
+
+//                   <div className="flex items-center space-x-4 flex-shrink-0">
+//                     <div className="hidden xl:block text-right">
+//                       <p className="text-sm font-semibold text-gray-900">
+//                         {currentTime.toLocaleDateString('en-US', { 
+//                           weekday: 'long', 
+//                           year: 'numeric', 
+//                           month: 'long', 
+//                           day: 'numeric' 
+//                         })}
+//                       </p>
+//                       <p className="text-xs text-gray-600">
+//                         {currentTime.toLocaleTimeString('en-US', { 
+//                           hour: '2-digit', 
+//                           minute: '2-digit',
+//                           hour12: true 
+//                         })}
+//                       </p>
+//                     </div>
+                    
+//                     <div className="hidden lg:block text-right">
+//                       <p className={`text-xs ${theme.colors.textSecondary}`}>
+//                         Last Updated
+//                       </p>
+//                       <p className={`text-sm font-semibold ${theme.colors.text}`}>
+//                         {lastUpdated ? lastUpdated.toLocaleTimeString() : "Never"}
+//                       </p>
+//                     </div>
+                    
+//                     <button
+//                       onClick={refetch}
+//                       disabled={refreshing}
+//                       className={`p-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg hover:shadow-xl ${
+//                         refreshing ? "animate-spin" : ""
+//                       }`}
+//                     >
+//                       <RefreshCw className="h-5 w-5" />
+//                     </button>
+                    
+//                     <button className="relative p-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg">
+//                       <Bell className="h-5 w-5" />
+//                       {data.statistics?.unreadNotifications > 0 && (
+//                         <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
+//                           {data.statistics.unreadNotifications > 9 ? '9+' : data.statistics.unreadNotifications}
+//                         </span>
+//                       )}
+//                     </button>
+                    
+//                     <button
+//                       onClick={theme.toggleTheme}
+//                       className="p-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 transition-all shadow-lg text-xl"
+//                     >
+//                       {theme.isDark ? '☀️' : '🌙'}
+//                     </button>
+                    
+//                     <div className="flex items-center space-x-3 pl-4 border-l border-gray-300">
+//                       <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+//                         AD
+//                       </div>
+//                       <div className="hidden lg:block">
+//                         <p className="text-sm font-semibold text-gray-900">Admin User</p>
+//                         <p className="text-xs text-gray-600">System Administrator</p>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Main Content */}
+//             <div className="w-full px-6 lg:px-8 py-8 lg:py-12">
+//               {/* Enhanced Hero Section */}
+//               <div className="mb-12 text-center">
+//                 <h2 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent mb-4">
+//                   Construction Management Hub 🏗️
+//                 </h2>
+//                 <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+//                   Monitor your construction projects, track team performance, and manage resources in real-time with powerful analytics and insights.
+//                 </p>
+//               </div>
+
+//               {/* Top Row - Overview and Actions */}
+//               <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 mb-12">
+//                 <div className="xl:col-span-2">
+//                   <LiveStatistics data={data} theme={theme} />
+//                 </div>
+//                 <QuickActions theme={theme} />
+//                 <RecentActivity data={data} theme={theme} />
+//               </div>
+
+//               {/* Main Charts Section */}
+//               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
+//                 <TeamWorkloadChart data={data} theme={theme} />
+//                 <ProjectProgressChart data={data} theme={theme} />
+//               </div>
+
+//               {/* New Sections Row 1 - Tenders and Projects */}
+//               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
+//                 <TendersSection data={data} theme={theme} />
+//                 <ProjectsSection data={data} theme={theme} />
+//               </div>
+
+//               {/* New Sections Row 2 - Team Management */}
+//               <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
+//                 <ProjectManagersSection data={data} theme={theme} onManagerClick={handleManagerClick} />
+//                 <SupervisorsSection data={data} theme={theme} />
+//                 <SiteManagersSection data={data} theme={theme} />
+//               </div>
+
+//               {/* Performance Analysis Section */}
+//               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
+//                 <TeamRadarChart data={data} theme={theme} />
+//                 <PerformanceTrendsChart data={data} theme={theme} />
+//               </div>
+
+//               {/* Enhanced Footer */}
+//               <div className="text-center py-12 border-t border-gray-200/50 bg-gradient-to-r from-gray-50/50 to-white/50 rounded-2xl">
+//                 <div className="flex items-center justify-center space-x-6 mb-6">
+//                   <div className="flex items-center space-x-3">
+//                     <Palette className="h-8 w-8 text-blue-500" />
+//                     <Building2 className="h-8 w-8 text-orange-500" />
+//                     <Brush className="h-8 w-8 text-purple-500" />
+//                   </div>
+//                 </div>
+//                 <div className="space-y-4">
+//                   <h4 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent">
+//                     Ujenzi & Paints Enterprise
+//                   </h4>
+//                   <p className="text-base text-gray-600 font-medium">
+//                     Leading Construction & Paint Management Platform in Kenya
+//                   </p>
+//                   <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500 mt-6">
+//                     <span className="font-medium">© 2024 Ujenzi & Paints Solutions</span>
+//                     <span className="hidden sm:inline">•</span>
+//                     <span>Projects: {data.statistics?.totalProjects || 0}</span>
+//                     <span className="hidden sm:inline">•</span>
+//                     <span>Team: {data.statistics?.teamSize || 0}</span>
+//                     <span className="hidden sm:inline">•</span>
+//                     <span>Last updated: {currentTime.toLocaleTimeString()}</span>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       {sidebarOpen && (
+//         <div
+//           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden backdrop-blur-sm"
+//           onClick={() => setSidebarOpen(false)}
+//         ></div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default AdminDashboard;
+
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -2550,7 +3154,9 @@ import {
   ChevronLeft,
   Timer,
   Award,
-  Eye
+  Eye,
+  CalendarDays,
+  ChevronRight
 } from "lucide-react";
 
 // Import your actual API services
@@ -2601,12 +3207,12 @@ const useTheme = () => {
 const DashboardPanel = ({ children, title, icon: Icon, className = "" }) => {
   const theme = useTheme();
   return (
-    <div className={`${theme.colors.card} rounded-xl border ${theme.colors.border} shadow-lg overflow-hidden ${className}`}>
+    <div className={`${theme.colors.card} rounded-xl border ${theme.colors.border} shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ${className}`}>
       {title && (
         <div className="px-6 py-4 border-b border-gray-200/50 bg-gradient-to-r from-gray-50 to-white">
           <div className="flex items-center space-x-3">
             {Icon && (
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 shadow-md">
                 <Icon className="h-5 w-5 text-white" />
               </div>
             )}
@@ -2906,41 +3512,8 @@ const useDashboardData = () => {
   return { data, loading, error, lastUpdated, refreshing, refetch };
 };
 
-// Key Metrics Bar - Enhanced with more metrics
-const KeyMetricsBar = ({ data, theme }) => {
-  const metrics = [
-    { label: "Projects", value: data.statistics?.totalProjects || 0, icon: Building2, color: "text-blue-600", change: "+12%" },
-    { label: "Active", value: data.statistics?.activeProjects || 0, icon: Activity, color: "text-green-600", change: "+8%" },
-    { label: "Completed", value: data.statistics?.completedProjects || 0, icon: CheckSquare, color: "text-emerald-600", change: "+15%" },
-    { label: "Tasks", value: data.statistics?.totalTasks || 0, icon: Timer, color: "text-purple-600", change: "+24%" },
-    { label: "Team", value: data.statistics?.teamSize || 0, icon: Users, color: "text-orange-600", change: "+3%" },
-    { label: "Budget", value: `$${((data.statistics?.totalBudget || 0) / 1000000).toFixed(1)}M`, icon: DollarSign, color: "text-emerald-600", change: "+18%" },
-    { label: "Efficiency", value: `${Math.round(data.statistics?.avgTeamEfficiency || 0)}%`, icon: Target, color: "text-indigo-600", change: "+4.2%" },
-    { label: "Tenders", value: data.statistics?.activeTenders || 0, icon: Eye, color: "text-cyan-600", change: "+7%" },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
-      {metrics.map((metric, index) => (
-        <div key={index} className="flex flex-col p-4 bg-white/80 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all transform hover:scale-105">
-          <div className="flex items-center justify-between mb-2">
-            <div className={`p-2 rounded-lg bg-gray-50 ${metric.color}`}>
-              <metric.icon className="h-5 w-5" />
-            </div>
-            <div className="text-xs font-medium text-green-600">
-              {metric.change}
-            </div>
-          </div>
-          <div className={`text-2xl font-bold ${theme.colors.text} mb-1`}>{metric.value}</div>
-          <div className={`text-sm ${theme.colors.textSecondary}`}>{metric.label}</div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// Live Data Stats Component
-const LiveDataStats = ({ data, theme }) => {
+// Live Statistics Component - Enhanced styling
+const LiveStatistics = ({ data, theme }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -2950,55 +3523,282 @@ const LiveDataStats = ({ data, theme }) => {
     return () => clearInterval(timer);
   }, []);
 
-  const liveStats = [
-    {
-      title: "Active Right Now",
-      items: [
-        { label: "Online Team Members", value: Math.floor((data.statistics?.teamSize || 0) * 0.8), icon: Users, color: "text-green-500" },
-        { label: "Active Projects", value: data.statistics?.activeProjects || 0, icon: Building2, color: "text-blue-500" },
-        { label: "Tasks in Progress", value: data.statistics?.pendingTasks || 0, icon: Timer, color: "text-yellow-500" },
-        { label: "Today's Events", value: data.statistics?.todayEvents || 0, icon: Calendar, color: "text-purple-500" },
-      ]
+  const stats = [
+    { 
+      label: "Active Projects", 
+      value: data.statistics?.activeProjects || 0, 
+      icon: Building2, 
+      color: "text-blue-600",
+      bgColor: "bg-gradient-to-br from-blue-50 to-blue-100",
+      iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
+      change: "+2 this week",
+      trend: "up"
     },
-    {
-      title: "Performance Metrics",
-      items: [
-        { label: "Completion Rate", value: `${data.statistics?.totalTasks > 0 ? Math.round((data.statistics.completedTasks / data.statistics.totalTasks) * 100) : 0}%`, icon: Target, color: "text-green-500" },
-        { label: "On-Time Delivery", value: `${85 + Math.floor(Math.random() * 10)}%`, icon: Clock, color: "text-blue-500" },
-        { label: "Budget Efficiency", value: `${90 + Math.floor(Math.random() * 8)}%`, icon: DollarSign, color: "text-emerald-500" },
-        { label: "Team Satisfaction", value: `${88 + Math.floor(Math.random() * 12)}%`, icon: Award, color: "text-orange-500" },
-      ]
+    { 
+      label: "Team Members", 
+      value: data.statistics?.teamSize || 0, 
+      icon: Users, 
+      color: "text-emerald-600",
+      bgColor: "bg-gradient-to-br from-emerald-50 to-emerald-100",
+      iconBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
+      change: "85% active now",
+      trend: "neutral"
+    },
+    { 
+      label: "Pending Tasks", 
+      value: data.statistics?.pendingTasks || 0, 
+      icon: Timer, 
+      color: "text-amber-600",
+      bgColor: "bg-gradient-to-br from-amber-50 to-amber-100",
+      iconBg: "bg-gradient-to-br from-amber-500 to-amber-600",
+      change: "-8 since yesterday",
+      trend: "down"
+    },
+    { 
+      label: "Project Budget", 
+      value: `$${((data.statistics?.totalBudget || 0) / 1000000).toFixed(1)}M`, 
+      icon: DollarSign, 
+      color: "text-emerald-600",
+      bgColor: "bg-gradient-to-br from-emerald-50 to-emerald-100",
+      iconBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
+      change: "92% utilized",
+      trend: "up"
     }
   ];
 
   return (
-    <DashboardPanel title="Live Statistics" icon={Activity}>
+    <DashboardPanel title="Live Dashboard Overview" icon={Activity}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium text-gray-700">Live Data Stream</span>
+            <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-lg"></div>
+            <span className="text-sm font-medium text-gray-700">Real-time updates</span>
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 font-mono">
             {currentTime.toLocaleTimeString()}
           </div>
         </div>
         
-        {liveStats.map((section, sectionIndex) => (
-          <div key={sectionIndex} className="space-y-3">
-            <h4 className="font-semibold text-gray-800 text-sm">{section.title}</h4>
-            <div className="grid grid-cols-1 gap-3">
-              {section.items.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg border">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-1.5 rounded ${item.color.replace('text-', 'bg-').replace('-500', '-100')}`}>
-                      <item.icon className={`h-4 w-4 ${item.color}`} />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
+        <div className="grid grid-cols-1 gap-4">
+          {stats.map((stat, index) => (
+            <div key={index} className={`relative overflow-hidden p-5 rounded-xl ${stat.bgColor} border border-gray-200/50 hover:shadow-lg transition-all duration-300 group`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className={`p-3 rounded-xl ${stat.iconBg} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <stat.icon className="h-6 w-6 text-white" />
                   </div>
-                  <span className={`text-lg font-bold ${item.color}`}>{item.value}</span>
+                  <div>
+                    <div className={`text-3xl font-bold ${stat.color} mb-1`}>
+                      {stat.value}
+                    </div>
+                    <div className="text-sm font-semibold text-gray-700">
+                      {stat.label}
+                    </div>
+                  </div>
                 </div>
-              ))}
+                <div className="text-right">
+                  <div className={`text-xs font-medium ${
+                    stat.trend === 'up' ? 'text-emerald-600' : 
+                    stat.trend === 'down' ? 'text-red-500' : 'text-gray-600'
+                  }`}>
+                    {stat.change}
+                  </div>
+                  {stat.trend !== 'neutral' && (
+                    <div className="mt-1">
+                      {stat.trend === 'up' ? (
+                        <TrendingUp className="h-4 w-4 text-emerald-500" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-red-500" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none"></div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200/50">
+          <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200/50">
+            <div className="text-2xl font-bold text-purple-600">
+              {Math.round(data.statistics?.avgProgress || 0)}%
+            </div>
+            <div className="text-xs font-medium text-purple-800">Avg Progress</div>
+          </div>
+          <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200/50">
+            <div className="text-2xl font-bold text-indigo-600">
+              {Math.round(data.statistics?.avgTeamEfficiency || 0)}%
+            </div>
+            <div className="text-xs font-medium text-indigo-800">Team Efficiency</div>
+          </div>
+        </div>
+      </div>
+    </DashboardPanel>
+  );
+};
+
+// Quick Actions Panel - Enhanced styling
+const QuickActions = ({ theme }) => {
+  const actions = [
+    { 
+      label: "New Project", 
+      icon: Plus, 
+      color: "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
+      shadow: "hover:shadow-blue-500/25"
+    },
+    { 
+      label: "Add Task", 
+      icon: Clipboard, 
+      color: "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
+      shadow: "hover:shadow-emerald-500/25"
+    },
+    { 
+      label: "Schedule Meeting", 
+      icon: Calendar, 
+      color: "bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
+      shadow: "hover:shadow-purple-500/25"
+    },
+    { 
+      label: "Create Tender", 
+      icon: Eye, 
+      color: "bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700",
+      shadow: "hover:shadow-orange-500/25"
+    }
+  ];
+
+  return (
+    <DashboardPanel title="Quick Actions" icon={Zap}>
+      <div className="grid grid-cols-1 gap-4">
+        {actions.map((action, index) => (
+          <button
+            key={index}
+            className={`flex items-center space-x-3 w-full p-4 rounded-xl ${action.color} ${action.shadow} text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+          >
+            <div className="p-1 rounded-lg bg-white/20">
+              <action.icon className="h-5 w-5" />
+            </div>
+            <span className="font-semibold">{action.label}</span>
+          </button>
+        ))}
+      </div>
+    </DashboardPanel>
+  );
+};
+
+// Recent Activity Feed - Enhanced styling
+const RecentActivity = ({ data, theme }) => {
+  const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    const recentActivities = [];
+    
+    if (data.tasks && data.tasks.length > 0) {
+      const completedTasks = data.tasks
+        .filter(task => task.status === 'completed')
+        .slice(0, 2)
+        .map(task => ({
+          action: "Task completed",
+          project: task.project_name || task.title || "Unknown Project",
+          time: "Recently",
+          type: "success",
+          icon: CheckSquare
+        }));
+      recentActivities.push(...completedTasks);
+    }
+
+    if (data.tenders && data.tenders.length > 0) {
+      const activeTenders = data.tenders
+        .filter(tender => tender.status === 'active')
+        .slice(0, 1)
+        .map(tender => ({
+          action: "New tender submission",
+          project: tender.title || tender.name || "Unknown Tender",
+          time: "Recently",
+          type: "info",
+          icon: Eye
+        }));
+      recentActivities.push(...activeTenders);
+    }
+
+    if (data.statistics && data.statistics.overdueTasks > 0) {
+      recentActivities.push({
+        action: `${data.statistics.overdueTasks} tasks overdue`,
+        project: "Multiple Projects",
+        time: "Ongoing",
+        type: "warning",
+        icon: AlertTriangle
+      });
+    }
+
+    if (data.events && data.events.length > 0) {
+      const recentEvents = data.events
+        .slice(0, 1)
+        .map(event => ({
+          action: "Upcoming meeting",
+          project: event.project_name || event.title || "Team Meeting",
+          time: "Soon",
+          type: "info",
+          icon: Calendar
+        }));
+      recentActivities.push(...recentEvents);
+    }
+
+    if (recentActivities.length === 0) {
+      recentActivities.push(
+        { 
+          action: "System initialized", 
+          project: "Dashboard", 
+          time: "Just now", 
+          type: "info",
+          icon: Activity
+        },
+        { 
+          action: "Waiting for data", 
+          project: "API Connection", 
+          time: "Ongoing", 
+          type: "warning",
+          icon: RefreshCw
+        }
+      );
+    }
+
+    setActivities(recentActivities.slice(0, 4));
+  }, [data]);
+
+  const getTypeStyles = (type) => {
+    switch (type) {
+      case 'success': return 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-200/50';
+      case 'warning': return 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-700 border-amber-200/50';
+      case 'info': return 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 border-blue-200/50';
+      default: return 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-700 border-gray-200/50';
+    }
+  };
+
+  const getIconColor = (type) => {
+    switch (type) {
+      case 'success': return 'text-emerald-600';
+      case 'warning': return 'text-amber-600';
+      case 'info': return 'text-blue-600';
+      default: return 'text-gray-600';
+    }
+  };
+
+  return (
+    <DashboardPanel title="Recent Activity" icon={Activity}>
+      <div className="space-y-3">
+        {activities.map((activity, index) => (
+          <div key={index} className={`p-4 rounded-xl border ${getTypeStyles(activity.type)} hover:shadow-md transition-all duration-300`}>
+            <div className="flex items-start space-x-3">
+              <div className={`p-2 rounded-lg bg-white/50 ${getIconColor(activity.type)}`}>
+                <activity.icon className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{activity.action}</p>
+                <p className="text-xs opacity-80">{activity.project}</p>
+                <p className="text-xs opacity-60 mt-1">{activity.time}</p>
+              </div>
             </div>
           </div>
         ))}
@@ -3007,76 +3807,105 @@ const LiveDataStats = ({ data, theme }) => {
   );
 };
 
-// Enhanced Team Performance List
-const TeamPerformanceList = ({ data, theme }) => {
-  const sortedTeamMembers = React.useMemo(() => {
-    const teamMembers = data.chartData?.teamWorkload || [];
-    return [...teamMembers].sort((a, b) => b.workload - a.workload);
-  }, [data.chartData?.teamWorkload]);
+// Tenders Management Section
+const TendersSection = ({ data, theme }) => {
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active': return 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-700 border-emerald-300';
+      case 'evaluation': return 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border-amber-300';
+      case 'draft': return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
+      case 'closed': return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-blue-300';
+      default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case 'high': return 'bg-gradient-to-r from-red-100 to-red-200 text-red-700 border-red-300';
+      case 'medium': return 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-700 border-yellow-300';
+      case 'low': return 'bg-gradient-to-r from-green-100 to-green-200 text-green-700 border-green-300';
+      default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    if (!amount) return '$0';
+    const num = parseFloat(amount);
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(0)}K`;
+    }
+    return `${num.toLocaleString()}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No deadline';
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return 'Invalid date';
+    }
+  };
 
   return (
-    <DashboardPanel title="Team Performance Ranking" icon={Award}>
-      <div className="space-y-1">
-        <div className="flex items-center justify-between text-xs font-medium text-gray-500 px-3 pb-2 border-b">
-          <span>Rank & Member</span>
-          <div className="flex space-x-8">
-            <span>Workload</span>
-            <span>Projects</span>
-            <span>Efficiency</span>
-          </div>
-        </div>
-        
-        {sortedTeamMembers.slice(0, 12).map((member, index) => {
-          const getRankBadge = (rank) => {
-            if (rank === 0) return "🥇";
-            if (rank === 1) return "🥈";
-            if (rank === 2) return "🥉";
-            return `#${rank + 1}`;
-          };
-          
-          const getWorkloadColor = (workload) => {
-            if (workload >= 90) return "text-red-600 bg-red-50";
-            if (workload >= 75) return "text-orange-600 bg-orange-50";
-            if (workload >= 50) return "text-yellow-600 bg-yellow-50";
-            return "text-green-600 bg-green-50";
-          };
-
-          return (
-            <div key={`${member.name}-${index}`} className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg border hover:shadow-md transition-all">
-              <div className="flex items-center space-x-3">
-                <div className="text-lg font-bold text-gray-600 w-8">
-                  {getRankBadge(index)}
-                </div>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                  member.role === 'Manager' ? 'bg-blue-500' : 
-                  member.role === 'Supervisor' ? 'bg-purple-500' : 'bg-cyan-500'
-                }`}>
-                  {member.name ? member.name[0] : 'U'}
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900 text-sm">{member.name || 'Unknown'}</div>
-                  <div className="text-xs text-gray-500">{member.role || 'Team Member'}</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-8">
-                <div className={`px-2 py-1 rounded-full text-xs font-bold ${getWorkloadColor(member.workload || 0)}`}>
-                  {member.workload || 0}%
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-purple-600">{member.projects || 0}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-green-600">{Math.round(member.efficiency || 0)}%</div>
+    <DashboardPanel title="Active Tenders" icon={Eye}>
+      <div className="space-y-4">
+        {data.tenders && data.tenders.length > 0 ? (
+          <>
+            {data.tenders.slice(0, 4).map((tender) => (
+              <div key={tender.id} className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-start space-x-4">
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 shadow-md group-hover:scale-110 transition-transform duration-300">
+                        <Eye className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-900 text-lg mb-2">{tender.title || tender.name || 'Untitled Tender'}</h4>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                          <span className="flex items-center space-x-1">
+                            <DollarSign className="h-4 w-4" />
+                            <span>Budget: {formatCurrency(tender.budget_estimate || tender.value || tender.amount)}</span>
+                          </span>
+                          {tender.bidders_count && (
+                            <span className="flex items-center space-x-1">
+                              <Users className="h-4 w-4" />
+                              <span>{tender.bidders_count} Bidders</span>
+                            </span>
+                          )}
+                          <span className="flex items-center space-x-1">
+                            <Calendar className="h-4 w-4" />
+                            <span>Due: {formatDate(tender.deadline || tender.submission_deadline)}</span>
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(tender.status)}`}>
+                            {tender.status?.toUpperCase() || 'UNKNOWN'}
+                          </span>
+                          {tender.priority && (
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getPriorityColor(tender.priority)}`}>
+                              {tender.priority?.toUpperCase()} PRIORITY
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            ))}
+            <div className="text-center pt-4">
+              <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all font-semibold shadow-lg hover:shadow-xl">
+                View All Tenders
+              </button>
             </div>
-          );
-        })}
-        
-        {sortedTeamMembers.length === 0 && (
+          </>
+        ) : (
           <div className="text-center py-8 text-gray-500">
-            <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No team members data available</p>
+            <Eye className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium">No tenders available</p>
+            <p className="text-sm">Tenders will appear here when available from the API</p>
           </div>
         )}
       </div>
@@ -3084,112 +3913,326 @@ const TeamPerformanceList = ({ data, theme }) => {
   );
 };
 
-// Tenders Management Panel
-const TendersManagement = ({ data, theme }) => {
-  const tenderData = [
-    { id: 1, title: "Commercial Building Construction", value: 2500000, status: "active", bidders: 8, deadline: "2024-02-15", priority: "high" },
-    { id: 2, title: "Road Infrastructure Project", value: 1800000, status: "active", bidders: 12, deadline: "2024-02-20", priority: "medium" },
-    { id: 3, title: "Residential Complex Phase 2", value: 3200000, status: "evaluation", bidders: 6, deadline: "2024-01-30", priority: "high" },
-    { id: 4, title: "Paint Supply Contract", value: 450000, status: "draft", bidders: 0, deadline: "2024-03-01", priority: "low" },
-    { id: 5, title: "School Renovation Project", value: 920000, status: "active", bidders: 4, deadline: "2024-02-25", priority: "medium" },
-    { id: 6, title: "Office Complex Painting", value: 680000, status: "closed", bidders: 15, deadline: "2024-01-15", priority: "completed" },
-  ];
-
+// Projects Section
+const ProjectsSection = ({ data, theme }) => {
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'text-green-600 bg-green-100';
-      case 'evaluation': return 'text-yellow-600 bg-yellow-100';
-      case 'draft': return 'text-gray-600 bg-gray-100';
-      case 'closed': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
+    switch (status?.toLowerCase()) {
+      case 'active': return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-blue-300';
+      case 'completed': return 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-700 border-emerald-300';
+      case 'on-hold': return 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border-amber-300';
+      case 'delayed': return 'bg-gradient-to-r from-red-100 to-red-200 text-red-700 border-red-300';
+      default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
     }
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
-      case 'completed': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
+  const getProgressColor = (progress) => {
+    if (progress >= 80) return 'from-emerald-500 to-emerald-600';
+    if (progress >= 50) return 'from-blue-500 to-blue-600';
+    if (progress >= 25) return 'from-amber-500 to-amber-600';
+    return 'from-red-500 to-red-600';
   };
 
-  const tenderStats = {
-    total: tenderData.length,
-    active: tenderData.filter(t => t.status === 'active').length,
-    evaluation: tenderData.filter(t => t.status === 'evaluation').length,
-    totalValue: tenderData.reduce((sum, t) => sum + t.value, 0),
-    averageBidders: Math.round(tenderData.reduce((sum, t) => sum + t.bidders, 0) / tenderData.length)
+  const formatCurrency = (amount) => {
+    if (!amount) return '$0';
+    return `${(amount / 1000000).toFixed(1)}M`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No deadline';
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return 'Invalid date';
+    }
   };
 
   return (
-    <DashboardPanel title="Tenders Management" icon={Eye}>
-      <div className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{tenderStats.total}</div>
-            <div className="text-xs text-blue-800">Total Tenders</div>
-          </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{tenderStats.active}</div>
-            <div className="text-xs text-green-800">Active</div>
-          </div>
-          <div className="text-center p-3 bg-yellow-50 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600">{tenderStats.evaluation}</div>
-            <div className="text-xs text-yellow-800">In Evaluation</div>
-          </div>
-          <div className="text-center p-3 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">${(tenderStats.totalValue / 1000000).toFixed(1)}M</div>
-            <div className="text-xs text-purple-800">Total Value</div>
-          </div>
-          <div className="text-center p-3 bg-indigo-50 rounded-lg">
-            <div className="text-2xl font-bold text-indigo-600">{tenderStats.averageBidders}</div>
-            <div className="text-xs text-indigo-800">Avg Bidders</div>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <h4 className="font-semibold text-gray-800 text-sm">Recent Tenders</h4>
-          <div className="space-y-2 max-h-80 overflow-y-auto">
-            {tenderData.map((tender) => (
-              <div key={tender.id} className="p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border hover:shadow-md transition-all">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-1">
-                        <h5 className="font-semibold text-gray-900 text-sm mb-1">{tender.title}</h5>
-                        <div className="flex items-center space-x-4 text-xs text-gray-600">
-                          <span>Value: ${(tender.value / 1000000).toFixed(1)}M</span>
-                          <span>Bidders: {tender.bidders}</span>
-                          <span>Deadline: {new Date(tender.deadline).toLocaleDateString()}</span>
-                        </div>
+    <DashboardPanel title="Active Projects" icon={Building2}>
+      <div className="space-y-4">
+        {data.projects && data.projects.length > 0 ? (
+          <>
+            {data.projects.slice(0, 4).map((project) => (
+              <div key={project.id} className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 shadow-md group-hover:scale-110 transition-transform duration-300">
+                      <Building2 className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-lg mb-1">{project.title || project.name || 'Untitled Project'}</h4>
+                      <p className="text-sm text-gray-600 mb-2">Manager: {project.manager || 'Unassigned'}</p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <span className="flex items-center space-x-1">
+                          <MapPin className="h-4 w-4" />
+                          <span>{project.location || 'Unknown'}</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <Calendar className="h-4 w-4" />
+                          <span>{formatDate(project.deadline || project.end_date)}</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <DollarSign className="h-4 w-4" />
+                          <span>{formatCurrency(project.budget)}</span>
+                        </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col space-y-2">
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(tender.status)}`}>
-                      {tender.status.toUpperCase()}
-                    </div>
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(tender.priority)}`}>
-                      {tender.priority.toUpperCase()}
-                    </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(project.status)}`}>
+                    {project.status?.toUpperCase() || 'UNKNOWN'}
+                  </span>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-700">Progress</span>
+                    <span className="font-bold text-gray-900">{Math.round(project.progress_percentage || project.progress || 0)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className={`h-full bg-gradient-to-r ${getProgressColor(project.progress_percentage || project.progress || 0)} transition-all duration-500 rounded-full shadow-sm`}
+                      style={{ width: `${project.progress_percentage || project.progress || 0}%` }}
+                    ></div>
                   </div>
                 </div>
               </div>
             ))}
+            <div className="text-center pt-4">
+              <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all font-semibold shadow-lg hover:shadow-xl">
+                View All Projects
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium">No projects available</p>
+            <p className="text-sm">Projects will appear here when available from the API</p>
           </div>
-        </div>
+        )}
       </div>
     </DashboardPanel>
   );
 };
 
-// Chart Components
+// Project Managers Section with clickable navigation
+const ProjectManagersSection = ({ data, theme, onManagerClick }) => {
+  const getWorkloadColor = (workload, status) => {
+    if (status === 'overloaded' || workload >= 90) return 'from-red-500 to-red-600 text-white';
+    if (workload >= 75) return 'from-amber-500 to-amber-600 text-white';
+    if (workload >= 50) return 'from-blue-500 to-blue-600 text-white';
+    return 'from-emerald-500 to-emerald-600 text-white';
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'overloaded': return 'bg-gradient-to-r from-red-100 to-red-200 text-red-700 border-red-300';
+      case 'busy': return 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border-amber-300';
+      case 'optimal': return 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-700 border-emerald-300';
+      default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-gray-300';
+    }
+  };
+
+  const processedManagers = data.managers?.map(manager => ({
+    ...manager,
+    status: manager.workload >= 90 ? 'overloaded' : manager.workload >= 75 ? 'busy' : 'optimal'
+  })) || [];
+
+  const handleManagerClick = (manager) => {
+    onManagerClick(manager);
+  };
+
+  return (
+    <DashboardPanel title="Project Managers Workload" icon={Users}>
+      <div className="space-y-4">
+        {processedManagers.length > 0 ? (
+          <>
+            <div className="text-sm text-gray-600 mb-4">
+              Click on a manager to view detailed information
+            </div>
+            
+            {processedManagers
+              .sort((a, b) => b.workload - a.workload)
+              .slice(0, 5)
+              .map((manager, index) => (
+                <div 
+                  key={manager.id} 
+                  onClick={() => handleManagerClick(manager)}
+                  className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
+                          {manager.avatar || manager.name?.charAt(0) || 'M'}
+                        </div>
+                        {index === 0 && manager.status === 'overloaded' && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                            <AlertTriangle className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-1">
+                          <h4 className="font-bold text-gray-900 text-lg">{manager.name}</h4>
+                          {manager.status === 'overloaded' && (
+                            <span className="px-2 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full">
+                              NEEDS HELP
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{manager.role || 'Project Manager'}</p>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <span>{manager.projectsCount || 0} Projects</span>
+                          <span>Efficiency: {Math.round(manager.efficiency || 0)}%</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(manager.status)}`}>
+                            {manager.status?.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className={`px-4 py-2 rounded-xl bg-gradient-to-r ${getWorkloadColor(manager.workload, manager.status)} font-bold text-lg shadow-md`}>
+                        {manager.workload || 0}%
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">Workload</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium">No project managers available</p>
+            <p className="text-sm">Project managers will appear here when available from the API</p>
+          </div>
+        )}
+      </div>
+    </DashboardPanel>
+  );
+};
+
+// Supervisors Section
+const SupervisorsSection = ({ data, theme }) => {
+  const getWorkloadColor = (workload) => {
+    if (workload >= 80) return 'from-red-500 to-red-600';
+    if (workload >= 60) return 'from-amber-500 to-amber-600';
+    return 'from-emerald-500 to-emerald-600';
+  };
+
+  return (
+    <DashboardPanel title="Site Supervisors" icon={HardHat}>
+      <div className="space-y-4">
+        {data.supervisors && data.supervisors.length > 0 ? (
+          data.supervisors.slice(0, 4).map((supervisor) => (
+            <div key={supervisor.id} className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
+                    {supervisor.avatar || supervisor.name?.charAt(0) || 'S'}
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-lg mb-1">{supervisor.name}</h4>
+                    <p className="text-sm text-gray-600 mb-1">Current Site: {supervisor.currentSite || 'Multiple Sites'}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <span>{supervisor.projectsCount || 0} Projects</span>
+                      <span>{supervisor.teamsManaged || 'N/A'} Teams</span>
+                      <span>Efficiency: {Math.round(supervisor.efficiency || 0)}%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  <div className={`px-4 py-2 rounded-xl bg-gradient-to-r ${getWorkloadColor(supervisor.workload || 0)} text-white font-bold text-lg shadow-md`}>
+                    {supervisor.workload || 0}%
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Workload</div>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <HardHat className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium">No supervisors available</p>
+            <p className="text-sm">Supervisors will appear here when available from the API</p>
+          </div>
+        )}
+      </div>
+    </DashboardPanel>
+  );
+};
+
+// Site Managers Section
+const SiteManagersSection = ({ data, theme }) => {
+  const getWorkloadColor = (workload) => {
+    if (workload >= 80) return 'from-red-500 to-red-600';
+    if (workload >= 60) return 'from-amber-500 to-amber-600';
+    return 'from-emerald-500 to-emerald-600';
+  };
+
+  return (
+    <DashboardPanel title="Site Managers" icon={Clipboard}>
+      <div className="space-y-4">
+        {data.siteManagers && data.siteManagers.length > 0 ? (
+          data.siteManagers.slice(0, 4).map((manager) => (
+            <div key={manager.id} className="p-5 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
+                    {manager.avatar || manager.name?.charAt(0) || 'SM'}
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-lg mb-1">{manager.name}</h4>
+                    <p className="text-sm text-gray-600 mb-1">Site: {manager.currentSite || 'Multiple Sites'}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <span>{manager.projectsCount || 0} Projects</span>
+                      <span>{manager.workersManaged || 'N/A'} Workers</span>
+                      <span>Efficiency: {Math.round(manager.efficiency || 0)}%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  <div className={`px-4 py-2 rounded-xl bg-gradient-to-r ${getWorkloadColor(manager.workload || 0)} text-white font-bold text-lg shadow-md`}>
+                    {manager.workload || 0}%
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Workload</div>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Clipboard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium">No site managers available</p>
+            <p className="text-sm">Site managers will appear here when available from the API</p>
+          </div>
+        )}
+      </div>
+    </DashboardPanel>
+  );
+};
+
+// Chart Components with enhanced styling
 const TeamWorkloadChart = ({ data, theme }) => (
-  <DashboardPanel title="Busiest Team Members" icon={BarChart3}>
-    <ResponsiveContainer width="100%" height={350}>
+  <DashboardPanel title="Team Workload Distribution" icon={BarChart3}>
+    <ResponsiveContainer width="100%" height={400}>
       <BarChart data={data.chartData?.teamWorkload || []} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+        <defs>
+          <linearGradient id="workloadGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
+            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.6}/>
+          </linearGradient>
+          <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.9}/>
+            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.6}/>
+          </linearGradient>
+        </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
         <XAxis 
           dataKey="name" 
@@ -3204,129 +4247,624 @@ const TeamWorkloadChart = ({ data, theme }) => (
           contentStyle={{ 
             backgroundColor: 'white', 
             border: '1px solid #e2e8f0', 
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+            padding: '12px'
           }}
         />
-        <Bar dataKey="workload" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Workload %" />
-        <Bar dataKey="projects" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="Projects" />
+        <Bar dataKey="workload" fill="url(#workloadGradient)" radius={[6, 6, 0, 0]} name="Workload %" />
+        <Bar dataKey="projects" fill="url(#projectsGradient)" radius={[6, 6, 0, 0]} name="Projects" />
       </BarChart>
-    </ResponsiveContainer>
-  </DashboardPanel>
-);
-
-const TeamRadarChart = ({ data, theme }) => (
-  <DashboardPanel title="Team Performance Radar" icon={Target}>
-    <ResponsiveContainer width="100%" height={350}>
-      <RadarChart data={data.chartData?.teamRadar || []}>
-        <PolarGrid />
-        <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12 }} />
-        <PolarRadiusAxis angle={0} domain={[0, 100]} tick={{ fontSize: 10 }} />
-        <Radar name="Managers" dataKey="Managers" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} strokeWidth={2} />
-        <Radar name="Supervisors" dataKey="Supervisors" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.3} strokeWidth={2} />
-        <Radar name="Site Managers" dataKey="SiteManagers" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.3} strokeWidth={2} />
-        <Legend />
-        <Tooltip />
-      </RadarChart>
     </ResponsiveContainer>
   </DashboardPanel>
 );
 
 const ProjectProgressChart = ({ data, theme }) => (
   <DashboardPanel title="Project Progress Tracker" icon={TrendingUp}>
-    <ResponsiveContainer width="100%" height={350}>
+    <ResponsiveContainer width="100%" height={400}>
       <ComposedChart data={data.chartData?.projectProgress || []}>
+        <defs>
+          <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
+            <stop offset="95%" stopColor="#10b981" stopOpacity={0.6}/>
+          </linearGradient>
+        </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
         <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
         <YAxis yAxisId="left" stroke="#64748b" fontSize={12} />
         <YAxis yAxisId="right" orientation="right" stroke="#64748b" fontSize={12} />
-        <Tooltip />
-        <Bar yAxisId="left" dataKey="progress" fill="#10b981" radius={[4, 4, 0, 0]} name="Progress %" />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'white', 
+            border: '1px solid #e2e8f0', 
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+            padding: '12px'
+          }}
+        />
+        <Bar yAxisId="left" dataKey="progress" fill="url(#progressGradient)" radius={[6, 6, 0, 0]} name="Progress %" />
         <Line yAxisId="right" type="monotone" dataKey="budget" stroke="#f59e0b" strokeWidth={3} name="Budget (M)" />
       </ComposedChart>
     </ResponsiveContainer>
   </DashboardPanel>
 );
 
-const PerformanceTrendsChart = ({ data, theme }) => (
-  <DashboardPanel title="Performance Trends" icon={Activity}>
-    <ResponsiveContainer width="100%" height={350}>
-      <AreaChart data={data.chartData?.performanceMetrics || []}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-        <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-        <YAxis stroke="#64748b" fontSize={12} />
-        <Tooltip />
-        <Area type="monotone" dataKey="projects" stackId="1" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} name="Projects" />
-        <Area type="monotone" dataKey="completed" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Completed" />
-        <Area type="monotone" dataKey="efficiency" stackId="2" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.4} name="Efficiency" />
-      </AreaChart>
+const TeamRadarChart = ({ data, theme }) => (
+  <DashboardPanel title="Team Performance Analysis" icon={Target}>
+    <ResponsiveContainer width="100%" height={400}>
+      <RadarChart data={data.chartData?.teamRadar || []}>
+        <PolarGrid stroke="#e5e7eb" />
+        <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: '#6b7280' }} />
+        <PolarRadiusAxis angle={0} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+        <Radar name="Managers" dataKey="Managers" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={3} />
+        <Radar name="Supervisors" dataKey="Supervisors" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.2} strokeWidth={3} />
+        <Radar name="Site Managers" dataKey="SiteManagers" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} strokeWidth={3} />
+        <Legend />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'white', 
+            border: '1px solid #e2e8f0', 
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}
+        />
+      </RadarChart>
     </ResponsiveContainer>
   </DashboardPanel>
 );
 
-const StatisticsSummary = ({ data, theme }) => (
-  <DashboardPanel title="Statistics Overview" icon={PieChartIcon}>
-    <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-3">
-        <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-          <span className="text-sm font-medium text-blue-900">Total Projects</span>
-          <span className="text-lg font-bold text-blue-600">{data.statistics?.totalProjects || 0}</span>
-        </div>
-        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-          <span className="text-sm font-medium text-green-900">Completed</span>
-          <span className="text-lg font-bold text-green-600">{data.statistics?.completedProjects || 0}</span>
-        </div>
-        <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-          <span className="text-sm font-medium text-orange-900">Pending Tasks</span>
-          <span className="text-lg font-bold text-orange-600">{data.statistics?.pendingTasks || 0}</span>
-        </div>
-        <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-          <span className="text-sm font-medium text-red-900">Overdue</span>
-          <span className="text-lg font-bold text-red-600">{data.statistics?.overdueTasks || 0}</span>
-        </div>
-      </div>
-      
-      <div className="space-y-3">
-        <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-          <span className="text-sm font-medium text-purple-900">Active Tenders</span>
-          <span className="text-lg font-bold text-purple-600">{data.statistics?.activeTenders || 0}</span>
-        </div>
-        <div className="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
-          <span className="text-sm font-medium text-indigo-900">Today's Events</span>
-          <span className="text-lg font-bold text-indigo-600">{data.statistics?.todayEvents || 0}</span>
-        </div>
-        <div className="flex justify-between items-center p-3 bg-pink-50 rounded-lg">
-          <span className="text-sm font-medium text-pink-900">Notifications</span>
-          <span className="text-lg font-bold text-pink-600">{data.statistics?.unreadNotifications || 0}</span>
-        </div>
-        <div className="flex justify-between items-center p-3 bg-cyan-50 rounded-lg">
-          <span className="text-sm font-medium text-cyan-900">Avg Progress</span>
-          <span className="text-lg font-bold text-cyan-600">{Math.round(data.statistics?.avgProgress || 0)}%</span>
-        </div>
-      </div>
-    </div>
-  </DashboardPanel>
-);
+// Interactive Calendar Component with Event Management
+const InteractiveCalendar = ({ data, theme }) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    type: 'meeting',
+    projectManager: '',
+    project: '',
+    location: ''
+  });
 
+  useEffect(() => {
+    fetchCalendarEvents();
+  }, [currentDate]);
+
+  const fetchCalendarEvents = async () => {
+    try {
+      setLoading(true);
+      // Combine events from different sources
+      const allEvents = [];
+      
+      // Add project milestones
+      if (data.projects) {
+        data.projects.forEach(project => {
+          if (project.deadline || project.end_date) {
+            allEvents.push({
+              id: `project-${project.id}`,
+              title: `Project Deadline: ${project.title || project.name}`,
+              date: project.deadline || project.end_date,
+              type: 'deadline',
+              project: project.title || project.name,
+              manager: project.manager || 'Unassigned'
+            });
+          }
+        });
+      }
+
+      // Add tender deadlines
+      if (data.tenders) {
+        data.tenders.forEach(tender => {
+          if (tender.deadline || tender.submission_deadline) {
+            allEvents.push({
+              id: `tender-${tender.id}`,
+              title: `Tender Deadline: ${tender.title || tender.name}`,
+              date: tender.deadline || tender.submission_deadline,
+              type: 'tender',
+              project: tender.title || tender.name
+            });
+          }
+        });
+      }
+
+      // Add task deadlines
+      if (data.tasks) {
+        data.tasks.forEach(task => {
+          if (task.due_date) {
+            allEvents.push({
+              id: `task-${task.id}`,
+              title: `Task Due: ${task.title}`,
+              date: task.due_date,
+              type: 'task',
+              project: task.project_name || 'Unknown Project'
+            });
+          }
+        });
+      }
+
+      // Add existing events
+      if (data.events) {
+        data.events.forEach(event => {
+          allEvents.push({
+            id: `event-${event.id}`,
+            title: event.title || event.description,
+            date: event.start_date || event.date,
+            type: event.type || 'meeting',
+            project: event.project_name,
+            manager: event.manager
+          });
+        });
+      }
+
+      setCalendarEvents(allEvents);
+    } catch (error) {
+      console.warn("Failed to fetch calendar events:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCalendarDays = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+    const days = [];
+    const current = new Date(startDate);
+
+    for (let i = 0; i < 42; i++) {
+      const dayEvents = calendarEvents.filter(event => {
+        const eventDate = new Date(event.date);
+        return eventDate.toDateString() === current.toDateString();
+      });
+
+      days.push({
+        date: new Date(current),
+        isCurrentMonth: current.getMonth() === month,
+        isToday: current.toDateString() === new Date().toDateString(),
+        isSelected: current.toDateString() === selectedDate.toDateString(),
+        events: dayEvents,
+        hasEvents: dayEvents.length > 0,
+      });
+
+      current.setDate(current.getDate() + 1);
+    }
+
+    return days;
+  };
+
+  const navigateMonth = (direction) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + direction);
+    setCurrentDate(newDate);
+  };
+
+  const handleDateClick = (date) => {
+    setSelectedDate(date);
+    setNewEvent(prev => ({
+      ...prev,
+      date: date.toISOString().split('T')[0]
+    }));
+  };
+
+  const getEventTypeColor = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'meeting': return 'bg-blue-500';
+      case 'deadline': return 'bg-red-500';
+      case 'task': return 'bg-yellow-500';
+      case 'tender': return 'bg-purple-500';
+      case 'milestone': return 'bg-green-500';
+      case 'inspection': return 'bg-orange-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getEventTypeBadgeColor = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'meeting': return 'bg-blue-100 text-blue-700 border-blue-300';
+      case 'deadline': return 'bg-red-100 text-red-700 border-red-300';
+      case 'task': return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+      case 'tender': return 'bg-purple-100 text-purple-700 border-purple-300';
+      case 'milestone': return 'bg-green-100 text-green-700 border-green-300';
+      case 'inspection': return 'bg-orange-100 text-orange-700 border-orange-300';
+      default: return 'bg-gray-100 text-gray-700 border-gray-300';
+    }
+  };
+
+  const handleCreateEvent = async (e) => {
+    e.preventDefault();
+    try {
+      // Here you would call your API to create the event
+      // For now, we'll add it locally
+      const eventToAdd = {
+        id: `custom-${Date.now()}`,
+        title: newEvent.title,
+        description: newEvent.description,
+        date: `${newEvent.date}T${newEvent.time}`,
+        type: newEvent.type,
+        manager: newEvent.projectManager,
+        project: newEvent.project,
+        location: newEvent.location
+      };
+
+      setCalendarEvents(prev => [...prev, eventToAdd]);
+      setShowCreateEvent(false);
+      setNewEvent({
+        title: '',
+        description: '',
+        date: selectedDate.toISOString().split('T')[0],
+        time: '',
+        type: 'meeting',
+        projectManager: '',
+        project: '',
+        location: ''
+      });
+    } catch (error) {
+      console.error("Failed to create event:", error);
+    }
+  };
+
+  const getSelectedDateEvents = () => {
+    return calendarEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate.toDateString() === selectedDate.toDateString();
+    });
+  };
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  return (
+    <DashboardPanel title="System Calendar" icon={CalendarDays}>
+      <div className="space-y-6">
+        {/* Calendar Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-lg font-semibold text-gray-900">
+              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </h4>
+            <p className="text-sm text-gray-500">
+              {calendarEvents.length} activities this month
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => navigateMonth(-1)}
+              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setCurrentDate(new Date())}
+              className="px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+            >
+              Today
+            </button>
+            <button
+              onClick={() => navigateMonth(1)}
+              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="space-y-2">
+          <div className="grid grid-cols-7 gap-1">
+            {dayNames.map(day => (
+              <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {getCalendarDays().map((day, index) => (
+              <button
+                key={index}
+                onClick={() => handleDateClick(day.date)}
+                className={`
+                  relative p-2 min-h-[50px] text-sm rounded-lg transition-all hover:bg-gray-100 flex flex-col items-center justify-start
+                  ${day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
+                  ${day.isToday ? 'bg-blue-500 text-white hover:bg-blue-600' : ''}
+                  ${day.isSelected && !day.isToday ? 'bg-blue-100 text-blue-700' : ''}
+                  ${day.hasEvents ? 'font-semibold' : ''}
+                `}
+              >
+                <span className="mb-1">{day.date.getDate()}</span>
+                {day.hasEvents && (
+                  <div className="flex flex-wrap gap-1 justify-center">
+                    {day.events.slice(0, 2).map((event, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-2 h-2 rounded-full ${getEventTypeColor(event.type)}`}
+                        title={event.title}
+                      ></div>
+                    ))}
+                    {day.events.length > 2 && (
+                      <div className="text-xs text-gray-600">+{day.events.length - 2}</div>
+                    )}
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Selected Date Events */}
+        <div className="border-t pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="font-semibold text-gray-900">
+              Events for {selectedDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </h5>
+            <button 
+              onClick={() => setShowCreateEvent(true)}
+              className="px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all text-sm font-medium shadow-md flex items-center space-x-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Event</span>
+            </button>
+          </div>
+
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                <p className="text-sm text-gray-500 mt-2">Loading events...</p>
+              </div>
+            ) : getSelectedDateEvents().length > 0 ? (
+              getSelectedDateEvents().map((event, index) => (
+                <div key={index} className="flex items-start space-x-3 p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-200/50">
+                  <div className={`w-3 h-3 rounded-full mt-1 ${getEventTypeColor(event.type)}`}></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 text-sm">
+                      {event.title}
+                    </p>
+                    {event.description && (
+                      <p className="text-xs text-gray-600 mt-1">{event.description}</p>
+                    )}
+                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                      {event.project && (
+                        <span className="flex items-center space-x-1">
+                          <Building2 className="h-3 w-3" />
+                          <span>{event.project}</span>
+                        </span>
+                      )}
+                      {event.manager && (
+                        <span className="flex items-center space-x-1">
+                          <Users className="h-3 w-3" />
+                          <span>{event.manager}</span>
+                        </span>
+                      )}
+                      {event.location && (
+                        <span className="flex items-center space-x-1">
+                          <MapPin className="h-3 w-3" />
+                          <span>{event.location}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full font-medium border ${getEventTypeBadgeColor(event.type)}`}>
+                    {event.type?.toUpperCase()}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No events scheduled for this day</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Activity Summary */}
+        <div className="border-t pt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-lg font-bold text-blue-600">
+                {calendarEvents.filter(e => e.type === 'meeting').length}
+              </div>
+              <div className="text-xs text-blue-800">Meetings</div>
+            </div>
+            <div className="text-center p-3 bg-red-50 rounded-lg">
+              <div className="text-lg font-bold text-red-600">
+                {calendarEvents.filter(e => e.type === 'deadline').length}
+              </div>
+              <div className="text-xs text-red-800">Deadlines</div>
+            </div>
+            <div className="text-center p-3 bg-yellow-50 rounded-lg">
+              <div className="text-lg font-bold text-yellow-600">
+                {calendarEvents.filter(e => e.type === 'task').length}
+              </div>
+              <div className="text-xs text-yellow-800">Tasks</div>
+            </div>
+            <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div className="text-lg font-bold text-green-600">
+                {calendarEvents.filter(e => e.type === 'milestone').length}
+              </div>
+              <div className="text-xs text-green-800">Milestones</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Create Event Modal */}
+      {showCreateEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Create New Event</h3>
+              <button
+                onClick={() => setShowCreateEvent(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateEvent} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Event Title</label>
+                <input
+                  type="text"
+                  required
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter event title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="2"
+                  placeholder="Event description (optional)"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={newEvent.date}
+                    onChange={(e) => setNewEvent(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                  <input
+                    type="time"
+                    value={newEvent.time}
+                    onChange={(e) => setNewEvent(prev => ({ ...prev, time: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
+                <select
+                  value={newEvent.type}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, type: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="meeting">Meeting</option>
+                  <option value="milestone">Milestone</option>
+                  <option value="inspection">Inspection</option>
+                  <option value="deadline">Deadline</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Project Manager</label>
+                <select
+                  value={newEvent.projectManager}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, projectManager: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Manager (Optional)</option>
+                  {data.managers?.map(manager => (
+                    <option key={manager.id} value={manager.name}>
+                      {manager.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Related Project</label>
+                <select
+                  value={newEvent.project}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, project: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Project (Optional)</option>
+                  {data.projects?.map(project => (
+                    <option key={project.id} value={project.title || project.name}>
+                      {project.title || project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <input
+                  type="text"
+                  value={newEvent.location}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, location: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Event location (optional)"
+                />
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateEvent(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all font-medium"
+                >
+                  Create Event
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </DashboardPanel>
+  );
+};
+
+// Loading Screen
 const LoadingScreen = ({ theme }) => (
   <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center`}>
     <div className="text-center">
       <div className="relative">
-        <div className="w-24 h-24 border-6 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
+        <div className="w-32 h-32 border-8 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-8 shadow-lg"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="flex items-center space-x-1">
-            <Palette className="h-6 w-6 text-blue-500" />
-            <Brush className="h-6 w-6 text-orange-500" />
+          <div className="flex items-center space-x-2">
+            <Palette className="h-8 w-8 text-blue-500 animate-pulse" />
+            <Brush className="h-8 w-8 text-orange-500 animate-pulse" />
           </div>
         </div>
       </div>
-      <h3 className={`text-3xl font-bold ${theme.colors.text} mb-2`}>
+      <h3 className={`text-4xl font-bold ${theme.colors.text} mb-3`}>
         Ujenzi & Paints
       </h3>
-      <p className={`text-lg ${theme.colors.textSecondary} mb-1`}>
+      <p className={`text-xl ${theme.colors.textSecondary} mb-2`}>
         Construction & Paint Management
       </p>
-      <p className={`text-sm ${theme.colors.textMuted}`}>
+      <p className={`text-base ${theme.colors.textMuted}`}>
         Loading dashboard...
       </p>
     </div>
@@ -3356,7 +4894,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     setSidebarOpen(false);
-  }, [location.pathname]);
+  }, [location?.pathname]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -3372,6 +4910,10 @@ const AdminDashboard = () => {
   const handleManagerClick = (manager) => {
     setSelectedManager(manager);
     setCurrentView("manager-details");
+    // Use navigate to go to the ProjectManagerDetails page
+    if (navigate) {
+      navigate(`/src/pages/admin/ProjectManagerDetails.jsx${manager.id}`);
+    }
   };
 
   const handleBackToDashboard = () => {
@@ -3391,16 +4933,16 @@ const AdminDashboard = () => {
     return (
       <div className={`min-h-screen ${theme.colors.background} flex items-center justify-center p-8`}>
         <DashboardPanel className="max-w-lg w-full text-center">
-          <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h3 className={`text-2xl font-bold ${theme.colors.text} mb-4`}>
+          <AlertTriangle className="h-20 w-20 text-red-500 mx-auto mb-6" />
+          <h3 className={`text-3xl font-bold ${theme.colors.text} mb-4`}>
             API Connection Error
           </h3>
-          <p className={`text-lg ${theme.colors.textSecondary} mb-6`}>
+          <p className={`text-lg ${theme.colors.textSecondary} mb-8`}>
             {error}
           </p>
           <button
             onClick={refetch}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-6 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all font-semibold"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 px-8 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all font-semibold text-lg shadow-lg hover:shadow-xl"
           >
             Retry Connection
           </button>
@@ -3429,14 +4971,14 @@ const AdminDashboard = () => {
 
       <div className={`min-h-screen w-full transition-all duration-300 ease-in-out ${sidebarCollapsed ? "lg:ml-16" : "lg:ml-80"}`}>
         {showingManagerDetails ? (
-          <div className="p-4">
-            <div className="mb-6">
+          <div className="p-6">
+            <div className="mb-8">
               <button
                 onClick={handleBackToDashboard}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all"
+                className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-xl transition-all shadow-md hover:shadow-lg"
               >
-                <ChevronLeft className="h-4 w-4" />
-                <span>Back to Dashboard</span>
+                <ChevronLeft className="h-5 w-5" />
+                <span className="font-semibold">Back to Dashboard</span>
               </button>
             </div>
             {selectedManager && (
@@ -3445,19 +4987,20 @@ const AdminDashboard = () => {
           </div>
         ) : (
           <div className="w-full">
-            <div className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-              <div className="w-full px-4 lg:px-6 py-4">
+            {/* Enhanced Header */}
+            <div className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-lg">
+              <div className="w-full px-6 lg:px-8 py-5">
                 <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center space-x-4 flex-shrink-0">
+                  <div className="flex items-center space-x-6 flex-shrink-0">
                     <button
                       onClick={() => setSidebarOpen(true)}
-                      className="lg:hidden p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all"
+                      className="lg:hidden p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg hover:shadow-xl"
                     >
-                      <Menu className="h-5 w-5" />
+                      <Menu className="h-6 w-6" />
                     </button>
                     <button
                       onClick={toggleSidebarCollapse}
-                      className="hidden lg:flex p-3 rounded-xl bg-gray-500 text-white hover:bg-gray-600 transition-all"
+                      className="hidden lg:flex p-3 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 transition-all shadow-lg"
                       title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
                     >
                       {sidebarCollapsed ? (
@@ -3466,36 +5009,34 @@ const AdminDashboard = () => {
                         <Minimize2 className="h-5 w-5" />
                       )}
                     </button>
-                    <div className="flex items-center space-x-3">
-                      <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg">
-                        <Palette className="h-6 lg:h-8 w-6 lg:w-8 text-white" />
-                      </div>
-                      <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg">
-                        <Building2 className="h-6 lg:h-8 w-6 lg:w-8 text-white" />
+                    <div className="flex items-center space-x-4">
+                    
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-xl">
+                        <Building2 className="h-8 lg:h-10 w-8 lg:w-10 text-white" />
                       </div>
                     </div>
                     <div className="hidden sm:block">
-                      <h1 className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent">
+                      <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent">
                         Ujenzi & Paints
                       </h1>
-                      <p className="text-xs lg:text-sm text-gray-600">Construction & Paint Management Dashboard</p>
+                      <p className="text-sm lg:text-base text-gray-600 font-medium">Construction & Paint Management Dashboard</p>
                     </div>
                   </div>
 
-                  <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-4 lg:mx-8">
+                  <div className="hidden md:flex items-center space-x-6 flex-1 max-w-3xl mx-8">
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
                         type="text"
                         placeholder="Search projects, tasks, or team members..."
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-12 pr-6 py-4 border border-gray-200 rounded-xl bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm hover:shadow-md transition-all"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 lg:space-x-4 flex-shrink-0">
+                  <div className="flex items-center space-x-4 flex-shrink-0">
                     <div className="hidden xl:block text-right">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-semibold text-gray-900">
                         {currentTime.toLocaleDateString('en-US', { 
                           weekday: 'long', 
                           year: 'numeric', 
@@ -3520,36 +5061,39 @@ const AdminDashboard = () => {
                         {lastUpdated ? lastUpdated.toLocaleTimeString() : "Never"}
                       </p>
                     </div>
+                    
                     <button
                       onClick={refetch}
                       disabled={refreshing}
-                      className={`p-2 lg:p-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all ${
+                      className={`p-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg hover:shadow-xl ${
                         refreshing ? "animate-spin" : ""
                       }`}
                     >
-                      <RefreshCw className="h-4 lg:h-5 w-4 lg:w-5" />
+                      <RefreshCw className="h-5 w-5" />
                     </button>
                     
-                    <button className="relative p-2 lg:p-3 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors">
-                      <Bell className="h-4 lg:h-5 w-4 lg:w-5" />
+                    <button className="relative p-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg">
+                      <Bell className="h-5 w-5" />
                       {data.statistics?.unreadNotifications > 0 && (
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
+                          {data.statistics.unreadNotifications > 9 ? '9+' : data.statistics.unreadNotifications}
+                        </span>
                       )}
                     </button>
                     
                     <button
                       onClick={theme.toggleTheme}
-                      className="p-2 lg:p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+                      className="p-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 transition-all shadow-lg text-xl"
                     >
                       {theme.isDark ? '☀️' : '🌙'}
                     </button>
                     
-                    <div className="flex items-center space-x-3 pl-2 lg:pl-4 border-l border-gray-200">
-                      <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm lg:text-base">
+                    <div className="flex items-center space-x-3 pl-4 border-l border-gray-300">
+                      <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                         AD
                       </div>
                       <div className="hidden lg:block">
-                        <p className="text-sm font-medium text-gray-900">Admin User</p>
+                        <p className="text-sm font-semibold text-gray-900">Admin User</p>
                         <p className="text-xs text-gray-600">System Administrator</p>
                       </div>
                     </div>
@@ -3558,68 +5102,72 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="w-full px-4 lg:px-6 py-6 lg:py-8">
-              <div className="mb-6 lg:mb-8 w-full">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <h2 className={`text-2xl lg:text-4xl font-bold ${theme.colors.text} mb-2`}>
-                      Construction Management Dashboard 🏗️
-                    </h2>
-                    <p className={`text-base lg:text-lg ${theme.colors.textSecondary}`}>
-                      Real-time insights into your construction projects and team performance.
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <button className="px-4 lg:px-6 py-2 lg:py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-colors font-medium text-sm lg:text-base">
-                      <Plus className="h-4 w-4 mr-2 inline" />
-                      New Project
-                    </button>
-                  </div>
-                </div>
+            {/* Main Content */}
+            <div className="w-full px-6 lg:px-8 py-8 lg:py-12">
+              {/* Enhanced Hero Section */}
+              <div className="mb-12 text-center">
+                {/* <h2 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent mb-4">
+                  Construction Management Hub 🏗️
+                </h2>
+                <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                  Monitor your construction projects, track team performance, and manage resources in real-time with powerful analytics and insights.
+                </p> */}
               </div>
 
-              <KeyMetricsBar data={data} theme={theme} />
-
-              <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 lg:gap-8 mb-8">
+              {/* Top Row - Overview and Actions */}
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 mb-12">
                 <div className="xl:col-span-2">
-                  <TeamWorkloadChart data={data} theme={theme} />
+                  <LiveStatistics data={data} theme={theme} />
                 </div>
-                <LiveDataStats data={data} theme={theme} />
-                <StatisticsSummary data={data} theme={theme} />
+                <QuickActions theme={theme} />
+                <RecentActivity data={data} theme={theme} />
               </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 mb-8">
-                <TeamRadarChart data={data} theme={theme} />
+              {/* Main Charts Section */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
+                <TeamWorkloadChart data={data} theme={theme} />
                 <ProjectProgressChart data={data} theme={theme} />
               </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 mb-8">
-                <PerformanceTrendsChart data={data} theme={theme} />
-                <TeamPerformanceList data={data} theme={theme} />
-                <TendersManagement data={data} theme={theme} />
+              {/* New Sections Row 1 - Tenders and Projects */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
+                <TendersSection data={data} theme={theme} />
+                <ProjectsSection data={data} theme={theme} />
               </div>
 
-              <div className="w-full text-center py-6 lg:py-8 border-t border-gray-200/50">
-                <div className="flex items-center justify-center space-x-4 mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Palette className="h-6 w-6 text-blue-500" />
-                    <Building2 className="h-6 w-6 text-orange-500" />
-                    <Brush className="h-6 w-6 text-purple-500" />
+              {/* New Sections Row 2 - Team Management */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
+                <ProjectManagersSection data={data} theme={theme} onManagerClick={handleManagerClick} />
+                <SupervisorsSection data={data} theme={theme} />
+                <SiteManagersSection data={data} theme={theme} />
+              </div>
+
+              {/* Performance Analysis Section */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
+                <TeamRadarChart data={data} theme={theme} />
+                <InteractiveCalendar data={data} theme={theme} />
+              </div>
+
+              {/* Enhanced Footer */}
+              <div className="text-center py-12 border-t border-gray-200/50 bg-gradient-to-r from-gray-50/50 to-white/50 rounded-2xl">
+                <div className="flex items-center justify-center space-x-6 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <Palette className="h-8 w-8 text-blue-500" />
+                    <Building2 className="h-8 w-8 text-orange-500" />
+                    <Brush className="h-8 w-8 text-purple-500" />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <h4 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent">
+                <div className="space-y-4">
+                  <h4 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent">
                     Ujenzi & Paints Enterprise
                   </h4>
-                  <p className={`text-sm ${theme.colors.textMuted}`}>
+                  <p className="text-base text-gray-600 font-medium">
                     Leading Construction & Paint Management Platform in Kenya
                   </p>
-                  <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-gray-500 mt-4">
-                    <span>© 2024 Ujenzi & Paints Solutions</span>
+                  <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500 mt-6">
+                    <span className="font-medium">© 2025 Ujenzi & Paints Solutions</span>
                     <span className="hidden sm:inline">•</span>
-                    <span>Projects: {data.projects?.length || 0}</span>
-                    <span className="hidden sm:inline">•</span>
-                    <span>Tasks: {data.tasks?.length || 0}</span>
+                    <span>Projects: {data.statistics?.totalProjects || 0}</span>
                     <span className="hidden sm:inline">•</span>
                     <span>Team: {data.statistics?.teamSize || 0}</span>
                     <span className="hidden sm:inline">•</span>
@@ -3632,9 +5180,10 @@ const AdminDashboard = () => {
         )}
       </div>
 
-      {sidebarOpen && (
+   {/* FIXED: Mobile overlay */}
+   {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
