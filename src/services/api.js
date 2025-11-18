@@ -803,7 +803,18 @@ export const projectsAPI = {
       console.error("❌ Failed to fetch completed projects:", error);
       throw error;
     }
+  },
+  // Inside projectsAPI
+markAsCompleted: async (id) => {
+  try {
+    const response = await axiosInstance.patch(`/projects/${id}/mark_as_completed`);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ Failed to mark project ${id} as completed:`, error);
+    throw error;
   }
+},
+
 };
 
 // ========== EVENTS API ========== //
@@ -2189,3 +2200,1082 @@ export const getRecentActivity = dashboardAPI.getRecentActivity;
 // Export default for compatibility
 export default api;
 
+
+
+
+// import axios from "axios";
+// import { getToken } from "./tokenStorage";
+
+// console.log("🚀 API FILE LOADED - Complete Upgraded Version v2.1");
+
+// // Configuration
+// const API_BASE_URL = "http://192.168.1.200:3001";
+// const API_TIMEOUT = 30000;
+// const RETRY_ATTEMPTS = 3;
+
+// // Create axios instances
+// export const api = axios.create({
+//   baseURL: API_BASE_URL,
+//   timeout: API_TIMEOUT,
+//   headers: {
+//     "Content-Type": "application/json",
+//     Accept: "application/json",
+//   },
+// });
+
+// export const axiosInstance = axios.create({
+//   baseURL: API_BASE_URL,
+//   timeout: API_TIMEOUT,
+//   headers: {
+//     "Content-Type": "application/json",
+//     Accept: "application/json",
+//   },
+// });
+
+// // Enhanced request interceptor with retry logic
+// axiosInstance.interceptors.request.use(
+//   async (config) => {
+//     const authData = await getToken();
+//     if (authData) {
+//       config.headers.Authorization = authData.bearerToken || `Bearer ${authData.accessToken}`;
+//       config.headers.client = authData.client || "";
+//       config.headers.uid = authData.uid || "";
+//       config.headers["token-type"] = authData.tokenType || "";
+//       config.headers["access-token"] = authData.accessToken || "";
+//     }
+    
+//     config.headers['X-Request-ID'] = Math.random().toString(36).substring(7);
+    
+//     console.log(`🚀 ${config.method.toUpperCase()} ${config.url}`, {
+//       headers: config.headers,
+//       data: config.data,
+//       params: config.params
+//     });
+    
+//     return config;
+//   },
+//   (error) => {
+//     console.error("❌ Request interceptor error:", error);
+//     return Promise.reject(error);
+//   }
+// );
+
+// // Enhanced response interceptor with better error handling
+// axiosInstance.interceptors.response.use(
+//   (response) => {
+//     console.log(`✅ ${response.config.method.toUpperCase()} ${response.config.url} - ${response.status}`, {
+//       data: response.data,
+//       headers: response.headers
+//     });
+//     return response;
+//   },
+//   async (error) => {
+//     const config = error.config;
+    
+//     if (!config || !config.retry) {
+//       config.retry = 0;
+//     }
+    
+//     if (config.retry < RETRY_ATTEMPTS && (
+//       error.code === 'NETWORK_ERROR' || 
+//       error.code === 'TIMEOUT' ||
+//       (error.response && error.response.status >= 500)
+//     )) {
+//       config.retry++;
+//       console.log(`🔄 Retrying request (${config.retry}/${RETRY_ATTEMPTS}): ${config.method.toUpperCase()} ${config.url}`);
+//       return axiosInstance(config);
+//     }
+    
+//     console.error("❌ API Error:", {
+//       method: error.config?.method,
+//       url: error.config?.url,
+//       status: error.response?.status,
+//       data: error.response?.data,
+//       message: error.message
+//     });
+    
+//     return Promise.reject(error);
+//   }
+// );
+
+// // Add interceptors for non-authenticated requests
+// api.interceptors.request.use((config) => {
+//   config.headers['X-Request-ID'] = Math.random().toString(36).substring(7);
+//   console.log(`🚀 [NO-AUTH] ${config.method.toUpperCase()} ${config.url}`, {
+//     headers: config.headers,
+//     data: config.data
+//   });
+//   return config;
+// });
+
+// api.interceptors.response.use(
+//   (response) => {
+//     console.log(`✅ [NO-AUTH] ${response.config.method.toUpperCase()} ${response.config.url} - ${response.status}`);
+//     return response;
+//   },
+//   (error) => {
+//     console.error("❌ [NO-AUTH] API Error:", error?.response || error.message);
+//     return Promise.reject(error);
+//   }
+// );
+
+// // Utility functions
+// export const getAuthHeaders = async () => {
+//   const authData = await getToken();
+//   return {
+//     Authorization: authData?.bearerToken || `Bearer ${authData?.accessToken}`,
+//     uid: authData?.uid || "",
+//     client: authData?.client || "",
+//     "token-type": authData?.tokenType || "",
+//     "access-token": authData?.accessToken || "",
+//     "Content-Type": "application/json",
+//     Accept: "application/json",
+//   };
+// };
+
+// // Helper function to handle different response formats
+// const normalizeResponse = (response, arrayKey = null) => {
+//   if (!response) return [];
+//   if (arrayKey && response[arrayKey]) {
+//     return Array.isArray(response[arrayKey]) ? response[arrayKey] : [];
+//   }
+//   if (Array.isArray(response)) return response;
+//   if (response.data && Array.isArray(response.data)) return response.data;
+//   return [];
+// };
+
+// // ========== AUTHENTICATION API ========== //
+// export const authAPI = {
+//   login: async (email, password) => {
+//     try {
+//       const response = await api.post("/auth/sign_in", { email, password });
+//       return response.data;
+//     } catch (error) {
+//       console.error("Login failed:", error);
+//       throw error;
+//     }
+//   },
+
+//   signup: async ({ name, email, password, password_confirmation }) => {
+//     try {
+//       const response = await api.post('/auth', {
+//         user: { name, email, password, password_confirmation }
+//       });
+//       return response.data;
+//     } catch (error) {
+//       console.error("Signup failed:", error);
+//       throw error;
+//     }
+//   },
+
+//   verifyOtp: async (email, otp) => {
+//     try {
+//       console.log("🔐 Verifying OTP:", { email, otp });
+//       const response = await api.post("/auth/verify_otp", { email, otp });
+      
+//       const token =
+//         response.headers["authorization"]?.split(" ")[1] ||
+//         response.headers["access-token"] ||
+//         response.data['access-token'] ||
+//         response.data.access_token ||
+//         response.data.accessToken ||
+//         response.data.token ||
+//         response.data.data?.access_token;
+      
+//       if (!token) {
+//         throw new Error("No authentication token received from server");
+//       }
+      
+//       const userData = response.data.data || response.data.user || response.data;
+//       const role = userData?.admin ? 'admin' : 'user';
+      
+//       return {
+//         message: response.data.message || "OTP verified successfully!",
+//         accessToken: token,
+//         bearerToken: `Bearer ${token}`,
+//         client: response.headers["client"] || response.data.client || "default-client",
+//         expiry: response.headers["expiry"] || response.data.expiry,
+//         uid: response.headers["uid"] || response.data.uid || userData?.uid || userData?.email,
+//         tokenType: response.headers["token-type"] || response.data.tokenType || "Bearer",
+//         role: role,
+//         user: userData
+//       };
+//     } catch (error) {
+//       console.error("❌ OTP verification failed:", error);
+//       const errorMessage = 
+//         error.response?.data?.errors?.join(', ') ||
+//         error.response?.data?.message ||
+//         error.response?.data?.error ||
+//         `OTP verification failed: ${error.response?.status} ${error.response?.statusText}`;
+//       throw new Error(errorMessage);
+//     }
+//   },
+
+//   resendOtp: async (email) => {
+//     const response = await api.post("/auth/resend_otp", { email });
+//     return response.data;
+//   },
+
+//   forgotPassword: async (email) => {
+//     const response = await api.post("/auth/password", { email });
+//     return response.data;
+//   },
+
+//   resetPassword: async (resetToken, password, passwordConfirmation) => {
+//     const response = await api.put("/auth/password", {
+//       reset_password_token: resetToken,
+//       password,
+//       password_confirmation: passwordConfirmation,
+//     });
+//     return response.data;
+//   },
+
+//   getUserDetails: async () => {
+//     const response = await axiosInstance.get("/auth/validate_token");
+//     return response.data;
+//   },
+
+//   logout: async () => {
+//     const response = await axiosInstance.delete("/auth/sign_out");
+//     return response.data;
+//   },
+
+//   deleteAccount: async () => {
+//     const response = await axiosInstance.delete("/auth/delete_account");
+//     return response.data;
+//   },
+
+//   confirmEmail: async (confirmationToken) => {
+//     const response = await api.get(`/users/confirm_email?confirmation_token=${confirmationToken}`);
+//     return response.data;
+//   }
+// };
+
+// // ========== PROJECTS API ========== //
+// export const projectsAPI = {
+//   getAll: async (filters = {}) => {
+//     try {
+//       const queryParams = new URLSearchParams();
+//       Object.entries(filters).forEach(([key, value]) => {
+//         if (value && value !== 'all') queryParams.append(key, value);
+//       });
+      
+//       const queryString = queryParams.toString();
+//       const endpoint = queryString ? `/projects?${queryString}` : '/projects';
+//       const response = await axiosInstance.get(endpoint);
+//       return response.data;
+//     } catch (error) {
+//       console.error("❌ Failed to fetch projects:", error);
+//       throw error;
+//     }
+//   },
+
+//   getById: async (id) => {
+//     const response = await axiosInstance.get(`/projects/${id}`);
+//     return response.data;
+//   },
+
+//   create: async (projectData) => {
+//     const response = await axiosInstance.post('/projects', { project: projectData });
+//     return response.data;
+//   },
+
+//   update: async (id, projectData) => {
+//     const response = await axiosInstance.put(`/projects/${id}`, { project: projectData });
+//     return response.data;
+//   },
+
+//   delete: async (id) => {
+//     const response = await axiosInstance.delete(`/projects/${id}`);
+//     return response.data;
+//   },
+
+//   getProgress: async (id) => {
+//     const response = await axiosInstance.get(`/projects/${id}/progress`);
+//     return response.data;
+//   },
+
+//   updateProgress: async (id, progressData) => {
+//     const response = await axiosInstance.patch(`/projects/${id}/update_progress`, progressData);
+//     return response.data;
+//   },
+
+//   getTeam: async (id) => {
+//     const response = await axiosInstance.get(`/projects/${id}/team`);
+//     return response.data;
+//   },
+
+//   getTimeline: async (id) => {
+//     const response = await axiosInstance.get(`/projects/${id}/timeline`);
+//     return response.data;
+//   },
+
+//   getChartData: async () => {
+//     const response = await axiosInstance.get('/projects/chart_data');
+//     return response.data;
+//   },
+
+//   getActive: async (filters = {}) => {
+//     const queryParams = new URLSearchParams(filters).toString();
+//     const endpoint = queryParams ? `/projects/active?${queryParams}` : '/projects/active';
+//     const response = await axiosInstance.get(endpoint);
+//     return response.data;
+//   },
+
+//   getCompleted: async (filters = {}) => {
+//     const queryParams = new URLSearchParams(filters).toString();
+//     const endpoint = queryParams ? `/projects/completed?${queryParams}` : '/projects/completed';
+//     const response = await axiosInstance.get(endpoint);
+//     return response.data;
+//   }
+// };
+// export const markProjectAsCompleted = async (projectId) => {
+//   try {
+//     const headers = await getAuthHeaders();
+//     const response = await axiosInstance.patch(`/projects/${projectId}/mark_as_completed`, {}, { headers });
+//     console.log("✅ Project marked as completed:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("❌ Failed to mark project as completed:", error?.response?.data || error.message);
+//     throw error;
+//   }
+// };
+
+
+// // ========== TENDERS API ========== //
+// export const tendersAPI = {
+//   getAll: async (filters = {}) => {
+//     try {
+//       const queryParams = new URLSearchParams();
+//       Object.entries(filters).forEach(([key, value]) => {
+//         if (value && value !== 'all') queryParams.append(key, value);
+//       });
+      
+//       const queryString = queryParams.toString();
+//       const endpoint = queryString ? `/tenders?${queryString}` : '/tenders';
+//       const response = await axiosInstance.get(endpoint);
+      
+//       if (response.data.tenders) {
+//         return { 
+//           tenders: response.data.tenders, 
+//           total: response.data.total || response.data.tenders.length,
+//           status: 'success'
+//         };
+//       } else if (Array.isArray(response.data)) {
+//         return { tenders: response.data, total: response.data.length, status: 'success' };
+//       }
+//       return response.data;
+//     } catch (error) {
+//       console.error("❌ Failed to fetch tenders:", error);
+//       throw error;
+//     }
+//   },
+
+//   getMy: async () => {
+//     try {
+//       let response;
+//       try {
+//         response = await axiosInstance.get('/project_managers/my_tenders');
+//       } catch (pmError) {
+//         response = await axiosInstance.get('/tenders');
+//       }
+//       return normalizeResponse(response.data, 'tenders');
+//     } catch (error) {
+//       console.error("❌ Failed to fetch my tenders:", error);
+//       throw error;
+//     }
+//   },
+
+//   getByStatus: async (status) => {
+//     try {
+//       const response = await axiosInstance.get(`/tenders/${status}`);
+//       return normalizeResponse(response.data, 'tenders');
+//     } catch (error) {
+//       const result = await tendersAPI.getAll({ status });
+//       return result.tenders || [];
+//     }
+//   },
+
+//   getById: async (id) => {
+//     const response = await axiosInstance.get(`/tenders/${id}`);
+//     return response.data.tender || response.data;
+//   },
+
+//   create: async (tenderData) => {
+//     const response = await axiosInstance.post('/tenders', { tender: tenderData });
+//     return response.data.tender || response.data;
+//   },
+
+//   update: async (id, tenderData) => {
+//     const response = await axiosInstance.put(`/tenders/${id}`, { tender: tenderData });
+//     return response.data.tender || response.data;
+//   },
+
+//   delete: async (id) => {
+//     const response = await axiosInstance.delete(`/tenders/${id}`);
+//     return response.data;
+//   },
+
+//   convertToProject: async (id) => {
+//     const response = await axiosInstance.post(`/tenders/${id}/convert_to_project`);
+//     return response.data;
+//   },
+
+//   updateStatus: async (id, status) => {
+//     const response = await axiosInstance.patch(`/tenders/${id}/update_status`, { status });
+//     return response.data.tender || response.data;
+//   },
+
+//   getDetails: async (id) => {
+//     const response = await axiosInstance.get(`/tenders/${id}/details`);
+//     return response.data.tender || response.data;
+//   },
+
+//   getStatistics: async () => {
+//     try {
+//       const response = await axiosInstance.get('/tenders/statistics');
+//       return response.data;
+//     } catch (error) {
+//       const allTenders = await tendersAPI.getMy();
+//       const today = new Date();
+      
+//       return {
+//         statistics: {
+//           total: allTenders.length,
+//           active: allTenders.filter(t => t.status === 'active').length,
+//           draft: allTenders.filter(t => t.status === 'draft').length,
+//           completed: allTenders.filter(t => t.status === 'completed').length,
+//           totalValue: allTenders.reduce((sum, t) => sum + (t.budget_estimate || 0), 0),
+//         }
+//       };
+//     }
+//   },
+
+//   getActive: async () => tendersAPI.getByStatus('active'),
+//   getDrafts: async () => tendersAPI.getByStatus('draft'),
+//   getCompleted: async () => tendersAPI.getByStatus('completed'),
+//   getUrgent: async () => tendersAPI.getByStatus('urgent'),
+
+//   search: async (query, filters = {}) => {
+//     return await tendersAPI.getAll({ ...filters, search: query });
+//   }
+// };
+
+// // ========== TASKS API ========== //
+// export const tasksAPI = {
+//   getAll: async (filters = {}) => {
+//     try {
+//       const queryParams = new URLSearchParams();
+//       Object.entries(filters).forEach(([key, value]) => {
+//         if (value) queryParams.append(key, value);
+//       });
+      
+//       const queryString = queryParams.toString();
+//       const endpoint = queryString ? `/tasks?${queryString}` : '/tasks';
+//       const response = await axiosInstance.get(endpoint);
+      
+//       if (response.data.tasks) return response.data;
+//       if (Array.isArray(response.data)) return { tasks: response.data };
+//       return response.data;
+//     } catch (error) {
+//       console.error("❌ Failed to fetch tasks:", error);
+//       throw error;
+//     }
+//   },
+
+//   getById: async (id) => {
+//     const response = await axiosInstance.get(`/tasks/${id}`);
+//     return response.data;
+//   },
+
+//   create: async (taskData) => {
+//     const response = await axiosInstance.post('/tasks', {
+//       task: {
+//         title: taskData.title,
+//         description: taskData.description,
+//         due_date: taskData.due_date,
+//         start_date: taskData.start_date,
+//         status: taskData.status || 'pending',
+//         priority: taskData.priority || 'medium',
+//         estimated_hours: taskData.estimated_hours,
+//         project_id: taskData.project_id,
+//         assignee_ids: taskData.assignee_ids || [],
+//         watcher_ids: taskData.watcher_ids || [],
+//         tags: taskData.tags || [],
+//         custom_fields: taskData.custom_fields || {}
+//       }
+//     });
+//     return response.data;
+//   },
+
+//   update: async (id, taskData) => {
+//     const response = await axiosInstance.put(`/tasks/${id}`, { task: taskData });
+//     return response.data;
+//   },
+
+//   delete: async (id) => {
+//     const response = await axiosInstance.delete(`/tasks/${id}`);
+//     return response.data;
+//   },
+
+//   updateStatus: async (id, status) => {
+//     const response = await axiosInstance.patch(`/tasks/${id}`, { task: { status } });
+//     return response.data;
+//   },
+
+//   updatePriority: async (id, priority) => {
+//     const response = await axiosInstance.patch(`/tasks/${id}`, { task: { priority } });
+//     return response.data;
+//   },
+
+//   assign: async (id, assigneeIds) => {
+//     const response = await axiosInstance.patch(`/tasks/${id}/assign`, { assignee_ids: assigneeIds });
+//     return response.data;
+//   },
+
+//   getByStatus: async (status) => tasksAPI.getAll({ status }),
+
+//   getOverdue: async () => {
+//     try {
+//       return await tasksAPI.getAll({ filter: 'overdue' });
+//     } catch (error) {
+//       const allTasks = await tasksAPI.getAll();
+//       const tasks = allTasks.tasks || allTasks;
+//       const today = new Date();
+//       today.setHours(0, 0, 0, 0);
+      
+//       return {
+//         tasks: tasks.filter(task => {
+//           const dueDate = new Date(task.due_date);
+//           return dueDate < today && !['completed', 'cancelled'].includes(task.status);
+//         })
+//       };
+//     }
+//   },
+
+//   getDueToday: async () => tasksAPI.getAll({ filter: 'due_today' }),
+//   getActive: async () => tasksAPI.getAll({ filter: 'active' }),
+//   getCompleted: async () => tasksAPI.getByStatus('completed'),
+
+//   getStatistics: async () => {
+//     try {
+//       const response = await axiosInstance.get('/tasks/statistics');
+//       return response.data;
+//     } catch (error) {
+//       const allTasks = await tasksAPI.getAll();
+//       const tasks = allTasks.tasks || allTasks;
+//       const today = new Date();
+//       today.setHours(0, 0, 0, 0);
+      
+//       return {
+//         statistics: {
+//           total: tasks.length,
+//           completed: tasks.filter(t => t.status === 'completed').length,
+//           pending: tasks.filter(t => t.status === 'pending').length,
+//           in_progress: tasks.filter(t => t.status === 'in_progress').length,
+//           overdue: tasks.filter(t => {
+//             const dueDate = new Date(t.due_date);
+//             return dueDate < today && !['completed', 'cancelled'].includes(t.status);
+//           }).length,
+//         }
+//       };
+//     }
+//   },
+
+//   getStats: async () => {
+//     const result = await tasksAPI.getStatistics();
+//     return result.statistics || result;
+//   },
+
+//   // Comments
+//   getComments: async (taskId) => {
+//     const response = await axiosInstance.get(`/tasks/${taskId}/comments`);
+//     return response.data;
+//   },
+
+//   addComment: async (taskId, comment) => {
+//     const response = await axiosInstance.post(`/tasks/${taskId}/comments`, {
+//       comment: { content: comment.content, parent_id: comment.parent_id || null }
+//     });
+//     return response.data;
+//   },
+
+//   // Attachments
+//   uploadAttachment: async (taskId, file, description = '') => {
+//     const formData = new FormData();
+//     formData.append('attachment[file]', file);
+//     formData.append('attachment[description]', description);
+//     const response = await axiosInstance.post(`/tasks/${taskId}/attachments`, formData, {
+//       headers: { 'Content-Type': 'multipart/form-data' },
+//     });
+//     return response.data;
+//   },
+
+//   // Bulk operations
+//   bulkUpdate: async (taskIds, updates) => {
+//     const response = await axiosInstance.patch('/tasks/bulk_update', {
+//       task_ids: taskIds,
+//       updates: updates
+//     });
+//     return response.data;
+//   },
+
+//   bulkDelete: async (taskIds) => {
+//     const response = await axiosInstance.delete('/tasks/bulk_delete', {
+//       data: { task_ids: taskIds }
+//     });
+//     return response.data;
+//   },
+
+//   search: async (query, filters = {}) => {
+//     return await tasksAPI.getAll({ ...filters, search: query });
+//   }
+// };
+
+// // ========== EVENTS API ========== //
+// export const eventsAPI = {
+//   getAll: async (filters = {}) => {
+//     const queryParams = new URLSearchParams(filters).toString();
+//     const endpoint = queryParams ? `/events?${queryParams}` : '/events';
+//     const response = await axiosInstance.get(endpoint);
+//     return response.data;
+//   },
+
+//   getMy: async () => {
+//     const response = await axiosInstance.get('/events/my_events');
+//     return response.data;
+//   },
+
+//   getThisWeek: async () => {
+//     const response = await axiosInstance.get('/events/this_week');
+//     return response.data;
+//   },
+
+//   getUpcoming: async (limit = 10) => {
+//     const response = await axiosInstance.get(`/events/upcoming?limit=${limit}`);
+//     return response.data;
+//   },
+
+//   create: async (eventData) => {
+//     const response = await axiosInstance.post('/events', { event: eventData });
+//     return response.data;
+//   },
+
+//   update: async (id, eventData) => {
+//     const response = await axiosInstance.put(`/events/${id}`, { event: eventData });
+//     return response.data;
+//   },
+
+//   delete: async (id) => {
+//     const response = await axiosInstance.delete(`/events/${id}`);
+//     return response.data;
+//   },
+
+//   markCompleted: async (id) => {
+//     const response = await axiosInstance.patch(`/events/${id}/mark_completed`);
+//     return response.data;
+//   },
+
+//   reschedule: async (id, newDate) => {
+//     const response = await axiosInstance.patch(`/events/${id}/reschedule`, { date: newDate });
+//     return response.data;
+//   }
+// };
+
+// // ========== TEAM MANAGEMENT API ========== //
+// export const supervisorsAPI = {
+//   getAll: async () => {
+//     const response = await axiosInstance.get('/supervisors');
+//     return response.data;
+//   },
+
+//   getById: async (id) => {
+//     const response = await axiosInstance.get(`/supervisors/${id}`);
+//     return response.data;
+//   },
+
+//   create: async (supervisorData) => {
+//     const response = await axiosInstance.post('/supervisors', { supervisor: supervisorData });
+//     return response.data;
+//   },
+
+//   update: async (id, supervisorData) => {
+//     const response = await axiosInstance.put(`/supervisors/${id}`, { supervisor: supervisorData });
+//     return response.data;
+//   },
+
+//   delete: async (id) => {
+//     const response = await axiosInstance.delete(`/supervisors/${id}`);
+//     return response.data;
+//   },
+
+//   getWorkload: async () => {
+//     const response = await axiosInstance.get('/supervisors/workload');
+//     return response.data;
+//   },
+
+//   getProjects: async (id) => {
+//     const response = await axiosInstance.get(`/supervisors/${id}/projects`);
+//     return response.data;
+//   },
+
+//   getPerformance: async (id) => {
+//     const response = await axiosInstance.get(`/supervisors/${id}/performance`);
+//     return response.data;
+//   }
+// };
+
+// export const siteManagersAPI = {
+//   getAll: async () => {
+//     const response = await axiosInstance.get('/site_managers');
+//     return response.data;
+//   },
+
+//   getById: async (id) => {
+//     const response = await axiosInstance.get(`/site_managers/${id}`);
+//     return response.data;
+//   },
+
+//   create: async (siteManagerData) => {
+//     const response = await axiosInstance.post('/site_managers', { site_manager: siteManagerData });
+//     return response.data;
+//   },
+
+//   update: async (id, siteManagerData) => {
+//     const response = await axiosInstance.put(`/site_managers/${id}`, { site_manager: siteManagerData });
+//     return response.data;
+//   },
+
+//   delete: async (id) => {
+//     const response = await axiosInstance.delete(`/site_managers/${id}`);
+//     return response.data;
+//   }
+// };
+
+// export const teamAPI = {
+//   getAllTeamMembers: async () => {
+//     try {
+//       const [supervisors, siteManagers] = await Promise.all([
+//         supervisorsAPI.getAll(),
+//         siteManagersAPI.getAll()
+//       ]);
+      
+//       const normalizedSupervisors = (Array.isArray(supervisors) ? supervisors : []).map(supervisor => ({
+//         ...supervisor,
+//         role: 'Supervisor',
+//         roleType: 'supervisor',
+//         department: 'Operations'
+//       }));
+      
+//       const normalizedSiteManagers = (Array.isArray(siteManagers) ? siteManagers : []).map(manager => ({
+//         ...manager,
+//         role: 'Site Manager',
+//         roleType: 'site_manager',
+//         department: 'Site Management'
+//       }));
+      
+//       return [...normalizedSupervisors, ...normalizedSiteManagers];
+//     } catch (error) {
+//       console.error("❌ Failed to fetch team members:", error);
+//       return [];
+//     }
+//   },
+
+//   getTeamStats: async () => {
+//     const teamMembers = await teamAPI.getAllTeamMembers();
+    
+//     return {
+//       totalMembers: teamMembers.length,
+//       supervisors: teamMembers.filter(m => m.roleType === 'supervisor').length,
+//       siteManagers: teamMembers.filter(m => m.roleType === 'site_manager').length,
+//     };
+//   }
+// };
+
+// // ========== NOTIFICATIONS API ========== //
+// export const notificationsAPI = {
+//   getAll: async () => {
+//     try {
+//       const response = await axiosInstance.get('/notifications');
+//       return response.data;
+//     } catch (error) {
+//       console.error("❌ Failed to fetch notifications:", error);
+//       return [];
+//     }
+//   },
+
+//   getUnreadCount: async () => {
+//     try {
+//       const response = await axiosInstance.get('/notifications/unread_count');
+//       return response.data;
+//     } catch (error) {
+//       console.error("❌ Failed to fetch unread notification count:", error);
+//       return { count: 0 };
+//     }
+//   },
+
+//   markRead: async (id) => {
+//     const response = await axiosInstance.patch(`/notifications/${id}/mark_read`);
+//     return response.data;
+//   },
+
+//   markAllRead: async () => {
+//     const response = await axiosInstance.patch('/notifications/mark_all_read');
+//     return response.data;
+//   }
+// };
+
+// // ========== CALENDAR API ========== //
+// export const calendarAPI = {
+//   getEvents: async (startDate = null, endDate = null) => {
+//     try {
+//       const params = new URLSearchParams();
+//       if (startDate) params.append('start_date', startDate);
+//       if (endDate) params.append('end_date', endDate);
+      
+//       const queryString = params.toString();
+//       const endpoint = queryString ? `/calendar/events?${queryString}` : '/calendar/events';
+//       const response = await axiosInstance.get(endpoint);
+//       return response.data.events || [];
+//     } catch (error) {
+//       console.error("❌ Failed to fetch calendar events:", error);
+//       return [];
+//     }
+//   },
+
+//   getMonthEvents: async (year, month) => {
+//     const response = await axiosInstance.get(`/calendar/month/${year}/${month}`);
+//     return response.data.events || [];
+//   },
+
+//   getTodayEvents: async () => {
+//     try {
+//       const today = new Date().toISOString().split('T')[0];
+//       return await calendarAPI.getEvents(today, today);
+//     } catch (error) {
+//       console.error("❌ Failed to fetch today events:", error);
+//       return [];
+//     }
+//   },
+
+//   getUpcomingEvents: async () => {
+//     const today = new Date();
+//     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+//     return await calendarAPI.getEvents(
+//       today.toISOString().split('T')[0],
+//       nextWeek.toISOString().split('T')[0]
+//     );
+//   }
+// };
+
+// // ========== SEARCH API ========== //
+// export const searchAPI = {
+//   projects: async (query) => {
+//     const response = await axiosInstance.get(`/search/projects?q=${encodeURIComponent(query)}`);
+//     return response.data;
+//   },
+
+//   events: async (query) => {
+//     const response = await axiosInstance.get(`/search/events?q=${encodeURIComponent(query)}`);
+//     return response.data;
+//   },
+
+//   tenders: async (query) => {
+//     const response = await axiosInstance.get(`/search/tenders?q=${encodeURIComponent(query)}`);
+//     return response.data;
+//   },
+
+//   global: async (query) => {
+//     const response = await axiosInstance.get(`/search?q=${encodeURIComponent(query)}`);
+//     return response.data;
+//   }
+// };
+
+// // ========== PROJECT MANAGER DASHBOARD API ========== //
+// export const projectManagerAPI = {
+//   getDashboard: async () => {
+//     const response = await axiosInstance.get('/project_managers/dashboard');
+//     return response.data;
+//   },
+
+//   getMyProjects: async () => {
+//     try {
+//       const response = await axiosInstance.get('/project_managers/my_projects');
+//       return response.data;
+//     } catch (error) {
+//       const fallbackResponse = await axiosInstance.get('/projects');
+//       return fallbackResponse.data;
+//     }
+//   },
+
+//   getUpcomingEvents: async (limit = 10) => {
+//     const response = await axiosInstance.get(`/project_managers/upcoming_events?limit=${limit}`);
+//     return response.data;
+//   },
+
+//   getMyTenders: async () => tendersAPI.getMy(),
+
+//   getStatistics: async () => {
+//     const response = await axiosInstance.get('/project_managers/statistics');
+//     return response.data;
+//   },
+
+//   getTeamMembers: async () => {
+//     const response = await axiosInstance.get('/project_managers/team_members');
+//     return response.data;
+//   },
+
+//   getProjectsProgress: async () => {
+//     const response = await axiosInstance.get('/project_managers/projects_progress');
+//     return response.data;
+//   }
+// };
+
+// // ========== DASHBOARD API ========== //
+// export const dashboardAPI = {
+//   getDashboard: projectManagerAPI.getDashboard,
+//   getProjects: projectManagerAPI.getMyProjects,
+//   getEvents: projectManagerAPI.getUpcomingEvents,
+//   getTenders: tendersAPI.getMy,
+//   getStatistics: projectManagerAPI.getStatistics,
+//   getTeamMembers: projectManagerAPI.getTeamMembers,
+//   getProjectsProgress: projectManagerAPI.getProjectsProgress,
+
+//   getDashboardStats: async () => {
+//     try {
+//       return await projectManagerAPI.getStatistics();
+//     } catch (error) {
+//       return {
+//         totalProjects: 0,
+//         activeProjects: 0,
+//         completedProjects: 0,
+//         activeTenders: 0,
+//         upcomingEvents: 0
+//       };
+//     }
+//   },
+
+//   tenders: tendersAPI,
+//   projects: projectsAPI,
+//   events: eventsAPI,
+//   tasks: tasksAPI,
+//   team: teamAPI,
+//   notifications: notificationsAPI,
+//   search: searchAPI,
+//   calendar: calendarAPI
+// };
+
+// // ========== FETCH PROJECT MANAGERS ========== //
+// export const fetchProjectManagers = async () => {
+//   try {
+//     const response = await axiosInstance.get('/project_managers/list');
+//     return response.data;
+//   } catch (error) {
+//     console.error("❌ Failed to fetch project managers:", error);
+//     return [];
+//   }
+// };
+
+// // ========== ACTIVITIES API ========== //
+// export const fetchActivities = async (params = {}) => {
+//   const response = await axiosInstance.get('/activities', { params });
+//   return response.data;
+// };
+
+// export const fetchActivityById = async (id) => {
+//   const response = await axiosInstance.get(`/activities/${id}`);
+//   return response.data;
+// };
+
+// export const fetchActivityStats = async () => {
+//   const response = await axiosInstance.get('/activities/stats');
+//   return response.data;
+// };
+
+// export const fetchRecentActivities = async (limit = 10) => {
+//   const response = await axiosInstance.get('/activities/recent', { params: { limit } });
+//   return response.data;
+// };
+
+// // ========== LEGACY EXPORTS ========== //
+// export const login = authAPI.login;
+// export const signup = authAPI.signup;
+// export const verifyOtp = authAPI.verifyOtp;
+// export const resendOtp = authAPI.resendOtp;
+// export const forgotPassword = authAPI.forgotPassword;
+// export const resetPassword = authAPI.resetPassword;
+// export const getUserDetails = authAPI.getUserDetails;
+// export const logout = authAPI.logout;
+// export const deleteAccount = authAPI.deleteAccount;
+// export const confirmEmail = authAPI.confirmEmail;
+
+// export const getProjectManagerDashboard = projectManagerAPI.getDashboard;
+// export const getMyProjects = projectManagerAPI.getMyProjects;
+// export const getUpcomingEvents = projectManagerAPI.getUpcomingEvents;
+// export const getMyTenders = tendersAPI.getMy;
+// export const getDashboardStatistics = projectManagerAPI.getStatistics;
+// export const getTeamMembers = projectManagerAPI.getTeamMembers;
+// export const getProjectsProgress = projectManagerAPI.getProjectsProgress;
+
+// export const getAllProjects = projectsAPI.getAll;
+// export const getProject = projectsAPI.getById;
+// export const createProject = projectsAPI.create;
+// export const updateProject = projectsAPI.update;
+// export const deleteProject = projectsAPI.delete;
+// export const getProjectProgress = projectsAPI.getProgress;
+// export const updateProjectProgress = projectsAPI.updateProgress;
+// export const getProjectTeam = projectsAPI.getTeam;
+// export const getProjectTimeline = projectsAPI.getTimeline;
+// export const getProjectChartData = projectsAPI.getChartData;
+// export const getActiveProjects = projectsAPI.getActive;
+// export const getCompletedProjects = projectsAPI.getCompleted;
+
+// export const getAllEvents = eventsAPI.getAll;
+// export const getMyEvents = eventsAPI.getMy;
+// export const getThisWeekEvents = eventsAPI.getThisWeek;
+// export const createEvent = eventsAPI.create;
+// export const updateEvent = eventsAPI.update;
+// export const deleteEvent = eventsAPI.delete;
+// export const markEventCompleted = eventsAPI.markCompleted;
+// export const rescheduleEvent = eventsAPI.reschedule;
+
+// export const getAllTenders = tendersAPI.getAll;
+// export const getActiveTenders = tendersAPI.getActive;
+// export const getUrgentTenders = tendersAPI.getUrgent;
+// export const getDraftTenders = tendersAPI.getDrafts;
+// export const createTender = tendersAPI.create;
+// export const updateTender = tendersAPI.update;
+// export const deleteTender = tendersAPI.delete;
+// export const convertTenderToProject = tendersAPI.convertToProject;
+// export const updateTenderStatus = tendersAPI.updateStatus;
+// export const getTenderDetails = tendersAPI.getDetails;
+
+// export const getAllTasks = tasksAPI.getAll;
+// export const getTask = tasksAPI.getById;
+// export const createTask = tasksAPI.create;
+// export const updateTask = tasksAPI.update;
+// export const deleteTask = tasksAPI.delete;
+// export const getTasksByStatus = tasksAPI.getByStatus;
+// export const getOverdueTasks = tasksAPI.getOverdue;
+// export const getTasksDueToday = tasksAPI.getDueToday;
+// export const getActiveTasks = tasksAPI.getActive;
+// export const getCompletedTasks = tasksAPI.getCompleted;
+// export const getTaskStats = tasksAPI.getStats;
+
+// export const getNotifications = notificationsAPI.getAll;
+// export const getUnreadNotificationCount = notificationsAPI.getUnreadCount;
+// export const markNotificationRead = notificationsAPI.markRead;
+// export const markAllNotificationsRead = notificationsAPI.markAllRead;
+
+// export const searchProjects = searchAPI.projects;
+// export const searchEvents = searchAPI.events;
+// export const searchTenders = searchAPI.tenders;
+// export const globalSearch = searchAPI.global;
+// export const getCalendarEvents = calendarAPI.getEvents;
+
+// export const getSupervisorWorkload = supervisorsAPI.getWorkload;
+// export const getSupervisorProjects = supervisorsAPI.getProjects;
+// export const getSupervisorPerformance = supervisorsAPI.getPerformance;
+// export const getDashboardStats = dashboardAPI.getDashboardStats;
+
+// export default api;

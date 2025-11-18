@@ -9,12 +9,12 @@ import {
   createProject,
   supervisorsAPI,
   siteManagersAPI,
-  teamAPI
+  teamAPI,
+  projectsAPI
 } from '../../services/api';
 import ProgressUpdateModal from '../ProgressUpdateModal';
 import { progressAPI } from '../../services/progressAPI';
 import EnhancedProgressBar from "../EnhancedProgressBar";
-
 import { 
   Calendar, 
   Clock,
@@ -89,6 +89,7 @@ const UserDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [creatingProject, setCreatingProject] = useState(false);
+  const [markingComplete, setMarkingComplete] = useState(null); // Track which project is being marked
   
   // Check if we're on the main dashboard route
   const isMainDashboard = location.pathname === '/user' || 
@@ -137,17 +138,19 @@ const UserDashboard = () => {
 
   // Calculate progress overview statistics - New Enhanced Function
   const calculateProgressOverview = (projects) => {
-    const totalProjects = projects.length;
-    const onTrack = projects.filter(p => p.schedule_status === 'on_track').length;
-    const behindSchedule = projects.filter(p => p.schedule_status === 'behind_schedule').length;
-    const aheadOfSchedule = projects.filter(p => p.schedule_status === 'ahead_of_schedule').length;
+    // Filter out completed projects for progress overview
+    const activeProjects = projects.filter(p => p.status !== 'completed');
+    const totalProjects = activeProjects.length;
+    const onTrack = activeProjects.filter(p => p.schedule_status === 'on_track').length;
+    const behindSchedule = activeProjects.filter(p => p.schedule_status === 'behind_schedule').length;
+    const aheadOfSchedule = activeProjects.filter(p => p.schedule_status === 'ahead_of_schedule').length;
     
     const averageProgress = totalProjects > 0 
-      ? projects.reduce((sum, p) => sum + (p.current_progress || p.progress_percentage || 0), 0) / totalProjects 
+      ? activeProjects.reduce((sum, p) => sum + (p.current_progress || p.progress_percentage || 0), 0) / totalProjects 
       : 0;
     
     const averageVariance = totalProjects > 0
-      ? projects.reduce((sum, p) => sum + Math.abs(p.progress_variance || 0), 0) / totalProjects
+      ? activeProjects.reduce((sum, p) => sum + Math.abs(p.progress_variance || 0), 0) / totalProjects
       : 0;
 
     setProgressOverview({
@@ -186,6 +189,7 @@ const UserDashboard = () => {
           }
         })
       );
+
       setProjectsWithProgress(projectsWithProgressData);
       calculateProgressOverview(projectsWithProgressData); // Enhanced calculation
     } catch (error) {
@@ -225,6 +229,38 @@ const UserDashboard = () => {
     
     // Reload progress data to get latest calculations
     loadProjectsProgress();
+  };
+
+  // Handle marking project as completed
+  const handleMarkAsCompleted = async (projectId, e) => {
+    e.stopPropagation(); // Prevent navigation
+    
+    if (markingComplete) return; // Prevent double clicks
+    
+    try {
+      setMarkingComplete(projectId);
+      await projectsAPI.markAsCompleted(projectId);
+      
+      // Show success message
+      const project = projectsWithProgress.find(p => p.id === projectId) || myProjects.find(p => p.id === projectId);
+      setSuccessMessage(`Project "${project?.title || project?.name}" marked as completed!`);
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(null), 5000);
+      
+      // Reload dashboard data to update the lists
+      loadUserData();
+      
+      console.log(`✅ Project ${projectId} marked as completed`);
+    } catch (error) {
+      console.error(`❌ Failed to mark project ${projectId} as completed:`, error);
+      setError('Failed to mark project as completed. Please try again.');
+      
+      // Clear error after 5 seconds
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setMarkingComplete(null);
+    }
   };
 
   // Add function to handle project click
@@ -370,8 +406,8 @@ const UserDashboard = () => {
   const generateRecentTasks = (projects, events) => {
     const tasks = [];
     
-    // Generate tasks from projects
-    projects.slice(0, 3).forEach(project => {
+    // Generate tasks from projects (only non-completed)
+    projects.filter(p => p.status !== 'completed').slice(0, 3).forEach(project => {
       if (project.status === 'in_progress') {
         tasks.push({
           id: `project_${project.id}_review`,
@@ -727,7 +763,7 @@ const UserDashboard = () => {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">{progressOverview.totalProjects}</div>
-                    <div className="text-xs text-gray-500">Total Projects</div>
+                    <div className="text-xs text-gray-500">Active Projects</div>
                   </div>
                 </div>
               </div>
@@ -763,14 +799,17 @@ const UserDashboard = () => {
   const renderProjectCards = () => {
     const projects = projectsWithProgress.length > 0 ? projectsWithProgress : myProjects;
     
-    if (projects.length === 0) {
+    // Filter out completed projects
+    const activeProjects = projects.filter(p => p.status !== 'completed');
+    
+    if (activeProjects.length === 0) {
       return (
         <div className="text-center py-16">
           <div className="relative">
             <Building2 className="mx-auto h-20 w-20 text-gray-300" />
             <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-xl"></div>
           </div>
-          <h3 className="mt-6 text-xl font-semibold text-gray-900">No projects found</h3>
+          <h3 className="mt-6 text-xl font-semibold text-gray-900">No active projects</h3>
           <p className="text-gray-500 mt-2 mb-6">Create your first project to get started with project management</p>
           <button 
             onClick={handleOpenCreateProject}
@@ -785,7 +824,7 @@ const UserDashboard = () => {
 
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {projects.map((project) => (
+        {activeProjects.map((project) => (
           <div 
             key={project.id} 
             className="bg-gradient-to-br from-white via-white to-gray-50/30 rounded-2xl p-6 border border-gray-100/50 hover:shadow-2xl hover:border-blue-200/50 transition-all duration-300 group relative overflow-hidden"
@@ -806,6 +845,22 @@ const UserDashboard = () => {
 
             {/* Floating Action Indicators */}
             <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+              <button
+                onClick={(e) => handleMarkAsCompleted(project.id, e)}
+                disabled={markingComplete === project.id}
+                className={`text-white p-2 rounded-full shadow-lg transition-colors ${
+                  markingComplete === project.id
+                    ? 'bg-gray-400 cursor-wait'
+                    : 'bg-emerald-600 hover:bg-emerald-700'
+                }`}
+                title="Mark as Completed"
+              >
+                {markingComplete === project.id ? (
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <CheckCircle className="h-3 w-3" />
+                )}
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -921,6 +976,27 @@ const UserDashboard = () => {
               {/* Quick Progress Actions */}
               <div className="flex space-x-2 pt-2">
                 <button
+                  onClick={(e) => handleMarkAsCompleted(project.id, e)}
+                  disabled={markingComplete === project.id}
+                  className={`flex-1 py-2 px-3 text-xs rounded-lg transition-colors font-medium flex items-center justify-center ${
+                    markingComplete === project.id
+                      ? 'bg-gray-100 text-gray-400 cursor-wait'
+                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  {markingComplete === project.id ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mr-2" />
+                      Completing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Mark Complete
+                    </>
+                  )}
+                </button>
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleProgressUpdate(project.id);
@@ -928,15 +1004,6 @@ const UserDashboard = () => {
                   className="flex-1 py-2 px-3 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium"
                 >
                   Update Progress
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleProjectClick(project.id);
-                  }}
-                  className="flex-1 py-2 px-3 text-xs bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
-                >
-                  View Details
                 </button>
               </div>
             </div>
@@ -1118,7 +1185,7 @@ const UserDashboard = () => {
             <main className="flex-1 overflow-y-auto p-3 lg:p-6">
               
               {/* Enhanced Progress Overview Section */}
-              {projectsWithProgress.length > 0 && renderProgressOverview()}
+              {projectsWithProgress.filter(p => p.status !== 'completed').length > 0 && renderProgressOverview()}
 
               {/* Quick Stats Bar */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4 mb-6 lg:mb-8">
@@ -1536,7 +1603,6 @@ const UserDashboard = () => {
                         <Users className="h-5 w-5 mr-2 text-blue-600" />
                         Team Assignment
                       </h3>
-
                       {loadingDropdowns ? (
                         <div className="text-center py-8">
                           <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600 mx-auto"></div>
@@ -1767,9 +1833,6 @@ const UserDashboard = () => {
 };
 
 export default UserDashboard;
-
-
-
 
 
 
