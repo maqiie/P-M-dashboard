@@ -98,8 +98,9 @@ import {
   Circle,
   Info,
   TrendingUp as TrendingUpArrow,
+  HardHat,
+  Clipboard,
 } from "lucide-react";
-
 // Import your actual API functions
 import {
   fetchProjectManagers,
@@ -111,16 +112,17 @@ import {
   supervisorsAPI,
   siteManagersAPI,
   notificationsAPI,
+  calendarAPI,
+  dashboardAPI,
 } from "../../services/api";
 
 // Enhanced Theme with modern design system
 const useTheme = () => {
   const [isDark, setIsDark] = useState(false);
-
   const toggleTheme = useCallback(() => {
     setIsDark((prev) => !prev);
   }, []);
-
+  
   const theme = useMemo(
     () => ({
       isDark,
@@ -165,7 +167,6 @@ const useTheme = () => {
     }),
     [isDark]
   );
-
   return { ...theme, toggleTheme };
 };
 
@@ -181,7 +182,6 @@ const DetailCard = ({
   ...props
 }) => {
   const theme = useTheme();
-
   const baseClasses = `
     ${padding} 
     ${
@@ -196,7 +196,7 @@ const DetailCard = ({
     ${hover ? "hover:shadow-2xl hover:scale-[1.02]" : ""}
     ${className}
   `;
-
+  
   return (
     <div className={baseClasses} {...props}>
       {children}
@@ -204,7 +204,7 @@ const DetailCard = ({
   );
 };
 
-// Data Hook for Project Manager Details
+// Comprehensive Data Hook for Project Manager Details
 const useProjectManagerData = (managerId) => {
   const [data, setData] = useState({
     manager: null,
@@ -216,6 +216,8 @@ const useProjectManagerData = (managerId) => {
     supervisors: [],
     siteManagers: [],
     notifications: [],
+    calendarEvents: [],
+    dashboardData: {},
     statistics: {},
     analytics: {
       performanceMetrics: {},
@@ -234,10 +236,10 @@ const useProjectManagerData = (managerId) => {
       teamPerformance: [],
     },
   });
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [apiStatus, setApiStatus] = useState({});
 
   const fetchManagerData = useCallback(async () => {
     if (!managerId) {
@@ -249,56 +251,67 @@ const useProjectManagerData = (managerId) => {
     try {
       setLoading(true);
       setError(null);
+      console.log(`🔄 Fetching comprehensive data for project manager ID: ${managerId}`);
 
-      console.log(
-        `🔄 Fetching comprehensive data for project manager ID: ${managerId}`
-      );
+      // Track API call statuses
+      const status = {};
 
       // Fetch all data in parallel with comprehensive error handling
       const results = await Promise.allSettled([
         fetchProjectManagers().catch((err) => {
           console.error("❌ Failed to fetch project managers:", err);
+          status.managers = 'failed';
           return [];
         }),
-
         projectsAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch projects:", err);
+          status.projects = 'failed';
           return { projects: [] };
         }),
-
         tasksAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch tasks:", err);
+          status.tasks = 'failed';
           return { tasks: [] };
         }),
-
         tendersAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch tenders:", err);
+          status.tenders = 'failed';
           return { tenders: [] };
         }),
-
         eventsAPI.getUpcoming(100).catch((err) => {
           console.error("❌ Failed to fetch events:", err);
+          status.events = 'failed';
           return { events: [] };
         }),
-
         teamMembersAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch team members:", err);
+          status.teamMembers = 'failed';
           return { team_members: [] };
         }),
-
         supervisorsAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch supervisors:", err);
+          status.supervisors = 'failed';
           return [];
         }),
-
         siteManagersAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch site managers:", err);
+          status.siteManagers = 'failed';
           return [];
         }),
-
         notificationsAPI.getAll().catch((err) => {
           console.error("❌ Failed to fetch notifications:", err);
+          status.notifications = 'failed';
           return [];
+        }),
+        calendarAPI.getTodayEvents().catch((err) => {
+          console.warn("❌ Failed to fetch calendar events:", err);
+          status.calendar = 'failed';
+          return [];
+        }),
+        dashboardAPI.getDashboard().catch((err) => {
+          console.warn("❌ Failed to fetch dashboard data:", err);
+          status.dashboard = 'failed';
+          return {};
         }),
       ]);
 
@@ -312,135 +325,61 @@ const useProjectManagerData = (managerId) => {
         supervisorsResult,
         siteManagersResult,
         notificationsResult,
+        calendarResult,
+        dashboardResult,
       ] = results;
 
+      // Set successful API statuses
+      if (managersResult.status === "fulfilled") status.managers = 'success';
+      if (projectsResult.status === "fulfilled") status.projects = 'success';
+      if (tasksResult.status === "fulfilled") status.tasks = 'success';
+      if (tendersResult.status === "fulfilled") status.tenders = 'success';
+      if (eventsResult.status === "fulfilled") status.events = 'success';
+      if (teamMembersResult.status === "fulfilled") status.teamMembers = 'success';
+      if (supervisorsResult.status === "fulfilled") status.supervisors = 'success';
+      if (siteManagersResult.status === "fulfilled") status.siteManagers = 'success';
+      if (notificationsResult.status === "fulfilled") status.notifications = 'success';
+      if (calendarResult.status === "fulfilled") status.calendar = 'success';
+      if (dashboardResult.status === "fulfilled") status.dashboard = 'success';
+
+      setApiStatus(status);
+
       // Extract data with comprehensive fallbacks
-      const allManagers =
-        managersResult.status === "fulfilled" ? managersResult.value : [];
-      const projectsData =
-        projectsResult.status === "fulfilled"
-          ? projectsResult.value
-          : { projects: [] };
-      const tasksData =
-        tasksResult.status === "fulfilled" ? tasksResult.value : { tasks: [] };
-      const tendersData =
-        tendersResult.status === "fulfilled"
-          ? tendersResult.value
-          : { tenders: [] };
-      const eventsData =
-        eventsResult.status === "fulfilled"
-          ? eventsResult.value
-          : { events: [] };
-      const teamMembersData =
-        teamMembersResult.status === "fulfilled"
-          ? teamMembersResult.value
-          : { team_members: [] };
-      const supervisorsData =
-        supervisorsResult.status === "fulfilled" ? supervisorsResult.value : [];
-      const siteManagersData =
-        siteManagersResult.status === "fulfilled"
-          ? siteManagersResult.value
-          : [];
-      const notificationsData =
-        notificationsResult.status === "fulfilled"
-          ? notificationsResult.value
-          : [];
+      const allManagers = managersResult.status === "fulfilled" ? managersResult.value : [];
+      const projectsData = projectsResult.status === "fulfilled" ? projectsResult.value : { projects: [] };
+      const tasksData = tasksResult.status === "fulfilled" ? tasksResult.value : { tasks: [] };
+      const tendersData = tendersResult.status === "fulfilled" ? tendersResult.value : { tenders: [] };
+      const eventsData = eventsResult.status === "fulfilled" ? eventsResult.value : { events: [] };
+      const teamMembersData = teamMembersResult.status === "fulfilled" ? teamMembersResult.value : { team_members: [] };
+      const supervisorsData = supervisorsResult.status === "fulfilled" ? supervisorsResult.value : [];
+      const siteManagersData = siteManagersResult.status === "fulfilled" ? siteManagersResult.value : [];
+      const notificationsData = notificationsResult.status === "fulfilled" ? notificationsResult.value : [];
+      const calendarData = calendarResult.status === "fulfilled" ? calendarResult.value : [];
+      const dashboardData = dashboardResult.status === "fulfilled" ? dashboardResult.value : {};
 
       // Debug: Log available managers
-      console.log(
-        "Available managers:",
-        allManagers.map((m) => ({ id: m.id, name: m.name }))
-      );
+      console.log("Available managers:", allManagers.map((m) => ({ id: m.id, name: m.name })));
 
       // Find the specific manager
-      const manager = allManagers.find((m) => m.id === parseInt(managerId));
-
+      const manager = allManagers.find((m) => String(m.id) === String(managerId));
       if (!manager) {
         throw new Error(
-          `Project manager with ID ${managerId} not found. Available IDs: ${allManagers
-            .map((m) => m.id)
-            .join(", ")}`
+          `Project manager with ID ${managerId} not found. Available IDs: ${allManagers.map((m) => m.id).join(", ")}`
         );
       }
 
       console.log("✅ Found manager:", manager);
 
       // Normalize data arrays
-      const allProjects = Array.isArray(projectsData.projects)
-        ? projectsData.projects
-        : Array.isArray(projectsData)
-        ? projectsData
-        : [];
-      const allTasks = Array.isArray(tasksData.tasks)
-        ? tasksData.tasks
-        : Array.isArray(tasksData)
-        ? tasksData
-        : [];
-      const allTenders = Array.isArray(tendersData.tenders)
-        ? tendersData.tenders
-        : Array.isArray(tendersData)
-        ? tendersData
-        : [];
-      const allEvents = Array.isArray(eventsData.events)
-        ? eventsData.events
-        : Array.isArray(eventsData)
-        ? eventsData
-        : [];
-      const allTeamMembers = Array.isArray(teamMembersData.team_members)
-        ? teamMembersData.team_members
-        : Array.isArray(teamMembersData)
-        ? teamMembersData
-        : [];
-      const allSupervisors = Array.isArray(supervisorsData)
-        ? supervisorsData
-        : [];
-      const allSiteManagers = Array.isArray(siteManagersData)
-        ? siteManagersData
-        : [];
-      const allNotifications = Array.isArray(notificationsData)
-        ? notificationsData
-        : [];
-
-      // Filter data for this specific manager
-      const managerProjects = allProjects.filter(
-        (project) =>
-          project.project_manager_id === parseInt(managerId) ||
-          project.manager_id === parseInt(managerId) ||
-          project.assigned_to === parseInt(managerId) ||
-          project.owner_id === parseInt(managerId)
-      );
-
-      const managerTasks = allTasks.filter(
-        (task) =>
-          task.assigned_to === parseInt(managerId) ||
-          task.project_manager_id === parseInt(managerId) ||
-          task.manager_id === parseInt(managerId) ||
-          task.owner_id === parseInt(managerId) ||
-          managerProjects.some((p) => p.id === task.project_id)
-      );
-
-      const managerTenders = allTenders.filter(
-        (tender) =>
-          tender.project_manager_id === parseInt(managerId) ||
-          tender.manager_id === parseInt(managerId) ||
-          tender.assigned_to === parseInt(managerId) ||
-          tender.owner_id === parseInt(managerId)
-      );
-
-      const managerEvents = allEvents.filter(
-        (event) =>
-          event.project_manager_id === parseInt(managerId) ||
-          event.manager_id === parseInt(managerId) ||
-          event.assigned_to === parseInt(managerId) ||
-          event.owner_id === parseInt(managerId) ||
-          managerProjects.some((p) => p.id === event.project_id)
-      );
-
-      const managerNotifications = allNotifications.filter(
-        (notification) =>
-          notification.user_id === parseInt(managerId) ||
-          notification.recipient_id === parseInt(managerId)
-      );
+      const allProjects = Array.isArray(projectsData.projects) ? projectsData.projects : Array.isArray(projectsData) ? projectsData : [];
+      const allTasks = Array.isArray(tasksData.tasks) ? tasksData.tasks : Array.isArray(tasksData) ? tasksData : [];
+      const allTenders = Array.isArray(tendersData.tenders) ? tendersData.tenders : Array.isArray(tendersData) ? tendersData : [];
+      const allEvents = Array.isArray(eventsData.events) ? eventsData.events : Array.isArray(eventsData) ? eventsData : [];
+      const allTeamMembers = Array.isArray(teamMembersData.team_members) ? teamMembersData.team_members : Array.isArray(teamMembersData) ? teamMembersData : [];
+      const allSupervisors = Array.isArray(supervisorsData) ? supervisorsData : [];
+      const allSiteManagers = Array.isArray(siteManagersData) ? siteManagersData : [];
+      const allNotifications = Array.isArray(notificationsData) ? notificationsData : [];
+      const allCalendarEvents = Array.isArray(calendarData) ? calendarData : [];
 
       // Enhanced manager data with real information
       const enhancedManager = {
@@ -451,37 +390,111 @@ const useProjectManagerData = (managerId) => {
         position: manager.position || manager.role || "Project Manager",
         department: manager.department || "Construction Operations",
         joinDate: manager.join_date || manager.created_at || "2022-01-01",
-        avatar:
-          manager.avatar ||
-          (manager.name
-            ? manager.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()
-            : "U"),
+        avatar: manager.avatar || (manager.name ? manager.name.split(" ").map((n) => n[0]).join("").toUpperCase() : "U"),
         status: manager.status || "active",
         lastLogin: manager.last_login || "Never",
-        skills: manager.skills || [
-          "Project Management",
-          "Team Leadership",
-          "Budget Management",
-          "Quality Control",
-        ],
-        certifications: manager.certifications || [
-          "PMP",
-          "Construction Management",
-          "Safety Certification",
-        ],
+        skills: manager.skills || ["Project Management", "Team Leadership", "Budget Management", "Quality Control"],
+        certifications: manager.certifications || ["PMP", "Construction Management", "Safety Certification"],
         bio: manager.bio || manager.description || "",
         location: manager.location || "Head Office",
         employeeId: manager.employee_id || manager.id,
-        experience:
-          manager.experience_years || Math.floor(Math.random() * 10) + 3,
+        experience: manager.experience_years || Math.floor(Math.random() * 10) + 3,
         languages: manager.languages || ["English", "Swahili"],
         education: manager.education || "Bachelor in Construction Management",
         efficiency: manager.efficiency || 92,
+        numberOfProjects: manager.number_of_projects || 0,
       };
+
+      // Filter data for this specific manager - Enhanced filtering logic
+      const managerProjects = allProjects.filter((project) => {
+        return (
+          project.project_manager_id === parseInt(managerId) ||
+          project.manager_id === parseInt(managerId) ||
+          project.assigned_to === parseInt(managerId) ||
+          project.owner_id === parseInt(managerId) ||
+          project.project_manager === manager.name ||
+          project.manager === manager.name ||
+          (project.project_manager_email && project.project_manager_email === manager.email)
+        );
+      });
+
+      const managerTasks = allTasks.filter((task) => {
+        return (
+          task.assigned_to === parseInt(managerId) ||
+          task.project_manager_id === parseInt(managerId) ||
+          task.manager_id === parseInt(managerId) ||
+          task.owner_id === parseInt(managerId) ||
+          task.assignee_name === manager.name ||
+          managerProjects.some((p) => p.id === task.project_id)
+        );
+      });
+
+      const managerTenders = allTenders.filter((tender) => {
+        return (
+          tender.project_manager_id === parseInt(managerId) ||
+          tender.manager_id === parseInt(managerId) ||
+          tender.assigned_to === parseInt(managerId) ||
+          tender.owner_id === parseInt(managerId) ||
+          tender.project_manager === manager.name ||
+          tender.manager === manager.name
+        );
+      });
+
+      const managerEvents = allEvents.filter((event) => {
+        return (
+          event.project_manager_id === parseInt(managerId) ||
+          event.manager_id === parseInt(managerId) ||
+          event.assigned_to === parseInt(managerId) ||
+          event.owner_id === parseInt(managerId) ||
+          event.project_manager === manager.name ||
+          event.manager === manager.name ||
+          managerProjects.some((p) => p.id === event.project_id)
+        );
+      });
+
+      const managerNotifications = allNotifications.filter((notification) => {
+        return (
+          notification.user_id === parseInt(managerId) ||
+          notification.recipient_id === parseInt(managerId) ||
+          notification.recipient_email === manager.email
+        );
+      });
+
+      const relevantCalendarEvents = allCalendarEvents.filter((event) => {
+        return (
+          event.project_manager_id === parseInt(managerId) ||
+          event.manager_id === parseInt(managerId) ||
+          event.assigned_to === parseInt(managerId) ||
+          event.organizer === manager.name ||
+          managerProjects.some((p) => p.id === event.project_id)
+        );
+      });
+
+      // Enhanced team filtering - find team members under this manager
+      const managerTeamMembers = allTeamMembers.filter((member) => {
+        return (
+          member.manager_id === parseInt(managerId) ||
+          member.supervisor_id === parseInt(managerId) ||
+          member.project_manager_id === parseInt(managerId) ||
+          managerProjects.some((p) => p.id === member.project_id)
+        );
+      });
+
+      const managerSupervisors = allSupervisors.filter((supervisor) => {
+        return (
+          supervisor.manager_id === parseInt(managerId) ||
+          supervisor.reports_to === parseInt(managerId) ||
+          managerProjects.some((p) => p.id === supervisor.project_id)
+        );
+      });
+
+      const managerSiteManagers = allSiteManagers.filter((siteManager) => {
+        return (
+          siteManager.manager_id === parseInt(managerId) ||
+          siteManager.reports_to === parseInt(managerId) ||
+          managerProjects.some((p) => p.id === siteManager.project_id)
+        );
+      });
 
       // Process projects with comprehensive details
       const processedProjects = managerProjects.map((project) => ({
@@ -489,35 +502,14 @@ const useProjectManagerData = (managerId) => {
         title: project.title || project.name || "Untitled Project",
         description: project.description || "",
         status: project.status || "planning",
-        progress: Math.max(
-          0,
-          Math.min(
-            100,
-            parseFloat(project.progress_percentage || project.progress || 0)
-          )
-        ),
+        progress: Math.max(0, Math.min(100, parseFloat(project.progress_percentage || project.progress || 0))),
         budget: parseFloat(project.budget || 0),
-        spent: parseFloat(
-          project.spent ||
-            project.budget_spent ||
-            (project.budget * project.progress) / 100 ||
-            0
-        ),
-        remaining:
-          parseFloat(project.budget || 0) -
-          parseFloat(
-            project.spent ||
-              project.budget_spent ||
-              (project.budget * project.progress) / 100 ||
-              0
-          ),
-        startDate:
-          project.start_date || project.created_at || new Date().toISOString(),
-        endDate: project.end_date || project.deadline || null,
-        location: project.location || "Location TBD",
-        teamSize: parseInt(
-          project.team_size || Math.floor(Math.random() * 20) + 5
-        ),
+        spent: parseFloat(project.spent || project.budget_spent || (project.budget * (project.progress || 0)) / 100 || 0),
+        remaining: parseFloat(project.budget || 0) - parseFloat(project.spent || project.budget_spent || (project.budget * (project.progress || 0)) / 100 || 0),
+        startDate: project.start_date || project.created_at || new Date().toISOString(),
+        endDate: project.end_date || project.deadline || project.expected_completion || null,
+        location: project.location || project.site_location || "Location TBD",
+        teamSize: parseInt(project.team_size || Math.floor(Math.random() * 20) + 5),
         client: project.client || project.client_name || "Internal Project",
         category: project.category || project.type || "Construction",
         priority: project.priority || "medium",
@@ -537,18 +529,14 @@ const useProjectManagerData = (managerId) => {
         status: task.status || "pending",
         priority: task.priority || "medium",
         dueDate: task.due_date || task.deadline || new Date().toISOString(),
-        startDate:
-          task.start_date || task.created_at || new Date().toISOString(),
+        startDate: task.start_date || task.created_at || new Date().toISOString(),
         completedDate: task.completed_date || task.completed_at || null,
-        estimatedHours: parseFloat(
-          task.estimated_hours || task.estimated_time || 0
-        ),
+        estimatedHours: parseFloat(task.estimated_hours || task.estimated_time || 0),
         actualHours: parseFloat(task.actual_hours || task.actual_time || 0),
-        progress: Math.max(0, Math.min(100, parseFloat(task.progress || 0))),
+        progress: Math.max(0, Math.min(100, parseFloat(task.progress || task.completion_percentage || 0))),
         projectId: task.project_id,
-        projectName:
-          managerProjects.find((p) => p.id === task.project_id)?.title ||
-          "Unknown Project",
+        projectName: managerProjects.find((p) => p.id === task.project_id)?.title || task.project_name || "Unknown Project",
+        assigneeName: task.assignee_name || task.assigned_to_name || "Unknown",
       }));
 
       // Process tenders with comprehensive details
@@ -557,11 +545,12 @@ const useProjectManagerData = (managerId) => {
         title: tender.title || tender.name || "Untitled Tender",
         description: tender.description || "",
         status: tender.status || "draft",
-        budget: parseFloat(tender.budget_estimate || tender.budget || 0),
-        deadline: tender.deadline || tender.due_date || null,
+        budget: parseFloat(tender.budget_estimate || tender.budget || tender.value || 0),
+        deadline: tender.deadline || tender.due_date || tender.submission_deadline || null,
         client: tender.client || tender.client_name || "",
         category: tender.category || tender.type || "Construction",
         winProbability: parseFloat(tender.win_probability || 50),
+        biddersCount: tender.bidders_count || 0,
       }));
 
       // Process events with detailed information
@@ -574,135 +563,115 @@ const useProjectManagerData = (managerId) => {
         type: event.type || "meeting",
         location: event.location || "TBD",
         projectId: event.project_id,
-        projectName:
-          managerProjects.find((p) => p.id === event.project_id)?.title || null,
+        projectName: managerProjects.find((p) => p.id === event.project_id)?.title || event.project_name || null,
       }));
 
       // Calculate comprehensive statistics
       const now = new Date();
-
       const statistics = {
+        // Projects
         totalProjects: processedProjects.length,
-        activeProjects: processedProjects.filter((p) =>
-          ["active", "in_progress"].includes(p.status)
-        ).length,
-        completedProjects: processedProjects.filter(
-          (p) => p.status === "completed"
-        ).length,
+        activeProjects: processedProjects.filter((p) => ["active", "in_progress"].includes(p.status)).length,
+        completedProjects: processedProjects.filter((p) => p.status === "completed").length,
+        planningProjects: processedProjects.filter((p) => p.status === "planning").length,
+        onHoldProjects: processedProjects.filter((p) => p.status === "on_hold").length,
+        
+        // Budget
         totalBudget: processedProjects.reduce((sum, p) => sum + p.budget, 0),
         totalSpent: processedProjects.reduce((sum, p) => sum + p.spent, 0),
-        avgBudgetUtilization:
-          processedProjects.length > 0
-            ? processedProjects.reduce(
-                (sum, p) => sum + ((p.spent / p.budget) * 100 || 0),
-                0
-              ) / processedProjects.length
-            : 0,
+        totalRemaining: processedProjects.reduce((sum, p) => sum + p.remaining, 0),
+        avgBudgetUtilization: processedProjects.length > 0 ? processedProjects.reduce((sum, p) => sum + ((p.spent / (p.budget || 1)) * 100 || 0), 0) / processedProjects.length : 0,
+        
+        // Tasks
         totalTasks: processedTasks.length,
-        completedTasks: processedTasks.filter((t) => t.status === "completed")
-          .length,
-        pendingTasks: processedTasks.filter((t) => t.status === "pending")
-          .length,
-        inProgressTasks: processedTasks.filter(
-          (t) => t.status === "in_progress"
-        ).length,
-        overdueTasks: processedTasks.filter(
-          (t) => new Date(t.dueDate) < now && t.status !== "completed"
-        ).length,
-        avgTaskCompletion:
-          processedTasks.length > 0
-            ? processedTasks.reduce((sum, t) => sum + t.progress, 0) /
-              processedTasks.length
-            : 0,
+        completedTasks: processedTasks.filter((t) => t.status === "completed").length,
+        pendingTasks: processedTasks.filter((t) => t.status === "pending").length,
+        inProgressTasks: processedTasks.filter((t) => t.status === "in_progress").length,
+        overdueTasks: processedTasks.filter((t) => new Date(t.dueDate) < now && t.status !== "completed").length,
+        avgTaskCompletion: processedTasks.length > 0 ? processedTasks.reduce((sum, t) => sum + t.progress, 0) / processedTasks.length : 0,
+        
+        // Tenders
         totalTenders: processedTenders.length,
-        activeTenders: processedTenders.filter((t) => t.status === "active")
-          .length,
-        avgProjectProgress:
-          processedProjects.length > 0
-            ? processedProjects.reduce((sum, p) => sum + p.progress, 0) /
-              processedProjects.length
-            : 0,
-        teamMembersManaged: processedProjects.reduce(
-          (sum, p) => sum + p.teamSize,
-          0
-        ),
-        clientSatisfactionAvg:
-          processedProjects.length > 0
-            ? processedProjects.reduce(
-                (sum, p) => sum + (p.kpis?.clientSatisfaction || 85),
-                0
-              ) / processedProjects.length
-            : 85,
-        qualityScoreAvg:
-          processedProjects.length > 0
-            ? processedProjects.reduce(
-                (sum, p) => sum + (p.kpis?.qualityScore || 85),
-                0
-              ) / processedProjects.length
-            : 85,
+        activeTenders: processedTenders.filter((t) => t.status === "active").length,
+        wonTenders: processedTenders.filter((t) => t.status === "won").length,
+        avgWinProbability: processedTenders.length > 0 ? processedTenders.reduce((sum, t) => sum + t.winProbability, 0) / processedTenders.length : 0,
+        
+        // Team
+        teamMembersManaged: managerTeamMembers.length,
+        supervisorsManaged: managerSupervisors.length,
+        siteManagersManaged: managerSiteManagers.length,
+        totalTeamSize: processedProjects.reduce((sum, p) => sum + p.teamSize, 0),
+        
+        // Performance
+        avgProjectProgress: processedProjects.length > 0 ? processedProjects.reduce((sum, p) => sum + p.progress, 0) / processedProjects.length : 0,
+        clientSatisfactionAvg: processedProjects.length > 0 ? processedProjects.reduce((sum, p) => sum + (p.kpis?.clientSatisfaction || 85), 0) / processedProjects.length : 85,
+        qualityScoreAvg: processedProjects.length > 0 ? processedProjects.reduce((sum, p) => sum + (p.kpis?.qualityScore || 85), 0) / processedProjects.length : 85,
         workloadScore: Math.min(100, processedProjects.length * 12.5),
         efficiencyScore: enhancedManager.efficiency || 88,
         performanceScore: Math.round(
-          ((processedTasks.filter((t) => t.status === "completed").length /
-            Math.max(1, processedTasks.length)) *
-            100 +
-            (processedProjects.filter((p) => p.status === "completed").length /
-              Math.max(1, processedProjects.length)) *
-              100 +
-            (enhancedManager.efficiency || 88)) /
-            3
+          ((processedTasks.filter((t) => t.status === "completed").length / Math.max(1, processedTasks.length)) * 100 +
+            (processedProjects.filter((p) => p.status === "completed").length / Math.max(1, processedProjects.length)) * 100 +
+            (enhancedManager.efficiency || 88)) / 3
         ),
-        budgetVariance: processedProjects.reduce(
-          (sum, p) => sum + (p.kpis?.budgetVariance || 0),
-          0
-        ),
+        
+        // Notifications & Events
+        unreadNotifications: managerNotifications.filter((n) => !n.read).length,
+        upcomingEvents: processedEvents.filter((e) => new Date(e.date) >= now).length,
+        todaysEvents: relevantCalendarEvents.filter((e) => new Date(e.date).toDateString() === now.toDateString()).length,
+        
+        // Variance tracking
+        budgetVariance: processedProjects.reduce((sum, p) => sum + (p.kpis?.budgetVariance || 0), 0),
+        scheduleVariance: processedProjects.reduce((sum, p) => sum + (p.kpis?.scheduleVariance || 0), 0),
       };
 
-      // Generate performance data
+      // Generate enhanced performance data
       const performanceData = {
-        weeklyHours: [
-          {
-            week: "Week 1",
-            planned: 40,
-            actual: 38,
-            efficiency: 95,
-            overtime: 0,
-          },
-          {
-            week: "Week 2",
-            planned: 40,
-            actual: 42,
-            efficiency: 88,
-            overtime: 2,
-          },
-          {
-            week: "Week 3",
-            planned: 40,
-            actual: 39,
-            efficiency: 92,
-            overtime: 0,
-          },
-          {
-            week: "Week 4",
-            planned: 40,
-            actual: 41,
-            efficiency: 90,
-            overtime: 1,
-          },
-        ],
+        weeklyHours: Array.from({ length: 4 }, (_, i) => ({
+          week: `Week ${i + 1}`,
+          planned: 40,
+          actual: 38 + Math.random() * 6,
+          efficiency: 85 + Math.random() * 15,
+          overtime: Math.floor(Math.random() * 5),
+          tasks: Math.floor(Math.random() * 10) + 5,
+        })),
+        
         projectProgress: processedProjects.slice(0, 10).map((p) => ({
           name: p.title.substring(0, 15),
           progress: p.progress,
           budget: p.budget / 1000000,
+          spent: p.spent / 1000000,
           status: p.status,
+          teamSize: p.teamSize,
         })),
+        
         budgetAnalysis: processedProjects.map((p) => ({
           name: p.title.substring(0, 12),
           budgeted: p.budget / 1000000,
           spent: p.spent / 1000000,
           remaining: p.remaining / 1000000,
+          utilization: (p.spent / (p.budget || 1)) * 100,
+        })),
+        
+        taskCompletion: Array.from({ length: 6 }, (_, i) => ({
+          month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][i],
+          completed: Math.floor(Math.random() * 20) + 10,
+          assigned: Math.floor(Math.random() * 25) + 15,
+          efficiency: 80 + Math.random() * 20,
+        })),
+        
+        teamPerformance: [
+          ...managerTeamMembers,
+          ...managerSupervisors,
+          ...managerSiteManagers
+        ].slice(0, 10).map((member) => ({
+          name: member.name || 'Unknown',
+          efficiency: 80 + Math.random() * 20,
+          tasksCompleted: Math.floor(Math.random() * 15) + 5,
+          role: member.role || member.position || 'Team Member',
         })),
       };
+
+     
 
       // Generate analytics
       const analytics = {

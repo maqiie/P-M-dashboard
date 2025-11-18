@@ -4,7 +4,7 @@ import { getToken } from "./tokenStorage";
 console.log("🚀 API FILE LOADED - Complete Upgraded Version v2.0");
 
 // Configuration
-const API_BASE_URL = "http://192.168.1.191:3001";
+const API_BASE_URL = "http://192.168.1.200:3001";
 // const API_BASE_URL = "http://127.0.0.1:3000";
 const API_TIMEOUT = 30000; // 30 seconds
 const RETRY_ATTEMPTS = 3;
@@ -2046,6 +2046,52 @@ export const fetchProjectManagers = async () => {
     console.error("❌ Failed to fetch project managers:", error);
     // Return empty array instead of throwing to prevent dashboard crash
     return [];
+  }
+};
+// ==========Activities============//
+
+// Fetch paginated & filtered activities list
+export const fetchActivities = async (params = {}) => {
+  // params can include: limit, type, page, etc.
+  try {
+    const response = await axiosInstance.get('/activities', { params });
+    return response.data; // expected: { activities: [...], pagination: {...} }
+  } catch (error) {
+    console.error("Failed to fetch activities:", error);
+    throw error;
+  }
+};
+
+// Fetch single activity by ID
+export const fetchActivityById = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/activities/${id}`);
+    return response.data; // expected: { activity: {...} }
+  } catch (error) {
+    console.error(`Failed to fetch activity ${id}:`, error);
+    throw error;
+  }
+};
+
+// Fetch activity stats (optional, if you implement stats route)
+export const fetchActivityStats = async () => {
+  try {
+    const response = await axiosInstance.get('/activities/stats');
+    return response.data; // expected: { stats: {...} }
+  } catch (error) {
+    console.error("Failed to fetch activity stats:", error);
+    throw error;
+  }
+};
+
+// Fetch recent activities (optional, if you implement recent route)
+export const fetchRecentActivities = async (limit = 10) => {
+  try {
+    const response = await axiosInstance.get('/activities/recent', { params: { limit } });
+    return response.data; // expected: { activities: [...] }
+  } catch (error) {
+    console.error("Failed to fetch recent activities:", error);
+    throw error;
   }
 };
 

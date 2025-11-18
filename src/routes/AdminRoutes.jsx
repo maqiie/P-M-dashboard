@@ -2,8 +2,6 @@
 import React from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
-// Sidebar
-import AdminSidebar from "../pages/admin/AdminSidebar";
 // Pages
 import AdminDashboard from "../components/dashboards/AdminDashboard";
 import AnalyticsPage from "../pages/admin/Analytics";
@@ -17,19 +15,15 @@ import NotificationsPage from "../pages/admin/Notifications";
 import SettingsPage from "../pages/admin/Settings";
 import Users from "../pages/admin/Users";
 import Unauthorized from "../pages/Unauthorized";
+import ProjectManagerDetails from "../pages/admin/ProjectManagerDetails";
 
 const AdminRoutes = () => {
   return (
     <Routes>
-      {/* Layout route with sidebar */}
+      {/* Layout route - NO wrapper needed since each page includes its own sidebar */}
       <Route
         element={
-          <div className="flex min-h-screen bg-gray-100">
-            <AdminSidebar />
-            <main className="flex-1 p-4 overflow-y-auto">
-              <Outlet />
-            </main>
-          </div>
+          <Outlet />
         }
       >
         <Route index element={<AdminDashboard />} />
@@ -44,6 +38,7 @@ const AdminRoutes = () => {
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="users" element={<Users />} />
+        <Route path="project-manager/:managerId" element={<ProjectManagerDetails />} />
       </Route>
 
       {/* No sidebar for this route */}
