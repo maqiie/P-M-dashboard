@@ -496,17 +496,17 @@ export const tendersAPI = {
   },
 
   // Convert tender to project
-  convertToProject: async (id) => {
-    try {
-      console.log(`📋 Converting tender ${id} to project`);
-      const response = await axiosInstance.post(`/tenders/${id}/convert_to_project`);
-      console.log("✅ Tender converted to project successfully:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`❌ Failed to convert tender ${id} to project:`, error);
-      throw error;
-    }
-  },
+convertToProject: async (id, projectData = {}) => {
+  try {
+    console.log(`📋 Converting tender ${id} to project`, projectData);
+    const response = await axiosInstance.post(`/tenders/${id}/convert_to_project`, projectData);
+    console.log("✅ Tender converted to project successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ Failed to convert tender ${id} to project:`, error);
+    throw error;
+  }
+},
 
   // Update tender status
   updateStatus: async (id, status) => {

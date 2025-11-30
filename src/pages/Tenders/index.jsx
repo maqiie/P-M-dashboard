@@ -69,6 +69,15 @@ const TendersPage = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTender, setEditingTender] = useState(null);
 
+  // Convert to Project Modal state
+  const [showConvertModal, setShowConvertModal] = useState(false);
+  const [convertingTender, setConvertingTender] = useState(null);
+  const [projectDates, setProjectDates] = useState({
+    start_date: "",
+    finishing_date: "",
+    supervisor_id: ""
+  });
+
   const [newTender, setNewTender] = useState({
     title: "",
     description: "",
@@ -245,7 +254,6 @@ const TendersPage = () => {
       });
       return;
     }
-
     try {
       setActionLoadingState(tender.id, "edit", true);
       const processedData = {
@@ -271,7 +279,6 @@ const TendersPage = () => {
     if (!window.confirm("Are you sure you want to delete this tender? This action cannot be undone.")) {
       return;
     }
-
     try {
       setActionLoadingState(tenderId, "delete", true);
       await tendersAPI.delete(tenderId);
@@ -287,26 +294,70 @@ const TendersPage = () => {
     }
   };
 
-  const handleConvertToProject = async (tenderId) => {
-    if (!window.confirm("Are you sure you want to convert this tender to a project?")) {
+  // Opens the convert modal
+  const handleConvertToProject = (tender) => {
+    setConvertingTender(tender);
+    setProjectDates({
+      start_date: new Date().toISOString().split('T')[0], // Default to today
+      finishing_date: "",
+      supervisor_id: ""
+    });
+    setShowConvertModal(true);
+  };
+
+  // Actually submits the conversion with dates
+  const submitConvertToProject = async () => {
+    if (!convertingTender) return;
+    
+    if (!projectDates.finishing_date) {
+      alert("Please select a project finishing date");
+      return;
+    }
+
+    if (!projectDates.start_date) {
+      alert("Please select a project start date");
+      return;
+    }
+
+    // Validate dates
+    if (new Date(projectDates.finishing_date) <= new Date(projectDates.start_date)) {
+      alert("Finishing date must be after the start date");
       return;
     }
 
     try {
-      setActionLoadingState(tenderId, "convert", true);
-      const result = await tendersAPI.convertToProject(tenderId);
+      setActionLoadingState(convertingTender.id, "convert", true);
+      
+      const result = await tendersAPI.convertToProject(convertingTender.id, {
+        start_date: projectDates.start_date,
+        finishing_date: projectDates.finishing_date,
+        supervisor_id: projectDates.supervisor_id || null
+      });
+      
       setTenders((prev) =>
         prev.map((t) =>
-          t.id === tenderId ? { ...t, status: "converted", project_id: result.project?.id } : t
+          t.id === convertingTender.id 
+            ? { ...t, status: "converted", project_id: result.project?.id } 
+            : t
         )
       );
+      
       console.log("Tender converted to project successfully:", result);
       alert(`Tender converted to project successfully! Project ID: ${result.project?.id}`);
+      
+      // Close modal and reset
+      setShowConvertModal(false);
+      setConvertingTender(null);
+      setProjectDates({ start_date: "", finishing_date: "", supervisor_id: "" });
+      
+      // Refresh to update the list
+      await refreshTenders();
+      
     } catch (error) {
       console.error("Failed to convert tender:", error);
       alert("Failed to convert tender to project. Please try again.");
     } finally {
-      setActionLoadingState(tenderId, "convert", false);
+      setActionLoadingState(convertingTender.id, "convert", false);
     }
   };
 
@@ -350,10 +401,8 @@ const TendersPage = () => {
       tender.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tender.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tender.category?.toLowerCase().includes(searchTerm.toLowerCase());
-
     const matchesStatus = statusFilter === "all" || tender.status === statusFilter;
     const matchesPriority = priorityFilter === "all" || tender.priority === priorityFilter;
-
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
@@ -404,15 +453,22 @@ const TendersPage = () => {
     return days;
   };
 
+  const calculateProjectDuration = () => {
+    if (!projectDates.start_date || !projectDates.finishing_date) return null;
+    const days = Math.ceil(
+      (new Date(projectDates.finishing_date) - new Date(projectDates.start_date)) / 
+      (1000 * 60 * 60 * 24)
+    );
+    return days;
+  };
+
   // Edit form component
   const EditForm = ({ tender, onSave, onCancel }) => {
     const [formData, setFormData] = useState(tender);
-
     const handleSubmit = (e) => {
       e.preventDefault();
       onSave(formData);
     };
-
     return (
       <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -422,7 +478,6 @@ const TendersPage = () => {
             </div>
             <h3 className="text-lg font-bold text-gray-900">Edit Tender</h3>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Title</label>
@@ -434,7 +489,6 @@ const TendersPage = () => {
                 required
               />
             </div>
-
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Budget</label>
               <input
@@ -444,7 +498,6 @@ const TendersPage = () => {
                 className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Priority</label>
               <select
@@ -457,7 +510,6 @@ const TendersPage = () => {
                 <option value="high">High</option>
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Deadline</label>
               <input
@@ -468,7 +520,6 @@ const TendersPage = () => {
               />
             </div>
           </div>
-
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
             <textarea
@@ -479,7 +530,6 @@ const TendersPage = () => {
               required
             />
           </div>
-
           <div className="flex items-center space-x-4">
             <button
               type="submit"
@@ -546,7 +596,6 @@ const TendersPage = () => {
                 </span>
               </div>
             </div>
-
             <div className="flex items-center gap-2 ml-4">
               <button
                 onClick={() => handleEditTender(tender)}
@@ -584,7 +633,6 @@ const TendersPage = () => {
                 <p className="font-black text-gray-900 text-sm truncate">{formatCurrency(tender.budget_estimate)}</p>
               </div>
             </div>
-
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
                 <MapPin className="h-5 w-5 text-blue-600" />
@@ -594,7 +642,6 @@ const TendersPage = () => {
                 <p className="font-black text-gray-900 text-sm truncate">{tender.location || "TBD"}</p>
               </div>
             </div>
-
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Calendar className="h-5 w-5 text-orange-600" />
@@ -609,7 +656,6 @@ const TendersPage = () => {
                 )}
               </div>
             </div>
-
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
                 <User className="h-5 w-5 text-purple-600" />
@@ -630,7 +676,6 @@ const TendersPage = () => {
               <Eye className="h-4 w-4 mr-2" />
               View
             </button>
-
             {tender.status === "draft" && (
               <button
                 onClick={() => handlePublishDraft(tender.id)}
@@ -645,10 +690,9 @@ const TendersPage = () => {
                 Publish
               </button>
             )}
-
             {tender.status === "active" && (
               <button
-                onClick={() => handleConvertToProject(tender.id)}
+                onClick={() => handleConvertToProject(tender)}
                 disabled={actionLoading[`${tender.id}_convert`]}
                 className="flex-1 flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 rounded-xl hover:from-purple-100 hover:to-purple-200 transition-all font-bold text-sm transform hover:scale-105 disabled:opacity-50"
               >
@@ -703,7 +747,6 @@ const TendersPage = () => {
                 </div>
               </div>
             </div>
-
             <div className="flex items-center gap-3">
               <button
                 onClick={refreshTenders}
@@ -739,7 +782,7 @@ const TendersPage = () => {
           </div>
         )}
 
-        {/* Create Form - to be implemented */}
+        {/* Create Form */}
         {showCreateForm && (
           <div className="mb-8 bg-white rounded-3xl border-2 border-gray-200 shadow-xl overflow-hidden">
             <div className="p-6 lg:p-8 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200">
@@ -753,7 +796,6 @@ const TendersPage = () => {
                 </button>
               </div>
             </div>
-
             <form onSubmit={handleCreateTender} className="p-6 lg:p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -767,7 +809,6 @@ const TendersPage = () => {
                     placeholder="Enter tender title"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
                   <select
@@ -782,7 +823,6 @@ const TendersPage = () => {
                     <option value="Maintenance">Maintenance</option>
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Budget</label>
                   <input
@@ -793,7 +833,6 @@ const TendersPage = () => {
                     placeholder="0"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Deadline</label>
                   <input
@@ -804,7 +843,6 @@ const TendersPage = () => {
                   />
                 </div>
               </div>
-
               <div className="mb-6">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Description *</label>
                 <textarea
@@ -816,7 +854,6 @@ const TendersPage = () => {
                   placeholder="Enter tender description"
                 />
               </div>
-
               <div className="flex gap-4">
                 <button
                   type="button"
@@ -889,7 +926,6 @@ const TendersPage = () => {
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -900,7 +936,6 @@ const TendersPage = () => {
                 <option value="draft">Draft</option>
                 <option value="completed">Completed</option>
               </select>
-
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
@@ -942,6 +977,146 @@ const TendersPage = () => {
           </div>
         )}
 
+        {/* Convert to Project Modal */}
+        {showConvertModal && convertingTender && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+              <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-2xl font-black text-gray-900 mb-1">Convert to Project</h2>
+                    <p className="text-sm text-gray-600">Set project dates for "{convertingTender.title}"</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowConvertModal(false);
+                      setConvertingTender(null);
+                    }}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Info about tender deadline */}
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-bold text-amber-800">Tender Submission Deadline</p>
+                      <p className="text-sm text-amber-700">
+                        {convertingTender.deadline 
+                          ? new Date(convertingTender.deadline).toLocaleDateString() 
+                          : "No deadline set"}
+                      </p>
+                      <p className="text-xs text-amber-600 mt-1">
+                        This is when tender submissions are due, not the project completion date.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Project Start Date */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <Calendar className="h-4 w-4 inline mr-2" />
+                    Project Start Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={projectDates.start_date}
+                    onChange={(e) => setProjectDates({ ...projectDates, start_date: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">When will the project work begin?</p>
+                </div>
+
+                {/* Project Finishing Date */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <Target className="h-4 w-4 inline mr-2" />
+                    Project Finishing Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={projectDates.finishing_date}
+                    onChange={(e) => setProjectDates({ ...projectDates, finishing_date: e.target.value })}
+                    min={projectDates.start_date}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">When should the project be completed?</p>
+                </div>
+
+                {/* Estimated Duration Display */}
+                {calculateProjectDuration() !== null && calculateProjectDuration() > 0 && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm font-bold text-blue-800">Project Duration</p>
+                        <p className="text-sm text-blue-700">
+                          {calculateProjectDuration()} days
+                          {calculateProjectDuration() > 30 && (
+                            <span className="ml-1">
+                              (~{Math.round(calculateProjectDuration() / 30)} months)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Budget Info */}
+                {convertingTender.budget_estimate > 0 && (
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="text-sm font-bold text-green-800">Budget from Tender</p>
+                        <p className="text-sm text-green-700">
+                          {formatCurrency(convertingTender.budget_estimate)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setShowConvertModal(false);
+                      setConvertingTender(null);
+                    }}
+                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitConvertToProject}
+                    disabled={!projectDates.finishing_date || !projectDates.start_date || actionLoading[`${convertingTender.id}_convert`]}
+                    className="flex-1 flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:shadow-xl transition-all font-bold disabled:opacity-50"
+                  >
+                    {actionLoading[`${convertingTender.id}_convert`] ? (
+                      <RefreshCw className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <ArrowRight className="h-5 w-5 mr-2" />
+                        Convert to Project
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Detail Modal */}
         {showDetailModal && selectedTender && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -968,7 +1143,6 @@ const TendersPage = () => {
                   </button>
                 </div>
               </div>
-
               <div className="p-6 lg:p-8 space-y-6">
                 {selectedTender.description && (
                   <div>
@@ -976,7 +1150,6 @@ const TendersPage = () => {
                     <p className="text-gray-600">{selectedTender.description}</p>
                   </div>
                 )}
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <div className="flex items-center gap-3 mb-2">
@@ -985,7 +1158,6 @@ const TendersPage = () => {
                     </div>
                     <p className="text-gray-900 font-black">{formatCurrency(selectedTender.budget_estimate)}</p>
                   </div>
-
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <div className="flex items-center gap-3 mb-2">
                       <Calendar className="h-5 w-5 text-orange-600" />
@@ -995,7 +1167,6 @@ const TendersPage = () => {
                       {selectedTender.deadline ? new Date(selectedTender.deadline).toLocaleDateString() : "No deadline"}
                     </p>
                   </div>
-
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <div className="flex items-center gap-3 mb-2">
                       <MapPin className="h-5 w-5 text-blue-600" />
@@ -1003,7 +1174,6 @@ const TendersPage = () => {
                     </div>
                     <p className="text-gray-900 font-black">{selectedTender.location || "TBD"}</p>
                   </div>
-
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <div className="flex items-center gap-3 mb-2">
                       <User className="h-5 w-5 text-purple-600" />
@@ -1012,17 +1182,34 @@ const TendersPage = () => {
                     <p className="text-gray-900 font-black">{selectedTender.responsible || "TBD"}</p>
                   </div>
                 </div>
-
                 <div className="flex gap-4 pt-6 border-t border-gray-200">
                   <button
-                    onClick={() => handleEditTender(selectedTender)}
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      handleEditTender(selectedTender);
+                    }}
                     className="flex-1 px-6 py-3 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-all font-bold"
                   >
                     <Edit className="h-5 w-5 inline mr-2" />
                     Edit
                   </button>
+                  {selectedTender.status === "active" && (
+                    <button
+                      onClick={() => {
+                        setShowDetailModal(false);
+                        handleConvertToProject(selectedTender);
+                      }}
+                      className="flex-1 px-6 py-3 bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 transition-all font-bold"
+                    >
+                      <ArrowRight className="h-5 w-5 inline mr-2" />
+                      Convert
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleDeleteTender(selectedTender.id)}
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      handleDeleteTender(selectedTender.id);
+                    }}
                     className="flex-1 px-6 py-3 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-all font-bold"
                   >
                     <Trash2 className="h-5 w-5 inline mr-2" />
