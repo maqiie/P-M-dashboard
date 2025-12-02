@@ -2,11 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Search, Settings, Calendar, Users, Building2, 
-  CheckSquare, BarChart3, FileText, Home, X, Palette,
-  Bell, Shield, Target, Activity, Briefcase, Globe,
-  Command, Sparkles, ChevronRight, Plus, Star, Brush,
-  PaintBucket, Hammer, HardHat, Menu, LogOut, ArrowLeft,
-  ChevronLeft, Minimize2, Maximize2
+  CheckSquare, BarChart3, FileText, Home, X,
+  Bell, History, Menu, LogOut,
+  Minimize2, Maximize2
 } from 'lucide-react';
 // Import your API functions
 import { 
@@ -14,7 +12,8 @@ import {
   tasksAPI, 
   tendersAPI, 
   notificationsAPI, 
-  authAPI 
+  authAPI,
+  meetingsAPI
 } from '../../services/api';
 
 const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
@@ -33,7 +32,8 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
     projects: 0,
     tasks: 0,
     tenders: 0,
-    notifications: 0
+    notifications: 0,
+    meetings: 0
   });
   const [user, setUser] = useState({
     name: 'Loading...',
@@ -76,12 +76,14 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
           tasksStats,
           tendersStats,
           notificationCount,
+          meetingsData,
           userData
         ] = await Promise.allSettled([
           projectsAPI.getAll(),
           tasksAPI.getStatistics().catch(() => ({ statistics: { total: 0 } })),
           tendersAPI.getStatistics().catch(() => ({ statistics: { total: 0 } })),
           notificationsAPI.getUnreadCount().catch(() => ({ count: 0 })),
+          meetingsAPI.getAll({ filter: 'upcoming' }).catch(() => ({ meetings: [] })),
           authAPI.getUserDetails().catch(() => ({ data: null }))
         ]);
 
@@ -118,6 +120,15 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
                       notificationCount.value?.data?.count || 0;
         }
 
+        // Process meetings count (upcoming meetings)
+        let meetingCount = 0;
+        if (meetingsData.status === 'fulfilled') {
+          const meetings = Array.isArray(meetingsData.value) 
+            ? meetingsData.value 
+            : meetingsData.value?.meetings || meetingsData.value?.data || [];
+          meetingCount = meetings.length;
+        }
+
         // Process user data
         let userInfo = {
           name: 'Admin User',
@@ -139,7 +150,8 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
           projects: projectCount,
           tasks: taskCount,
           tenders: tenderCount,
-          notifications: notifCount
+          notifications: notifCount,
+          meetings: meetingCount
         });
         setUser(userInfo);
       } catch (error) {
@@ -170,7 +182,10 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
     if (path.includes('/admin/tasks')) return 'tasks';
     if (path.includes('/admin/tenders')) return 'tenders';
     if (path.includes('/admin/team')) return 'team';
+    if (path.includes('/admin/meetings')) return 'meetings';
     if (path.includes('/admin/calendar')) return 'calendar';
+    if (path.includes('/admin/reports')) return 'reports';
+    if (path.includes('/admin/history')) return 'history';
     if (path.includes('/admin/notifications')) return 'notifications';
     if (path.includes('/admin/settings')) return 'settings';
     return 'dashboard';
@@ -222,7 +237,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
       ]
     },
     {
-      title: 'Team & Resources',
+      title: 'Team & Schedule',
       items: [
         { 
           id: 'team', 
@@ -232,12 +247,39 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
           route: '/admin/team'
         },
         { 
+          id: 'meetings', 
+          label: 'Meetings', 
+          icon: Calendar, 
+          badge: counts.meetings > 0 ? counts.meetings : null,
+          description: 'Schedule meetings',
+          route: '/admin/meetings'
+        },
+        { 
           id: 'calendar', 
           label: 'Calendar', 
           icon: Calendar, 
           description: 'Schedule events',
           route: '/admin/calendar'
-        },
+        }
+      ]
+    },
+    {
+      title: 'Analytics',
+      items: [
+        // { 
+        //   id: 'reports', 
+        //   label: 'Reports', 
+        //   icon: BarChart3, 
+        //   description: 'Analytics & stats',
+        //   route: '/admin/reports'
+        // },
+        { 
+          id: 'history', 
+          label: 'History', 
+          icon: History, 
+          description: 'Completed work',
+          route: '/admin/history'
+        }
       ]
     },
     {
@@ -310,7 +352,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, onCollapseChange, theme }) => {
         onClick={handleClose}
       />
       
-      {/* Sidebar Container - Uses relative positioning on desktop to push content */}
+      {/* Sidebar Container */}
       <div 
         className={`
           h-full flex-shrink-0 transition-all duration-300 ease-in-out

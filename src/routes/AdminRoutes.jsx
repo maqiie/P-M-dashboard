@@ -10,7 +10,9 @@ import TasksPage from "../pages/admin/Tasks";
 import TeamPage from "../pages/admin/Team";
 import CalendarPage from "../pages/admin/calender";
 import TendersPage from "../pages/admin/Tenders";
+import MeetingsPage from "../pages/admin/MeetingsPage";
 import ReportsPage from "../pages/admin/Reports";
+import HistoryPage from "../pages/admin/HistoryPage";
 import NotificationsPage from "../pages/admin/Notifications";
 import SettingsPage from "../pages/admin/Settings";
 import Users from "../pages/admin/Users";
@@ -33,8 +35,10 @@ const AdminRoutes = () => {
         <Route path="tasks" element={<TasksPage />} />
         <Route path="tenders" element={<TendersPage />} />
         <Route path="team" element={<TeamPage />} />
+        <Route path="meetings" element={<MeetingsPage />} />
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="history" element={<HistoryPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="users" element={<Users />} />

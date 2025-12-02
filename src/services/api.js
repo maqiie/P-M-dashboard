@@ -4,7 +4,7 @@ import { getToken } from "./tokenStorage";
 console.log("🚀 API FILE LOADED - Complete Upgraded Version v2.0");
 
 // Configuration
-const API_BASE_URL = "http://192.168.1.200:3001";
+const API_BASE_URL = "https://p-m-backend.fly.dev";
 // const API_BASE_URL = "http://127.0.0.1:3000";
 const API_TIMEOUT = 30000; // 30 seconds
 const RETRY_ATTEMPTS = 3;
@@ -2108,8 +2108,62 @@ export const fetchRecentActivities = async (limit = 10) => {
 
 
 
+// ========== MEETINGS API ========== //
+export const meetingsAPI = {
+  getAll: (params = {}) => axiosInstance.get('/meetings', { params }),
+  getById: (id) => axiosInstance.get(`/meetings/${id}`),
+  create: (data) => axiosInstance.post('/meetings', { meeting: data }),
+  update: (id, data) => axiosInstance.put(`/meetings/${id}`, { meeting: data }),
+  delete: (id) => axiosInstance.delete(`/meetings/${id}`),
+  respond: (id, response) => axiosInstance.post(`/meetings/${id}/respond`, { response })
+};
 
 
+// ========== REPORTS API ========== //
+export const reportsAPI = {
+  getOverview: (startDate, endDate) =>
+    axiosInstance.get('/reports/overview', {
+      params: { start_date: startDate, end_date: endDate }
+    }),
+
+  getProjects: (startDate, endDate) =>
+    axiosInstance.get('/reports/projects', {
+      params: { start_date: startDate, end_date: endDate }
+    }),
+
+  getTasks: (startDate, endDate) =>
+    axiosInstance.get('/reports/tasks', {
+      params: { start_date: startDate, end_date: endDate }
+    }),
+
+  getUsers: (startDate, endDate) =>
+    axiosInstance.get('/reports/users', {
+      params: { start_date: startDate, end_date: endDate }
+    })
+};
+
+
+// ========== HISTORY API ========== //
+export const historyAPI = {
+  getAll: () => axiosInstance.get('/history'),
+  
+  getTimeline: (startDate, endDate) =>
+    axiosInstance.get('/history/timeline', {
+      params: { start_date: startDate, end_date: endDate }
+    })
+};
+
+
+// ========== USERS API ========== //
+export const usersAPI = {
+  getAll: () => axiosInstance.get('/users')
+};
+
+
+// ========== PROJECT MANAGERS API (the one failing 401) ========== //
+export const projectManagersAPI = {
+  list: () => axiosInstance.get('/project_managers/list')
+};
 
 // ========== LEGACY EXPORTS FOR BACKWARD COMPATIBILITY ========== //
 export const login = authAPI.login;
