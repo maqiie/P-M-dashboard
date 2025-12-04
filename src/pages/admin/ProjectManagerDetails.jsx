@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -11,18 +12,13 @@ import {
   DollarSign,
   Users,
   CheckSquare,
-  Star,
-  Award,
   TrendingUp,
   AlertTriangle,
-  Target,
   Briefcase,
-  Clock,
-  FileText,
-  Activity,
   Menu,
   HardHat,
   Wrench,
+  FileText,
 } from "lucide-react";
 import {
   fetchProjectManagers,
@@ -45,11 +41,15 @@ const formatCurrency = (amount) => {
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  try {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return dateString; // Return raw string if date parsing fails
+  }
 };
 
 // Data Hook - Updated to handle all member types
@@ -75,7 +75,7 @@ const useTeamMemberData = (memberId, memberType) => {
       setLoading(true);
       setError(null);
 
-      // Fetch team member data based on type
+      // --- 1. Fetch team member data based on type ---
       let memberData = null;
       let allMembers = [];
 
@@ -96,7 +96,7 @@ const useTeamMemberData = (memberId, memberType) => {
         throw new Error(`Team member with ID ${memberId} not found`);
       }
 
-      // Fetch projects, tasks, and tenders
+      // --- 2. Fetch related entity data ---
       const [projectsResult, tasksResult, tendersResult] = await Promise.allSettled([
         projectsAPI.getAll(),
         tasksAPI.getAll(),
@@ -112,7 +112,7 @@ const useTeamMemberData = (memberId, memberType) => {
       const allTasks = Array.isArray(tasksData.tasks) ? tasksData.tasks : Array.isArray(tasksData) ? tasksData : [];
       const allTenders = Array.isArray(tendersData.tenders) ? tendersData.tenders : Array.isArray(tendersData) ? tendersData : [];
 
-      // Determine role title and color based on member type
+      // Determine role configuration
       const roleConfig = {
         manager: {
           title: "Project Manager",
@@ -136,57 +136,55 @@ const useTeamMemberData = (memberId, memberType) => {
 
       const config = roleConfig[memberType] || roleConfig.manager;
 
-      // Enhanced member data
+      // --- 3. Enhanced member data (using API data with necessary fallbacks) ---
       const enhancedMember = {
         id: memberData.id,
         name: memberData.name || "Unknown",
         email: memberData.email || "no-email@example.com",
-        phone: memberData.phone || "+254 700 000 000",
+        phone: memberData.phone || "N/A",
         position: memberData.position || memberData.role || config.title,
         department: memberData.department || config.department,
-        joinDate: memberData.join_date || memberData.created_at || "2022-01-01",
+        joinDate: memberData.join_date || memberData.created_at || "N/A",
         avatar: memberData.name ? memberData.name.split(" ").map((n) => n[0]).join("").toUpperCase() : "U",
         location: memberData.location || memberData.current_site || "Head Office",
-        numberOfProjects: memberData.number_of_projects || 0,
         memberType: memberType,
         colorScheme: config.color,
         icon: config.icon,
-        // Additional fields for supervisors/site managers
         teamsManaged: memberData.teams_managed || 0,
         workersManaged: memberData.workers_managed || 0,
         currentSite: memberData.current_site || "Multiple Sites",
       };
 
-      // Filter data for this member
-      const memberProjects = allProjects.filter((project) => 
+      // --- 4. Filter data for this member ---
+      const memberProjects = allProjects.filter((project) =>
+        // Match based on ID (preferred) or Name (fallback)
         project.project_manager_id === parseInt(memberId) ||
         project.manager_id === parseInt(memberId) ||
         project.supervisor_id === parseInt(memberId) ||
         project.site_manager_id === parseInt(memberId) ||
-        project.project_manager === memberData.name ||
-        project.supervisor === memberData.name ||
-        project.site_manager === memberData.name
+        project.project_manager === enhancedMember.name ||
+        project.supervisor === enhancedMember.name ||
+        project.site_manager === enhancedMember.name
       );
 
       const memberTasks = allTasks.filter((task) =>
         task.assigned_to === parseInt(memberId) ||
         task.assignee_id === parseInt(memberId) ||
-        task.project_manager_id === parseInt(memberId) ||
-        task.supervisor_id === parseInt(memberId) ||
+        // Also include tasks in projects this member manages/supervises
         memberProjects.some((p) => p.id === task.project_id)
       );
 
       const memberTenders = allTenders.filter((tender) =>
         tender.project_manager_id === parseInt(memberId) ||
         tender.manager_id === parseInt(memberId) ||
-        tender.project_manager === memberData.name
+        tender.project_manager === enhancedMember.name
       );
 
       // Process projects
       const processedProjects = memberProjects.map((project) => ({
         id: project.id,
         title: project.title || project.name || "Untitled Project",
-        status: project.status || "planning",
+        status: (project.status || "planning").toLowerCase(),
         progress: Math.max(0, Math.min(100, parseFloat(project.progress_percentage || project.progress || 0))),
         budget: parseFloat(project.budget || 0),
         startDate: project.start_date || project.created_at,
@@ -196,10 +194,10 @@ const useTeamMemberData = (memberId, memberType) => {
       }));
 
       // Process tasks
-      const processedTasks = allTasks.map((task) => ({
+      const processedTasks = memberTasks.map((task) => ({
         id: task.id,
         title: task.title || task.name || "Untitled Task",
-        status: task.status || "pending",
+        status: (task.status || "pending").toLowerCase(),
         priority: task.priority || "medium",
         dueDate: task.due_date || task.deadline,
         progress: Math.max(0, Math.min(100, parseFloat(task.progress || 0))),
@@ -210,13 +208,13 @@ const useTeamMemberData = (memberId, memberType) => {
       const processedTenders = memberTenders.map((tender) => ({
         id: tender.id,
         title: tender.title || tender.name || "Untitled Tender",
-        status: tender.status || "draft",
+        status: (tender.status || "draft").toLowerCase(),
         budget: parseFloat(tender.budget_estimate || tender.budget || tender.value || 0),
         deadline: tender.deadline || tender.submission_deadline,
         client: tender.client || tender.client_name || "",
       }));
 
-      // Calculate statistics
+      // --- 5. Calculate statistics ---
       const statistics = {
         totalProjects: processedProjects.length,
         activeProjects: processedProjects.filter((p) => ["active", "in_progress"].includes(p.status)).length,
@@ -231,8 +229,8 @@ const useTeamMemberData = (memberId, memberType) => {
         }).length,
         totalTenders: processedTenders.length,
         activeTenders: processedTenders.filter((t) => t.status === "active").length,
-        avgProgress: processedProjects.length > 0 
-          ? processedProjects.reduce((sum, p) => sum + p.progress, 0) / processedProjects.length 
+        avgProgress: processedProjects.length > 0
+          ? processedProjects.reduce((sum, p) => sum + p.progress, 0) / processedProjects.length
           : 0,
         teamsManaged: enhancedMember.teamsManaged,
         workersManaged: enhancedMember.workersManaged,
@@ -264,13 +262,13 @@ const useTeamMemberData = (memberId, memberType) => {
 const ProjectManagerDetails = () => {
   const { managerId, supervisorId, siteManagerId } = useParams();
   const navigate = useNavigate();
-  
+
   // Determine which type of member we're viewing
   const memberId = managerId || supervisorId || siteManagerId;
   const memberType = managerId ? "manager" : supervisorId ? "supervisor" : "siteManager";
-  
+
   const { data, loading, error, refetch } = useTeamMemberData(memberId, memberType);
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
@@ -325,7 +323,7 @@ const ProjectManagerDetails = () => {
   if (loading) {
     return (
       <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
-        <AdminSidebar 
+        <AdminSidebar
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
           onCollapseChange={handleCollapseChange}
@@ -342,10 +340,10 @@ const ProjectManagerDetails = () => {
   }
 
   // Error State
-  if (error) {
+  if (error || !data.member) {
     return (
       <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
-        <AdminSidebar 
+        <AdminSidebar
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
           onCollapseChange={handleCollapseChange}
@@ -354,16 +352,16 @@ const ProjectManagerDetails = () => {
           <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center">
             <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-900 mb-2">Error Loading Data</h3>
-            <p className="text-slate-600 mb-6">{error}</p>
+            <p className="text-slate-600 mb-6">{error || "Member data is missing or corrupted."}</p>
             <div className="space-y-3">
-              <button 
+              <button
                 onClick={refetch}
                 className="w-full px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all font-semibold"
               >
                 <RefreshCw className="h-5 w-5 inline mr-2" />
                 Retry
               </button>
-              <button 
+              <button
                 onClick={() => navigate("/admin/dashboard")}
                 className="w-full px-6 py-3 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-all font-semibold"
               >
@@ -378,12 +376,12 @@ const ProjectManagerDetails = () => {
   }
 
   const { member, projects, tasks, tenders, statistics } = data;
-  const colorScheme = getColorScheme(member?.colorScheme || "blue");
-  const MemberIcon = member?.icon || Briefcase;
+  const colorScheme = getColorScheme(member.colorScheme);
+  const MemberIcon = member.icon;
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
-      <AdminSidebar 
+      <AdminSidebar
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
         onCollapseChange={handleCollapseChange}
@@ -405,7 +403,7 @@ const ProjectManagerDetails = () => {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => navigate("/admin/dashboard")}
+                onClick={() => navigate(-1)} // Go back to the previous list view
                 className="p-3 rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -437,7 +435,7 @@ const ProjectManagerDetails = () => {
                     <MemberIcon className={`h-5 w-5 ${colorScheme.text}`} />
                     <p className="text-lg text-slate-600">{member.position} • {member.department}</p>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="flex items-center space-x-2 text-slate-600">
                       <Mail className="h-4 w-4" />
@@ -528,7 +526,7 @@ const ProjectManagerDetails = () => {
           {/* Additional Stats for Supervisors/Site Managers */}
           {(memberType === "supervisor" || memberType === "siteManager") && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              {memberType === "supervisor" && statistics.teamsManaged > 0 && (
+              {statistics.teamsManaged > 0 && (
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <div className="p-2 rounded-lg bg-indigo-100">
@@ -539,7 +537,7 @@ const ProjectManagerDetails = () => {
                   <div className="text-sm text-slate-600">Teams Managed</div>
                 </div>
               )}
-              {memberType === "siteManager" && statistics.workersManaged > 0 && (
+              {statistics.workersManaged > 0 && (
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <div className="p-2 rounded-lg bg-teal-100">
@@ -596,7 +594,7 @@ const ProjectManagerDetails = () => {
                         <div className="text-xs text-slate-500">Progress</div>
                       </div>
                     </div>
-                    
+
                     <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden mb-3">
                       <div
                         className={`h-full bg-gradient-to-r ${colorScheme.gradient} transition-all duration-500`}
@@ -673,8 +671,8 @@ const ProjectManagerDetails = () => {
               {tenders.length > 0 ? (
                 <div className="space-y-3">
                   {tenders.slice(0, 5).map((tender) => (
-                    <div 
-                      key={tender.id} 
+                    <div
+                      key={tender.id}
                       className="p-3 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer hover:border-orange-300 transition-all"
                       onClick={() => navigate(`/admin/tenders/${tender.id}`)}
                     >
